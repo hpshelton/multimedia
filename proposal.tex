@@ -1,0 +1,60 @@
+\documentclass[12pt]{article}
+
+\usepackage{hyperref}
+
+\hypersetup{
+	colorlinks = true,
+	citecolor = black,
+	linkcolor = black,
+	urlcolor = blue,
+	filecolor = blue,
+}
+
+\setlength{\topmargin}{-1in}
+\setlength{\oddsidemargin}{0in}
+\setlength{\evensidemargin}{0in}
+\setlength{\textwidth}{6.5in}
+\setlength{\textheight}{8.5in}
+
+\newcommand{\degrees}{\ensuremath{^\circ}}
+\renewcommand{\vec}[1]{\ensuremath{\mathbf{#1}}}
+
+\newcommand{\hpsheader}[1]{
+   \noindent      
+   \hbox to \textwidth {\hfill H. Parker Shelton}
+   \vspace{0mm}
+   \hbox to \textwidth {\hfill Adam Feinstein}
+   \vspace{0mm}
+   \hbox to \textwidth {\hfill \today}
+   \vspace{0mm}
+   \begin{center}
+       \hbox to \textwidth {{\Large \hfill #1 \hfill} }
+   \end{center}
+}
+
+\begin{document}
+\hpsheader{Final Project Proposal}
+
+\section{Abstract}
+We will implement a basic cross-platform parallelized video and image editor in C++ that will enable rotation, cropping, scaling, color-correction, and assorted other features such as edge detection, motion detection, blurring, and wavelet quantization compression.
+
+\section{Description}
+The project will be distributed as a stand-alone, cross-platform application built using \href{http://qt.nokia.com/}{Qt}, notably the GUI framework. Editing functions will be implemented in C++, supported by parallelization with NVIDIA's \href{http://www.nvidia.com/object/cuda_home_new.html}{CUDA}. Decoding will support qcif and pgm files and encoding will output ppc (parallel picture codec) and pvc (parallel video codec)  files encoded with Huffman, run-length, or arithmetic compression as well as motion estimation and frame difference. Both the encoder and decoder will be parallelized.
+
+The application interface will contain a simple toolbar for performing each manipulation, with the possibility of a dialog box in which to specify different parameters. The main window will show the original image and the manipulated image side-by-side.
+
+\section{Timeline}
+
+\begin{description}
+\setlength{\labelsep}{25pt}
+
+\item[Mar 24] Project Proposal
+\item[Mar 31] Application GUI
+\item[Apr 07] Encoding/Decoding
+\item[Apr 21] Parallelized Image Editing Features
+\item[Apr 28] Parallelized Video Editing Features
+\item[May 05] Project Presentation
+\item[May 12] Final Project Report
+
+\end{description}
+\end{document}
