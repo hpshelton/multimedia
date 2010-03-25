@@ -1,4 +1,4 @@
 ./src/obj/*
 ./src/multimedia.pro.user
-*.app
+multimedia.app
 .DS_Store
