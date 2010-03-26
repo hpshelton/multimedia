@@ -7,6 +7,12 @@
 #include <QAction>
 #include <QMenuBar>
 #include <QFileDialog>
+#include <QLabel>
+#include <QDesktopWidget>
+#include <QInputDialog>
+#include <QMessageBox>
+
+#include <iostream>
 
 class MainWindow : public QMainWindow
 {
@@ -22,8 +28,15 @@ private:
 	QAction* exitAction;
 
 /* Toolbar actions */
-	QAction* rotateAction;
 	QAction* cropAction;
+	QAction* rotateAction;
+	QAction* scaleAction;
+	QAction* brightenAction;
+	QAction* contrastAction;
+	QAction* saturateAction;
+	QAction* blurAction;
+	QAction* edgeDetectAction;
+	QAction* grayscaleAction;
 
 	bool video;
 
@@ -32,8 +45,15 @@ public:
 	~MainWindow();
 
 public slots:
-	void rotate();
+	void grayscale();
 	void crop();
+	void rotate();
+	void scale();
+	void brighten();
+	void contrast();
+	void saturate();
+	void blur();
+	void edgeDetection();
 	void openFile();
 	void saveFile();
 };

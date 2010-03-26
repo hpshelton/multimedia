@@ -6,7 +6,6 @@
  * March 25, 2010
  */
 #include <QApplication>
-#include <QDesktopWidget>
 
 #include "mainwindow.h"
 #include "defines.h"
@@ -22,11 +21,6 @@ int main(int argc, char *argv[])
 	MainWindow mainWindow;
 	mainWindow.setWindowTitle("Multimedia");
 	mainWindow.setWindowIconText("Multimedia");
-
-	QDesktopWidget qdw;
-	int screenCenterX = qdw.width() / 2;
-	int screenCenterY = qdw.height() / 2;
-	mainWindow.setGeometry(screenCenterX - 500, screenCenterY - 300, 1000, 600);
 
 	mainWindow.raise();
 	mainWindow.showNormal();
