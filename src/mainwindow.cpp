@@ -1,12 +1,12 @@
 #include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent)
+	: QMainWindow(parent), video(true), frames(0)
 {
 	QDesktopWidget qdw;
 	int screenCenterX = qdw.width() / 2;
 	int screenCenterY = qdw.height() / 2;
-	this->setGeometry(screenCenterX - 500, screenCenterY - 300, 1000, 600);
+	this->setGeometry(screenCenterX - 500, screenCenterY - 350, 1000, 600);
 
 	this->openAction = new QAction(QIcon(":/images/open.png"), "Open", this);
 	this->openAction->setStatusTip(tr("Open File"));
@@ -68,6 +68,10 @@ MainWindow::MainWindow(QWidget *parent)
 	this->edgeDetectAction = new QAction("Detect Edges", this);
 	QObject::connect(this->edgeDetectAction, SIGNAL(triggered()), this, SLOT(edgeDetection()));
 	this->toolbar->addAction(edgeDetectAction);
+
+	this->compressAction = new QAction("Compress", this);
+	QObject::connect(this->compressAction, SIGNAL(triggered()), this, SLOT(compress()));
+	this->toolbar->addAction(compressAction);
 
 	this->toolbar->setFloatable(false);
 	this->toolbar->setMovable(false);
@@ -176,6 +180,8 @@ void MainWindow::crop()
 			delete error;
 		}
 	}
+	delete layout;
+	delete buttonBox;
 	delete dialog;
 }
 
@@ -279,6 +285,29 @@ void MainWindow::edgeDetection()
 {
 }
 
+void MainWindow::compress()
+{
+	bool accepted;
+	QString i = QInputDialog::getText(this, "Compress", "Compression Ratio (Percentage):", QLineEdit::Normal, "", &accepted);
+	if(accepted)
+	{
+		float factor = i.toFloat(&accepted);
+		if(accepted && factor >= 0.0 && factor < 100)
+		{
+			// compress image by factor
+		}
+		else
+		{
+			QMessageBox* error = new QMessageBox(this);
+			error->setText("Invalid Compression Ratio!                           ");
+			error->setIcon(QMessageBox::Critical);
+			error->setInformativeText("Compression ratio must be greater than 0 and less than 100.");
+			error->exec();
+			delete error;
+		}
+	}
+}
+
 void MainWindow::openFile()
 {
 	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif");
@@ -296,11 +325,90 @@ void MainWindow::saveFile()
 	QString fileName = QFileDialog::getSaveFileName(this, "Save the edited file", "/", (this->video) ? "*.pvc" : "*.ppc");
 	if(!fileName.isEmpty())
 	{
-		if(this->video)
-			// Save video
-			;
-		else
-			// Save picture
-			;
+		QDialog* dialog = new QDialog(this);
+		QGridLayout* layout = new QGridLayout();
+		dialog->setWindowTitle("Save Options");
+		dialog->setModal(true);/*
+		dialog->setFixedHeight(200);
+		dialog->setMinimumWidth(375);*/
+		dialog->setLayout(layout);
+
+		QGroupBox* groupBox = new QGroupBox("Compression Options");
+		QVBoxLayout *vbox = new QVBoxLayout();
+		groupBox->setLayout(vbox);
+
+		QRadioButton* radio1 = new QRadioButton("Huffman Coding");
+		QRadioButton* radio2 = new QRadioButton("Run-Length Coding");
+		QRadioButton* radio3 = new QRadioButton("Arithmetic Coding");
+		vbox->addWidget(radio1);
+		vbox->addWidget(radio2);
+		vbox->addWidget(radio3);
+		vbox->addStretch(1);
+
+		QGroupBox* groupBoxRight = new QGroupBox("Frame Options");
+		QVBoxLayout *vboxRight = new QVBoxLayout();
+		groupBoxRight->setLayout(vboxRight);
+
+		QSpinBox* frame_start = new QSpinBox(dialog);
+		frame_start->setMinimum(0);
+		frame_start->setMaximum(100); // INSERT ACTUAL VIDEO LEGNTH
+		QSpinBox* frame_end = new QSpinBox(dialog);
+		frame_end->setMinimum(0);
+		frame_end->setMaximum(100); // INSERT ACTUAL VIDEO LEGNTH
+		vboxRight->addWidget(new QLabel("Start: ", dialog));
+		vboxRight->addWidget(frame_start);
+		vboxRight->addWidget(new QLabel("End: ", dialog));
+		vboxRight->addWidget(frame_end);
+
+		QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+		connect(buttonBox, SIGNAL(accepted()), dialog, SLOT(accept()));
+		connect(buttonBox, SIGNAL(rejected()), dialog, SLOT(reject()));
+
+		layout->addWidget(groupBox, 1, 1, 1, 1);
+		layout->addWidget(groupBoxRight, 1, 2, 1, 1);
+		layout->addWidget(buttonBox, 2, 2, 1, 1, Qt::AlignRight);
+
+		if(!this->video)
+			groupBoxRight->hide();
+
+		if(dialog->exec())
+		{
+			bool huffman = radio1->isChecked();
+			bool arithmetic = radio3->isChecked();
+			bool runlength = radio2->isChecked();
+
+			if(this->video)
+			{
+				// Save video
+				int start_frame = frame_start->text().toInt();
+				int end_frame = frame_end->text().toInt();
+				if(end_frame < start_frame || start_frame < 0 || end_frame > this->frames)
+				{
+					QMessageBox* error = new QMessageBox(this);
+					error->setText("Invalid Frame Settings!                         ");
+					error->setIcon(QMessageBox::Critical);
+					error->setInformativeText("End frame must be greater than start frame.");
+					error->exec();
+					delete error;
+				}
+			}
+			else
+			{
+				// Save picture
+				;
+			}
+		}
+		delete radio1;
+		delete radio2;
+		delete radio3;
+		delete frame_start;
+		delete frame_end;
+		delete vbox;
+		delete vboxRight;
+		delete buttonBox;
+		delete groupBox;
+		delete groupBoxRight;
+		delete layout;
+		delete dialog;
 	}
 }

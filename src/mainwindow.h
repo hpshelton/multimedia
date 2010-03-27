@@ -13,6 +13,9 @@
 #include <QMessageBox>
 #include <QGridLayout>
 #include <QDialogButtonBox>
+#include <QRadioButton>
+#include <QGroupBox>
+#include <QSpinBox>
 
 #include <iostream>
 
@@ -39,8 +42,10 @@ private:
 	QAction* blurAction;
 	QAction* edgeDetectAction;
 	QAction* grayscaleAction;
+	QAction* compressAction;
 
 	bool video;
+	int frames;
 
 public:
 	MainWindow(QWidget *parent = 0);
@@ -56,6 +61,7 @@ public slots:
 	void saturate();
 	void blur();
 	void edgeDetection();
+	void compress();
 	void openFile();
 	void saveFile();
 };

@@ -3,10 +3,12 @@
 # -------------------------------------------------
 TARGET = multimedia
 TEMPLATE = app
-HEADERS += mainwindow.h
+HEADERS += mainwindow.h \
+	defines.h
 SOURCES += main.cpp \
 	mainwindow.cpp
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 RCC_DIR = ./obj
 RESOURCES = multimedia.qrc
+macx:ICON = ../images/icon.icns
