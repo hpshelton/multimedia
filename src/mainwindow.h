@@ -11,6 +11,8 @@
 #include <QDesktopWidget>
 #include <QInputDialog>
 #include <QMessageBox>
+#include <QGridLayout>
+#include <QDialogButtonBox>
 
 #include <iostream>
 

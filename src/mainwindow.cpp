@@ -119,14 +119,64 @@ void MainWindow::rotate()
 			error->setText("Invalid Rotation Angle!             ");
 			error->setIcon(QMessageBox::Critical);
 			error->setInformativeText("|angle| must be less than 10,000.");
-			error->show();
+			error->exec();
+			delete error;
 		}
 	}
 }
 
 void MainWindow::crop()
 {
-	// Instantiate QDialog to take four corner parameters
+	QDialog* dialog = new QDialog(this);
+	QGridLayout* layout = new QGridLayout();
+	dialog->setWindowTitle("Crop");
+	dialog->setModal(true);
+	dialog->setFixedHeight(200);
+	dialog->setMinimumWidth(375);
+	dialog->setLayout(layout);
+
+	QLineEdit* x_left = new QLineEdit(dialog);
+	QLineEdit* x_right = new QLineEdit(dialog);
+	QLineEdit* y_top = new QLineEdit(dialog);
+	QLineEdit* y_bottom = new QLineEdit(dialog);
+
+	layout->addWidget(new QLabel("Left: ", dialog), 1, 1, 1, 1, Qt::AlignLeft);
+	layout->addWidget(new QLabel("Right: ", dialog), 1, 2, 1, 1, Qt::AlignLeft);
+	layout->addWidget(new QLabel("Top: ", dialog), 3, 1, 1, 1, Qt::AlignLeft);
+	layout->addWidget(new QLabel("Bottom: ", dialog), 3, 2, 1, 1, Qt::AlignLeft);
+
+	layout->addWidget(x_left, 2, 1);
+	layout->addWidget(x_right, 2, 2);
+	layout->addWidget(y_top, 4, 1);
+	layout->addWidget(y_bottom, 4, 2);
+
+	QDialogButtonBox* buttonBox = new QDialogButtonBox(QDialogButtonBox::Ok | QDialogButtonBox::Cancel);
+	connect(buttonBox, SIGNAL(accepted()), dialog, SLOT(accept()));
+	connect(buttonBox, SIGNAL(rejected()), dialog, SLOT(reject()));
+	layout->addWidget(buttonBox, 5, 2, 1,1, Qt::AlignRight);
+
+	if(dialog->exec())
+	{
+		bool accepted1, accepted2, accepted3, accepted4;
+		int x1 = x_left->text().toInt(&accepted1);
+		int x2 = x_right->text().toInt(&accepted2);
+		int y1 = y_top->text().toInt(&accepted3);
+		int y2 = y_bottom->text().toInt(&accepted4);
+		if(accepted1 && accepted2 && accepted3 && accepted4 && x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0)
+		{
+			// crop using x1, x2, y1, y2
+		}
+		else
+		{
+			QMessageBox* error = new QMessageBox(this);
+			error->setText("Invalid Crop Dimensions!               ");
+			error->setIcon(QMessageBox::Critical);
+			error->setInformativeText("Crop dimensions must be non-negative.");
+			error->exec();
+			delete error;
+		}
+	}
+	delete dialog;
 }
 
 void MainWindow::scale()
@@ -146,7 +196,8 @@ void MainWindow::scale()
 			error->setText("Invalid Scale Factor!               ");
 			error->setIcon(QMessageBox::Critical);
 			error->setInformativeText("Scale factor must be greater than 0.");
-			error->show();
+			error->exec();
+			delete error;
 		}
 	}
 }
@@ -168,7 +219,8 @@ void MainWindow::brighten()
 			error->setText("Invalid Brightness Factor!               ");
 			error->setIcon(QMessageBox::Critical);
 			error->setInformativeText("Brightness factor must be greater than 0.");
-			error->show();
+			error->exec();
+			delete error;
 		}
 	}
 }
@@ -190,7 +242,8 @@ void MainWindow::contrast()
 			error->setText("Invalid Contrast Factor!                   ");
 			error->setIcon(QMessageBox::Critical);
 			error->setInformativeText("Contrast factor must be greater than 0.");
-			error->show();
+			error->exec();
+			delete error;
 		}
 	}
 }
@@ -212,7 +265,8 @@ void MainWindow::saturate()
 			error->setText("Invalid Saturation Factor!                ");
 			error->setIcon(QMessageBox::Critical);
 			error->setInformativeText("Saturation factor must be greater than 0.");
-			error->show();
+			error->exec();
+			delete error;
 		}
 	}
 }
