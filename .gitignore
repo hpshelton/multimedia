@@ -1,4 +1,5 @@
 src/obj/*
 src/multimedia.pro.user
 multimedia.app
+Makefile
 .DS_Store
