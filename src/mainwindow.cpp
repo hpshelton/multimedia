@@ -1,7 +1,7 @@
 #include "mainwindow.h"
 
 MainWindow::MainWindow(QWidget *parent)
-	: QMainWindow(parent), video(true), frames(0)
+	: QMainWindow(parent), frames(0)
 {
 	QDesktopWidget qdw;
 	int screenCenterX = qdw.width() / 2;
@@ -16,6 +16,7 @@ MainWindow::MainWindow(QWidget *parent)
 	this->saveAction = new QAction(QIcon(":/images/save.png"), "Save", this);
 	this->saveAction->setStatusTip(tr("Save File"));
 	this->saveAction->setShortcut(tr("Ctrl+S"));
+	this->saveAction->setEnabled(false);
 	QObject::connect(this->saveAction, SIGNAL(triggered()), this, SLOT(saveFile()));
 
 	this->exitAction = new QAction(tr("Exit"), this);
@@ -313,10 +314,19 @@ void MainWindow::openFile()
 	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif");
 	if(!fileName.isEmpty())
 	{
-		if(fileName.endsWith(".cif"))
+		if(fileName.endsWith(".qcif"))
+		{
 			this->video = true;
+
+		}
 		else
+		{
 			this->video = false;
+			this->frames = 1;
+			this->file = (unsigned char***) malloc(sizeof(unsigned char***));
+			this->file[0] = Decoder::read_pgm(fileName.toStdString().c_str(), &this->height, &this->width, &this->colors);
+		}
+		this->saveAction->setEnabled(true);
 	}
 }
 

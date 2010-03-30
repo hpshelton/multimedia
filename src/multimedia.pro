@@ -4,9 +4,11 @@
 TARGET = multimedia
 TEMPLATE = app
 HEADERS += mainwindow.h \
-	defines.h
+    defines.h \
+    decoder.h \
+    utility.h
 SOURCES += main.cpp \
-	mainwindow.cpp
+    mainwindow.cpp
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 RCC_DIR = ./obj

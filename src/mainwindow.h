@@ -17,6 +17,7 @@
 #include <QGroupBox>
 #include <QSpinBox>
 
+#include "decoder.h"
 #include <iostream>
 
 class MainWindow : public QMainWindow
@@ -46,6 +47,10 @@ private:
 
 	bool video;
 	int frames;
+	int width;
+	int height;
+	int colors;
+	unsigned char*** file;
 
 public:
 	MainWindow(QWidget *parent = 0);
