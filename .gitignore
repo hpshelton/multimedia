@@ -1,11 +1,13 @@
+bin/
+lib/
 src/obj/*
 src/multimedia.pro.user
 multimedia.app
-./src/Makefile
+src/Makefile
 .DS_Store
-Makefile.Debug
-Makefile.Release
-./src/multimedia
+src/Makefile.Debug
+src/Makefile.Release
+src/multimedia
 src/CUDA/obj
 src/CUDA/lib
 src/CUDA/i386
