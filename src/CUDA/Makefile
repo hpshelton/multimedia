@@ -42,11 +42,4 @@ CCFILES		:= \
 ################################################################################
 # Rules and targets
 
-DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
-SNOWLEOPARD = $(strip $(findstring 10.6, $(shell egrep "<string>10\.6" /System/Library/CoreServices/SystemVersion.plist)))
-
-ifneq ($(DARWIN) -o $(SNOWLEOPARD),)
-	include common.osx.mk
-else
-	include common.lnx.mk
-endif
+include common.osx.mk

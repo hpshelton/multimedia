@@ -10,4 +10,5 @@ src/Makefile.Release
 src/multimedia
 src/CUDA/obj
 src/CUDA/lib
+src/CUDA/Makefile
 src/CUDA/i386
