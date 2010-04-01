@@ -46,13 +46,13 @@ OSARCH= $(shell uname -m)
 # Basic directory setup for SDK
 # (override directories only if they are not already defined)
 SRCDIR     ?= 
-ROOTDIR    ?= ..
-ROOTBINDIR ?= $(ROOTDIR)/../bin
+ROOTDIR    ?= /Developer/GPU\ Computing/C
+ROOTBINDIR ?= $(ROOTDIR)/bin
 BINDIR     ?= $(ROOTBINDIR)/$(OSLOWER)
 ROOTOBJDIR ?= obj
-LIBDIR     := $(ROOTDIR)/../lib
-COMMONDIR  := $(ROOTDIR)/../common
-SHAREDDIR  := $(ROOTDIR)/../../shared/
+LIBDIR     := $(ROOTDIR)/lib
+COMMONDIR  := $(ROOTDIR)/common
+SHAREDDIR  := $(ROOTDIR)/../shared/
 
 # Compilers
 NVCC       := $(CUDA_INSTALL_PATH)/bin/nvcc 
