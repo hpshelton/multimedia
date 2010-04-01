@@ -1,5 +1,8 @@
 src/obj/*
 src/multimedia.pro.user
 multimedia.app
-Makefile
+./src/Makefile
 .DS_Store
+Makefile.Debug
+Makefile.Release
+./src/multimedia

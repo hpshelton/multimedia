@@ -42,4 +42,9 @@ CCFILES		:= \
 ################################################################################
 # Rules and targets
 
-include common.mk
+DARWIN = $(strip $(findstring DARWIN, $(OSUPPER)))
+ifneq ($(DARWIN),)
+	include common.osx.mk
+else
+	include common.lnx.mk
+endif
