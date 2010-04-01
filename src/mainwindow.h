@@ -16,6 +16,7 @@
 #include <QRadioButton>
 #include <QGroupBox>
 #include <QSpinBox>
+#include <QImage>
 
 #include "decoder.h"
 #include <iostream>

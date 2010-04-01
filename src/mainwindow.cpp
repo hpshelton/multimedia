@@ -311,7 +311,7 @@ void MainWindow::compress()
 
 void MainWindow::openFile()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif");
+	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif; *.jpg; *.jpeg");
 	if(!fileName.isEmpty())
 	{
 		if(fileName.endsWith(".qcif"))
@@ -319,12 +319,17 @@ void MainWindow::openFile()
 			this->video = true;
 
 		}
-		else
+		else if(fileName.endsWith(".pgm"))
 		{
 			this->video = false;
 			this->frames = 1;
 			this->file = (unsigned char***) malloc(sizeof(unsigned char***));
 			this->file[0] = Decoder::read_pgm(fileName.toStdString().c_str(), &this->height, &this->width, &this->colors);
+		}
+		else if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg"))
+		{
+			QImage img(fileName);
+			std::cout << (int)img.bits()[0] << std::endl;
 		}
 		this->saveAction->setEnabled(true);
 	}

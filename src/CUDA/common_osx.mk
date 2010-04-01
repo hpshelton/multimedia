@@ -46,19 +46,19 @@ OSARCH= $(shell uname -m)
 # Basic directory setup for SDK
 # (override directories only if they are not already defined)
 SRCDIR     ?= 
-ROOTDIR    ?= .
-ROOTBINDIR ?= $(ROOTDIR)
-BINDIR     ?= $(ROOTBINDIR)
-ROOTOBJDIR ?= $(ROOTDIR)
+ROOTDIR    ?= /Developer/GPU\ Computing/C/
+ROOTBINDIR ?= $(ROOTDIR)/bin
+BINDIR     ?= $(ROOTBINDIR)/$(OSLOWER)
+ROOTOBJDIR ?= obj
 LIBDIR     := $(ROOTDIR)/lib
 COMMONDIR  := $(ROOTDIR)/common
-SHAREDDIR  := $(ROOTDIR)/shared/
+SHAREDDIR  := $(ROOTDIR)/../shared/
 
 # Compilers
 NVCC       := $(CUDA_INSTALL_PATH)/bin/nvcc 
-CXX        := g++-4.3
-CC         := gcc-4.3
-LINK       := g++-4.3 -fPIC
+CXX        := g++
+CC         := gcc
+LINK       := g++ -fPIC
 
 # Includes
 INCLUDES  += -I. -I$(CUDA_INSTALL_PATH)/include -I$(COMMONDIR)/inc -I$(SHAREDDIR)/inc
@@ -89,7 +89,7 @@ CWARN_FLAGS := $(CXXWARN_FLAGS) \
 # architecture flag for nvcc and gcc compilers build
 CUBIN_ARCH_FLAG :=
 CXX_ARCH_FLAGS  :=
-NVCCFLAGS       := --compiler-bindir=/usr/bin/gcc-4.3
+NVCCFLAGS       :=
 LIB_ARCH        := $(OSARCH)
 
 # Determining the necessary Cross-Compilation Flags
@@ -317,8 +317,7 @@ else
 		CXXFLAGS		+= -D__DEVICE_EMULATION__
 		CFLAGS			+= -D__DEVICE_EMULATION__
 	endif
-#	TARGETDIR := $(BINDIR)/$(BINSUBDIR)
-	TARGETDIR := $(BINDIR)
+	TARGETDIR := $(BINDIR)/$(BINSUBDIR)
 	TARGET    := $(TARGETDIR)/$(EXECUTABLE)
 	LINKLINE  = $(LINK) -o $(TARGET) $(OBJS) $(LIB)
 endif
