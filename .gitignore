@@ -3,5 +3,6 @@ src/multimedia.pro.user
 multimedia.app
 Makefile
 .DS_Store
-src/CUDA/obj/
+src/CUDA/obj
+src/CUDA/lib
 src/CUDA/i386
