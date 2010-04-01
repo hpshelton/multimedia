@@ -6,5 +6,6 @@ multimedia.app
 Makefile.Debug
 Makefile.Release
 ./src/multimedia
-src/CUDA/obj/
+src/CUDA/obj
+src/CUDA/lib
 src/CUDA/i386
