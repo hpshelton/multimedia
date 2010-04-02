@@ -101,6 +101,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::grayscale()
 {
+
 }
 
 void MainWindow::rotate()
@@ -311,25 +312,19 @@ void MainWindow::compress()
 
 void MainWindow::openFile()
 {
-	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif; *.jpg; *.jpeg");
+	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif; *.jpg; *.jpeg; *.bmp; *.gif; *.tif; *.tiff");
 	if(!fileName.isEmpty())
 	{
 		if(fileName.endsWith(".qcif"))
 		{
 			this->video = true;
-
 		}
-		else if(fileName.endsWith(".pgm"))
+		else
 		{
 			this->video = false;
 			this->frames = 1;
-			this->file = (unsigned char***) malloc(sizeof(unsigned char***));
-			this->file[0] = Decoder::read_pgm(fileName.toStdString().c_str(), &this->height, &this->width, &this->colors);
-		}
-		else if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg"))
-		{
-			QImage img(fileName);
-			std::cout << (int)img.bits()[0] << std::endl;
+			this->file = (QImage**) malloc(sizeof(QImage*));
+			this->file[0] = new QImage(fileName);
 		}
 		this->saveAction->setEnabled(true);
 	}
@@ -343,9 +338,7 @@ void MainWindow::saveFile()
 		QDialog* dialog = new QDialog(this);
 		QGridLayout* layout = new QGridLayout();
 		dialog->setWindowTitle("Save Options");
-		dialog->setModal(true);/*
-		dialog->setFixedHeight(200);
-		dialog->setMinimumWidth(375);*/
+		dialog->setModal(true);
 		dialog->setLayout(layout);
 
 		QGroupBox* groupBox = new QGroupBox("Compression Options");
