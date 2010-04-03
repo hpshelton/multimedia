@@ -18,12 +18,11 @@ MainWindow::MainWindow(QWidget *parent)
 
 	this->closeAction = new QAction("Close", this);
 	this->closeAction->setStatusTip(tr("Close File"));
-	QObject::connect(this->closeAction, SIGNAL(triggered()), this->display, SLOT(close()));
+	QObject::connect(this->closeAction, SIGNAL(triggered()), this, SLOT(closeFile()));
 
 	this->saveAction = new QAction(QIcon(":/images/save.png"), "Save", this);
 	this->saveAction->setStatusTip(tr("Save File"));
 	this->saveAction->setShortcut(tr("Ctrl+S"));
-	this->saveAction->setEnabled(false);
 	QObject::connect(this->saveAction, SIGNAL(triggered()), this, SLOT(saveFile()));
 
 	this->exitAction = new QAction(tr("Exit"), this);
@@ -87,6 +86,8 @@ MainWindow::MainWindow(QWidget *parent)
 	this->toolbar->setAllowedAreas(Qt::TopToolBarArea);
 	this->toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
 	this->toolbar->setFixedHeight(30);
+
+	toggleActions(false);
 }
 
 MainWindow::~MainWindow()
@@ -109,7 +110,7 @@ MainWindow::~MainWindow()
 
 void MainWindow::grayscale()
 {
-
+	hasChanged = true;
 }
 
 void MainWindow::rotate()
@@ -126,6 +127,7 @@ void MainWindow::rotate()
 			while(a >= 360)
 				a -= 360;
 			// rotate image by degree a
+			hasChanged = true;
 		}
 		else
 		{
@@ -179,6 +181,7 @@ void MainWindow::crop()
 		if(accepted1 && accepted2 && accepted3 && accepted4 && x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0)
 		{
 			// crop using x1, x2, y1, y2
+			hasChanged = true;
 		}
 		else
 		{
@@ -205,6 +208,7 @@ void MainWindow::scale()
 		if(accepted && factor >= 0.0)
 		{
 			// scale image by factor
+			hasChanged = true;
 		}
 		else
 		{
@@ -228,6 +232,7 @@ void MainWindow::brighten()
 		if(accepted && factor >= 0.0)
 		{
 			// brighten image by factor
+			hasChanged = true;
 		}
 		else
 		{
@@ -251,6 +256,7 @@ void MainWindow::contrast()
 		if(accepted && factor >= 0.0)
 		{
 			// adjust contrast image by factor
+			hasChanged = true;
 		}
 		else
 		{
@@ -274,6 +280,7 @@ void MainWindow::saturate()
 		if(accepted && factor >= 0.0)
 		{
 			// saturate image by factor
+			hasChanged = true;
 		}
 		else
 		{
@@ -289,10 +296,12 @@ void MainWindow::saturate()
 
 void MainWindow::blur()
 {
+	hasChanged = true;
 }
 
 void MainWindow::edgeDetection()
 {
+	hasChanged = true;
 }
 
 void MainWindow::compress()
@@ -305,6 +314,7 @@ void MainWindow::compress()
 		if(accepted && factor >= 0.0 && factor < 100)
 		{
 			// compress image by factor
+			hasChanged = true;
 		}
 		else
 		{
@@ -320,6 +330,7 @@ void MainWindow::compress()
 
 void MainWindow::openFile()
 {
+	closeFile();
 	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif; *.jpg; *.jpeg; *.bmp; *.gif; *.tif; *.tiff");
 	if(!fileName.isEmpty())
 	{
@@ -335,11 +346,14 @@ void MainWindow::openFile()
 			this->file[0] = new QImage(fileName);
 		}
 		this->saveAction->setEnabled(true);
+		this->closeAction->setEnabled(true);
 		this->display->setLeftAndRightImages(this->file[0]);
+		this->hasChanged = false;
+		toggleActions(true);
 	}
 }
 
-void MainWindow::saveFile()
+bool MainWindow::saveFile()
 {
 	QString fileName = QFileDialog::getSaveFileName(this, "Save the edited file", "/", (this->video) ? "*.pvc" : "*.ppc");
 	if(!fileName.isEmpty())
@@ -412,7 +426,7 @@ void MainWindow::saveFile()
 			else
 			{
 				// Save picture
-				;
+				hasChanged = false;
 			}
 		}
 		delete radio1;
@@ -428,4 +442,50 @@ void MainWindow::saveFile()
 		delete layout;
 		delete dialog;
 	}
+	return !hasChanged;
+}
+
+void MainWindow::closeFile()
+{
+	if(!this->hasChanged || displaySavePrompt())
+	{
+		this->saveAction->setEnabled(false);
+		this->closeAction->setEnabled(false);
+		toggleActions(false);
+		hasChanged = false;
+		this->display->close();
+	}
+}
+
+bool MainWindow::displaySavePrompt()
+{
+	QMessageBox* error = new QMessageBox(this);
+	error->setText("The current file has not been saved!                         ");
+	error->setIcon(QMessageBox::Critical);
+	error->setInformativeText("Would you like to save your changes?");
+	error->setStandardButtons(QMessageBox::Save | QMessageBox::Discard | QMessageBox::Cancel);
+	int ret = error->exec();
+	delete error;
+	if(ret == QMessageBox::Save)
+		return saveFile();
+	else if(ret == QMessageBox::Discard)
+		return true;
+	else
+		return false;
+}
+
+void MainWindow::toggleActions(bool b)
+{
+	this->saveAction->setEnabled(b);
+	this->closeAction->setEnabled(b);
+	this->cropAction->setEnabled(b);
+	this->rotateAction->setEnabled(b);
+	this->scaleAction->setEnabled(b);
+	this->brightenAction->setEnabled(b);
+	this->contrastAction->setEnabled(b);
+	this->saturateAction->setEnabled(b);
+	this->blurAction->setEnabled(b);
+	this->edgeDetectAction->setEnabled(b);
+	this->grayscaleAction->setEnabled(b);
+	this->compressAction->setEnabled(b);
 }

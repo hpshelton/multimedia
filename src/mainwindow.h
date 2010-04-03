@@ -51,8 +51,12 @@ private:
 	bool video;
 	int frames;
 	QImage** file;
+	bool hasChanged;
 
 	DocumentDisplay* display;
+
+	bool displaySavePrompt();
+	void toggleActions(bool);
 
 public:
 	MainWindow(QWidget *parent = 0);
@@ -70,7 +74,8 @@ public slots:
 	void edgeDetection();
 	void compress();
 	void openFile();
-	void saveFile();
+	bool saveFile();
+	void closeFile();
 };
 
 #endif // MAINWINDOW_H
