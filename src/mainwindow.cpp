@@ -8,10 +8,17 @@ MainWindow::MainWindow(QWidget *parent)
 	int screenCenterY = qdw.height() / 2;
 	this->setGeometry(screenCenterX - 500, screenCenterY - 350, 1000, 600);
 
+	this->display = new DocumentDisplay(this);
+	this->setCentralWidget(this->display);
+
 	this->openAction = new QAction(QIcon(":/images/open.png"), "Open", this);
 	this->openAction->setStatusTip(tr("Open File"));
 	this->openAction->setShortcut(tr("Ctrl+O"));
 	QObject::connect(this->openAction, SIGNAL(triggered()), this, SLOT(openFile()));
+
+	this->closeAction = new QAction("Close", this);
+	this->closeAction->setStatusTip(tr("Close File"));
+	QObject::connect(this->closeAction, SIGNAL(triggered()), this->display, SLOT(close()));
 
 	this->saveAction = new QAction(QIcon(":/images/save.png"), "Save", this);
 	this->saveAction->setStatusTip(tr("Save File"));
@@ -29,6 +36,7 @@ MainWindow::MainWindow(QWidget *parent)
 	fileMenu->addAction(openAction);
 	fileMenu->addAction(saveAction);
 	fileMenu->addSeparator();
+	fileMenu->addAction(closeAction);
 	fileMenu->addAction(exitAction);
 	this->setMenuBar(menubar);
 
@@ -327,6 +335,7 @@ void MainWindow::openFile()
 			this->file[0] = new QImage(fileName);
 		}
 		this->saveAction->setEnabled(true);
+		this->display->setLeftAndRightImages(this->file[0]);
 	}
 }
 

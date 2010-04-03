@@ -19,7 +19,7 @@
 #include <QImage>
 
 #include "utility.h"
-#include <iostream>
+#include "documentdisplay.h"
 
 
 class MainWindow : public QMainWindow
@@ -34,6 +34,7 @@ private:
 	QAction* openAction;
 	QAction* saveAction;
 	QAction* exitAction;
+	QAction* closeAction;
 
 /* Toolbar actions */
 	QAction* cropAction;
@@ -50,6 +51,8 @@ private:
 	bool video;
 	int frames;
 	QImage** file;
+
+	DocumentDisplay* display;
 
 public:
 	MainWindow(QWidget *parent = 0);
