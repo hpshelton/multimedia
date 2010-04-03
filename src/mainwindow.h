@@ -20,7 +20,7 @@
 
 #include "utility.h"
 #include "documentdisplay.h"
-
+#include "defines.h"
 
 class MainWindow : public QMainWindow
 {
@@ -47,6 +47,9 @@ private:
 	QAction* edgeDetectAction;
 	QAction* grayscaleAction;
 	QAction* compressAction;
+
+	QAction* zoomInAction;
+	QAction* zoomOutAction;
 
 	bool video;
 	int frames;
@@ -76,6 +79,8 @@ public slots:
 	void openFile();
 	bool saveFile();
 	void closeFile();
+	void zoomIn();
+	void zoomOut();
 };
 
 #endif // MAINWINDOW_H

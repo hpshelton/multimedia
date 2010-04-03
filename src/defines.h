@@ -7,4 +7,7 @@
 #define PROGRAM_NAME "Multimedia"
 #define VERSION "0.1"
 
+#define ZOOM_IN_FACTOR 1.25
+#define ZOOM_OUT_FACTOR 0.8
+
 #endif // DEFINES_H

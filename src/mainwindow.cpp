@@ -30,15 +30,6 @@ MainWindow::MainWindow(QWidget *parent)
 	this->exitAction->setShortcut(tr("Ctrl+W"));
 	QObject::connect(this->exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
-	this->menubar = new QMenuBar();
-	QMenu* fileMenu = menubar->addMenu(tr("&File"));
-	fileMenu->addAction(openAction);
-	fileMenu->addAction(saveAction);
-	fileMenu->addSeparator();
-	fileMenu->addAction(closeAction);
-	fileMenu->addAction(exitAction);
-	this->setMenuBar(menubar);
-
 	this->toolbar = addToolBar("Editing Actions");
 
 	this->grayscaleAction = new QAction("Grayscale", this);
@@ -81,11 +72,35 @@ MainWindow::MainWindow(QWidget *parent)
 	QObject::connect(this->compressAction, SIGNAL(triggered()), this, SLOT(compress()));
 	this->toolbar->addAction(compressAction);
 
+	this->toolbar->addSeparator();
+	this->toolbar->setStyleSheet("QToolBar::separator{ width: 25px; }");
+	this->zoomInAction = new QAction("Zoom In", this);
+	this->zoomInAction->setShortcut(tr("Ctrl+="));
+	QObject::connect(this->zoomInAction, SIGNAL(triggered()), this, SLOT(zoomIn()));
+	this->toolbar->addAction(zoomInAction);
+
+	this->zoomOutAction = new QAction("Zoom Out", this);
+	this->zoomOutAction->setShortcut(tr("Ctrl+-"));
+	QObject::connect(this->zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
+	this->toolbar->addAction(zoomOutAction);
+
 	this->toolbar->setFloatable(false);
 	this->toolbar->setMovable(false);
 	this->toolbar->setAllowedAreas(Qt::TopToolBarArea);
 	this->toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
 	this->toolbar->setFixedHeight(30);
+
+	this->menubar = new QMenuBar();
+	QMenu* fileMenu = menubar->addMenu(tr("&File"));
+	fileMenu->addAction(openAction);
+	fileMenu->addAction(saveAction);
+	fileMenu->addSeparator();
+	fileMenu->addAction(closeAction);
+	fileMenu->addAction(exitAction);
+	QMenu* viewMenu = menubar->addMenu(tr("&View"));
+	viewMenu->addAction(zoomInAction);
+	viewMenu->addAction(zoomOutAction);
+	this->setMenuBar(menubar);
 
 	toggleActions(false);
 }
@@ -488,4 +503,16 @@ void MainWindow::toggleActions(bool b)
 	this->edgeDetectAction->setEnabled(b);
 	this->grayscaleAction->setEnabled(b);
 	this->compressAction->setEnabled(b);
+	this->zoomInAction->setEnabled(b);
+	this->zoomOutAction->setEnabled(b);
+}
+
+void MainWindow::zoomIn()
+{
+	this->display->scaleImage(ZOOM_IN_FACTOR);
+}
+
+void MainWindow::zoomOut()
+{
+	this->display->scaleImage(ZOOM_OUT_FACTOR);
 }

@@ -7,11 +7,10 @@
 #include <QImage>
 #include <QHBoxLayout>
 #include <QCloseEvent>
+#include <QScrollBar>
 
 class DocumentDisplay : public QWidget
 {
-	Q_OBJECT
-
 private:
 	QLabel* leftImage;
 	QLabel* rightImage;
@@ -21,6 +20,7 @@ private:
 	float rightScaleFactor;
 
 	void init();
+	void adjustScrollBar(QScrollBar* scrollbar, float factor);
 
 public:
 	DocumentDisplay(QWidget* parent = 0);
@@ -30,12 +30,9 @@ public:
 	void setRightImage(QImage* image);
 	void setLeftAndRightImages(QImage* image);
 
+	float getScaleFactor();
 	void closeEvent(QCloseEvent* e);
-
-signals:
-
-public slots:
-
+	void scaleImage(float factor);
 };
 
 #endif // DOCUMENTDISPLAY_H

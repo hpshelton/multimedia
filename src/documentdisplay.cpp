@@ -30,12 +30,14 @@ void DocumentDisplay::init()
 	this->leftPanel->setBackgroundRole(QPalette::Dark);
 	this->leftPanel->setWidget(this->leftImage);
 	this->leftPanel->setAlignment(Qt::AlignCenter);
+	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
 	this->leftPanel->hide();
 
 	this->rightPanel = new QScrollArea(this);
 	this->rightPanel->setBackgroundRole(QPalette::Dark);
 	this->rightPanel->setWidget(this->rightImage);
 	this->rightPanel->setAlignment(Qt::AlignCenter);
+	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
 	this->rightPanel->hide();
 
 	QHBoxLayout* layout = new QHBoxLayout;
@@ -74,4 +76,36 @@ void DocumentDisplay::closeEvent(QCloseEvent* e)
 	this->rightPanel->hide();
 	this->leftPanel->hide();
 	e->ignore();
+}
+
+void DocumentDisplay::scaleImage(float factor)
+{
+	if(this->leftPanel->hasFocus())
+	{
+		this->leftScaleFactor *= factor;
+		leftImage->resize(this->leftScaleFactor * this->leftImage->pixmap()->size());
+		adjustScrollBar(this->leftPanel->horizontalScrollBar(), factor);
+		adjustScrollBar(this->leftPanel->verticalScrollBar(), factor);
+	}
+	else
+	{
+		this->rightScaleFactor *= factor;
+		this->rightImage->resize(this->rightScaleFactor * this->rightImage->pixmap()->size());
+		adjustScrollBar(this->rightPanel->horizontalScrollBar(), factor);
+		adjustScrollBar(this->rightPanel->verticalScrollBar(), factor);
+	}
+}
+
+float DocumentDisplay::getScaleFactor()
+{
+	if(this->leftPanel->hasFocus())
+		return leftScaleFactor;
+	else
+		return rightScaleFactor;
+}
+
+void DocumentDisplay::adjustScrollBar(QScrollBar* scrollBar, float factor)
+{
+	scrollBar->setValue(int(factor * scrollBar->value()
+							+ ((factor - 1) * scrollBar->pageStep()/2)));
 }
