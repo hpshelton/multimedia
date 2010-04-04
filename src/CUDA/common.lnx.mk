@@ -50,9 +50,9 @@ ROOTDIR    ?= .
 ROOTBINDIR ?= $(ROOTDIR)
 BINDIR     ?= $(ROOTBINDIR)
 ROOTOBJDIR ?= $(ROOTDIR)
-LIBDIR     := $(ROOTDIR)/lib
-COMMONDIR  := $(ROOTDIR)/common
-SHAREDDIR  := $(ROOTDIR)/shared/
+LIBDIR     := /home/adam/NVIDIA_GPU_Computing_SDK/C/lib
+COMMONDIR  := /home/adam/NVIDIA_GPU_Computing_SDK/C/common
+SHAREDDIR  := /home/adam/NVIDIA_GPU_Computing_SDK/shared/
 
 # Compilers
 NVCC       := $(CUDA_INSTALL_PATH)/bin/nvcc 

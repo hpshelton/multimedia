@@ -42,4 +42,4 @@ CCFILES		:= \
 ################################################################################
 # Rules and targets
 
-include common.osx.mk
+include common.lnx.mk
