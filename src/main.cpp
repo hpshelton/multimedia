@@ -12,6 +12,8 @@
 
 int main(int argc, char *argv[])
 {
+        cudaSetDevice( cutGetMaxGflopsDeviceId() );
+
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
 	QCoreApplication::setApplicationName(PROGRAM_NAME);

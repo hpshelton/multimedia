@@ -22,6 +22,9 @@
 #include "documentdisplay.h"
 #include "defines.h"
 
+#include "cutil_inline.h"
+
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT

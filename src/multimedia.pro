@@ -15,3 +15,20 @@ MOC_DIR = ./obj
 RCC_DIR = ./obj
 RESOURCES = multimedia.qrc
 macx:ICON = ../images/icon.icns
+
+#http://forums.nvidia.com/index.php?showtopic=29539
+unix {
+ INCLUDEPATH += /home/adam/NVIDIA_GPU_Computing_SDK/C/common/inc
+ INCLUDEPATH += /usr/local/cuda/include
+ LIBS += -lcuda -lcudart -L/usr/lib64 -L/usr/local/cuda/lib64
+
+ cuda.output = ${OBJECTS_DIR}${QMAKE_FILE_BASE}_cuda.obj
+ cuda.commands = nvcc -c -Xcompiler $$join(QMAKE_CXXFLAGS,",") $$join(INCLUDEPATH,'" -I "','-I "','"') ${QMAKE_FILE_NAME} -o ${QMAKE_FILE_OUT}
+ cuda.depends = nvcc -M -Xcompiler $$join(QMAKE_CXXFLAGS,",") $$join(INCLUDEPATH,'" -I "','-I "','"') ${QMAKE_FILE_NAME} | sed "s,^.*: ,," | sed "s,^ *,," | tr -d '\\\n'
+}
+
+macx{
+}
+
+cuda.input = ./CUDA/EdgeDetect/kernel_func.cu
+QMAKE_EXTRA_UNIX_COMPILERS += cuda
