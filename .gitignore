@@ -12,3 +12,4 @@ src/CUDA/obj
 src/CUDA/lib
 src/CUDA/Makefile
 src/CUDA/i386
+*.o
