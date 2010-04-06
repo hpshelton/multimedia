@@ -324,6 +324,10 @@ void MainWindow::blur()
 
 void MainWindow::edgeDetection()
 {
+        unsigned char* input;
+        unsigned char* output;
+        int row, col;
+        edgeDetectGPU(input, output, row, col);
 	hasChanged = true;
 }
 
