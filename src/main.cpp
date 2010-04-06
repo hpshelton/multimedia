@@ -12,7 +12,7 @@
 
 int main(int argc, char *argv[])
 {
-        cudaSetDevice( cutGetMaxGflopsDeviceId() );
+	cudaSetDevice( cutGetMaxGflopsDeviceId() );
 
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);

@@ -109,3 +109,13 @@ void DocumentDisplay::adjustScrollBar(QScrollBar* scrollBar, float factor)
 	scrollBar->setValue(int(factor * scrollBar->value()
 							+ ((factor - 1) * scrollBar->pageStep()/2)));
 }
+
+QImage* DocumentDisplay::getLeftImage()
+{
+	return new QImage(this->leftImage->pixmap()->toImage());
+}
+
+QImage* DocumentDisplay::getRightImage()
+{
+	return new QImage(this->rightImage->pixmap()->toImage());
+}

@@ -46,18 +46,17 @@ public:
 	}
 
 	/* Returns an array that can be accessed as [width][height] for R, [width][height+1] for G,
-	   [width][height+2] for B, and [width][height+3] for A */
+	   [width][height+2] for B */
 	static unsigned char** img_to_bytes(QImage* image)
 	{
-		unsigned char** bytes = allocate_uchar(image->width(), image->height()*4);
-		for(int r = 0; r < image->height(); r += 4)
+		unsigned char** bytes = allocate_uchar(image->width(), image->height()*3);
+		for(int r = 0; r < image->height(); r += 3)
 		{
 			for(int c = 0; c < image->width(); c++)
 			{
 				bytes[c][r] = (unsigned char)qRed(image->pixel(c,r));
 				bytes[c][r + 1] = (unsigned char)qGreen(image->pixel(c,r));
 				bytes[c][r + 2] = (unsigned char)qBlue(image->pixel(c,r));
-				bytes[c][r + 3] = (unsigned char)qAlpha(image->pixel(c,r));
 			}
 		}
 		return bytes;

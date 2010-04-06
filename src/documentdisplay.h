@@ -31,6 +31,8 @@ public:
 	void setLeftAndRightImages(QImage* image);
 
 	float getScaleFactor();
+	QImage* getLeftImage();
+	QImage* getRightImage();
 	void closeEvent(QCloseEvent* e);
 	void scaleImage(float factor);
 };

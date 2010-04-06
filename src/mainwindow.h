@@ -24,7 +24,6 @@
 
 #include "cutil_inline.h"
 
-
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -63,6 +62,9 @@ private:
 
 	bool displaySavePrompt();
 	void toggleActions(bool);
+
+	QImage* brighten_image(float factor);
+	QImage* brighten_video(float factor);
 
 public:
 	MainWindow(QWidget *parent = 0);

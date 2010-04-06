@@ -250,6 +250,12 @@ void MainWindow::brighten()
 		{
 			// brighten image by factor
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(brighten_video(factor));
+			else
+			{
+				this->display->setRightImage(brighten_image(factor));
+			}
 		}
 		else
 		{
@@ -360,7 +366,8 @@ void MainWindow::openFile()
 			this->video = false;
 			this->frames = 1;
 			this->file = (QImage**) malloc(sizeof(QImage*));
-			this->file[0] = new QImage(fileName);
+			QImage img(fileName);
+			this->file[0] = new QImage(img.convertToFormat(QImage::Format_RGB32));
 		}
 		this->saveAction->setEnabled(true);
 		this->closeAction->setEnabled(true);
