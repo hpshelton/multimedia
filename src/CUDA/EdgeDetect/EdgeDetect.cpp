@@ -1,5 +1,9 @@
 #include <sys/time.h>
-#include "/home/adam/NVIDIA_GPU_Computing_SDK/C/common/inc/cutil_inline.h"
+#if UNIX
+    #include "/home/adam/NVIDIA_GPU_Computing_SDK/C/common/inc/cutil_inline.h"
+#else
+    #include "/Developer/GPU Computing/C/common/inc/cutil_inline.h"
+#endif 
 #include <cuda.h>
 #include <cfloat>
 #include <vector>
