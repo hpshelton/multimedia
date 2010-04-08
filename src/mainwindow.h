@@ -21,6 +21,7 @@
 #include "utility.h"
 #include "documentdisplay.h"
 #include "defines.h"
+#include "encoder.h"
 
 #include "cutil_inline.h"
 

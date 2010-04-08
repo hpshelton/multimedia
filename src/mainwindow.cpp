@@ -324,10 +324,10 @@ void MainWindow::blur()
 
 void MainWindow::edgeDetection()
 {
-        unsigned char* input;
-        unsigned char* output;
-        int row, col;
-        edgeDetectGPU(input, output, row, col);
+		unsigned char* input;
+		unsigned char* output;
+		int row, col;
+		edgeDetectGPU(input, output, row, col);
 	hasChanged = true;
 }
 
@@ -358,7 +358,7 @@ void MainWindow::compress()
 void MainWindow::openFile()
 {
 	closeFile();
-	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm; *.qcif; *.jpg; *.jpeg; *.bmp; *.gif; *.tif; *.tiff");
+	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.qcif *.jpg *.jpeg *.bmp *.gif *.tif *.tiff");
 	if(!fileName.isEmpty())
 	{
 		if(fileName.endsWith(".qcif"))
@@ -427,6 +427,7 @@ bool MainWindow::saveFile()
 		layout->addWidget(groupBoxRight, 1, 2, 1, 1);
 		layout->addWidget(buttonBox, 2, 2, 1, 1, Qt::AlignRight);
 
+		// ADD ADDITIONAL OPTIONS FOR COMPRESSION LEVEL
 		if(!this->video)
 			groupBoxRight->hide();
 
@@ -454,6 +455,7 @@ bool MainWindow::saveFile()
 			else
 			{
 				// Save picture
+				Encoder::write_pgm(this->file[0], huffman, arithmetic, runlength);
 				hasChanged = false;
 			}
 		}
