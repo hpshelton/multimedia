@@ -31,7 +31,9 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 private:
+	/* Set automatically if the computer has a CUDA-capable GPU */
 	bool CUDA_CAPABLE;
+	/* Set dynamically in the Preferences pane for demo purposes; initially true */
 	bool CUDA_ENABLED;
 
 	QMenuBar* menubar;
@@ -69,11 +71,11 @@ private:
 	bool displaySavePrompt();
 	void toggleActions(bool);
 
-        QImage* brighten_image(float factor);
-        QImage* brighten_video(float factor);
+	QImage* brighten_image(float factor);
+	QImage* brighten_video(float factor);
 
-        QImage* edge_detect();
-        QImage* edge_detect_video();
+	QImage* edge_detect();
+	QImage* edge_detect_video();
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);

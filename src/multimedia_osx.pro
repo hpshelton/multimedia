@@ -12,7 +12,8 @@ SOURCES += main.cpp \
 	mainwindow.cpp \
 	documentdisplay.cpp \
 	brighten.cpp \
-	encoder.cpp
+	encoder.cpp \
+	edgeDetect.cpp
 OBJECTS += obj/CUDA/*.o
 INCLUDEPATH += "/Developer/GPU Computing/C/common/inc" \
 	/usr/local/cuda/include

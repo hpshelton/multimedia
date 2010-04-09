@@ -1,8 +1,13 @@
 #include "encoder.h"
 
 // Not pgm - custom format!
-void Encoder::write_pgm(QImage* img, bool huffman, bool arithmetic, bool runlength)
+void Encoder::write_ppc(QImage* img, bool huffman, bool arithmetic, bool runlength)
 {
 	unsigned char** image = Utility::img_to_bytes(img);
-	// runlegnth > huffman
+	// runlength > huffman
+}
+
+unsigned char* Encoder::huffman_encode(unsigned char** image)
+{
+
 }

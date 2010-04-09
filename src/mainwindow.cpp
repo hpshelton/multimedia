@@ -332,26 +332,15 @@ void MainWindow::blur()
 
 void MainWindow::edgeDetection()
 {
-    hasChanged = true;
-    if(this->video)
-       this->display->setRightImage(edge_detect_video());
-    else
-    {
-        this->display->setRightImage(edge_detect());
-    }
+	hasChanged = true;
+	if(this->video)
+	   this->display->setRightImage(edge_detect_video());
+	else
+	{
+		this->display->setRightImage(edge_detect());
+	}
 }
-/*            else
-            {
-                    QMessageBox* error = new QMessageBox(this);
-                    error->setText("Invalid Brightness Factor!               ");
-                    error->setIcon(QMessageBox::Critical);
-                    error->setInformativeText("Brightness factor must be greater than 0.");
-                    error->exec();
-                    delete error;
-            }
-    }
-}
-*/
+
 void MainWindow::compress()
 {
 	bool accepted;
@@ -481,8 +470,13 @@ bool MainWindow::saveFile()
 			}
 			else
 			{
-				// Save picture
-				Encoder::write_pgm(this->file[0], huffman, arithmetic, runlength);
+				if(fileName.endsWith(".pgm") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg"))
+				{
+					QImage* img = this->display->getRightImage();
+					img->save(fileName, 0, compression);
+				}
+				// Save picture in ppc format
+				Encoder::write_ppc(this->file[0], huffman, arithmetic, runlength);
 				hasChanged = false;
 			}
 		}
