@@ -69,8 +69,11 @@ private:
 	bool displaySavePrompt();
 	void toggleActions(bool);
 
-	QImage* brighten_image(float factor);
-	QImage* brighten_video(float factor);
+        QImage* brighten_image(float factor);
+        QImage* brighten_video(float factor);
+
+        QImage* edge_detect();
+        QImage* edge_detect_video();
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);

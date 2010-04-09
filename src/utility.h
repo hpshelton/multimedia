@@ -3,6 +3,8 @@
 
 #include <iostream>
 #include <QImage>
+#include <cstdio>
+#include "defines.h"
 
 class Utility
 {
@@ -61,6 +63,17 @@ public:
 		}
 		return bytes;
 	}
+//        #define CLAMP(a) (a)>255?((a)<0?0:a):255
+        static unsigned char** img_to_lum(QImage* image)
+        {
+            unsigned char** lum = allocate_uchar(image->width(), image->height());
+            for(int r=0; r < image->height(); r++){
+                for(int c=0; c < image->width(); c++){
+                    lum[c][r] = CLAMP(0.3*qRed(image->pixel(c,r)) + 0.59*qGreen(image->pixel(c,r)) + 0.11*qBlue(image->pixel(c,r)));
+                }
+            }
+	return lum;
+        }
 };
 
 #endif // UTILITY_H

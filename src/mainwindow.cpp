@@ -332,13 +332,26 @@ void MainWindow::blur()
 
 void MainWindow::edgeDetection()
 {
-		unsigned char* input;
-		unsigned char* output;
-		int row, col;
-		edgeDetectGPU(input, output, row, col);
-	hasChanged = true;
+    hasChanged = true;
+    if(this->video)
+       this->display->setRightImage(edge_detect_video());
+    else
+    {
+        this->display->setRightImage(edge_detect());
+    }
 }
-
+/*            else
+            {
+                    QMessageBox* error = new QMessageBox(this);
+                    error->setText("Invalid Brightness Factor!               ");
+                    error->setIcon(QMessageBox::Critical);
+                    error->setInformativeText("Brightness factor must be greater than 0.");
+                    error->exec();
+                    delete error;
+            }
+    }
+}
+*/
 void MainWindow::compress()
 {
 	bool accepted;
