@@ -15,6 +15,7 @@
 #include <QDialogButtonBox>
 #include <QRadioButton>
 #include <QGroupBox>
+#include <QCheckBox>
 #include <QSpinBox>
 #include <QImage>
 
@@ -30,6 +31,9 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 private:
+	bool CUDA_CAPABLE;
+	bool CUDA_ENABLED;
+
 	QMenuBar* menubar;
 	QToolBar* toolbar;
 
@@ -38,6 +42,7 @@ private:
 	QAction* saveAction;
 	QAction* exitAction;
 	QAction* closeAction;
+	QAction* showPreferencesAction;
 
 /* Toolbar actions */
 	QAction* cropAction;
@@ -68,7 +73,7 @@ private:
 	QImage* brighten_video(float factor);
 
 public:
-	MainWindow(QWidget *parent = 0);
+	MainWindow(bool c, QWidget *parent = 0);
 	~MainWindow();
 
 public slots:
@@ -87,6 +92,8 @@ public slots:
 	void closeFile();
 	void zoomIn();
 	void zoomOut();
+	void showPreferences();
+	void enableCUDA(bool b);
 };
 
 #endif // MAINWINDOW_H

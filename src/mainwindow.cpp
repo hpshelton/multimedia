@@ -2,9 +2,12 @@
 
 extern "C" void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col);
 
-MainWindow::MainWindow(QWidget *parent)
+MainWindow::MainWindow(bool c, QWidget *parent)
 	: QMainWindow(parent), frames(0)
 {
+	this->CUDA_CAPABLE = c;
+	this->CUDA_ENABLED = c;
+
 	QDesktopWidget qdw;
 	int screenCenterX = qdw.width() / 2;
 	int screenCenterY = qdw.height() / 2;
@@ -31,6 +34,10 @@ MainWindow::MainWindow(QWidget *parent)
 	this->exitAction->setStatusTip(tr("Exit E-Level"));
 	this->exitAction->setShortcut(tr("Ctrl+W"));
 	QObject::connect(this->exitAction, SIGNAL(triggered()), this, SLOT(close()));
+
+	this->showPreferencesAction = new QAction(tr("Preferences"), this);
+	this->showPreferencesAction->setStatusTip(tr("Show Preferences"));
+	QObject::connect(this->showPreferencesAction, SIGNAL(triggered()), this, SLOT(showPreferences()));
 
 	this->toolbar = addToolBar("Editing Actions");
 
@@ -97,6 +104,7 @@ MainWindow::MainWindow(QWidget *parent)
 	fileMenu->addAction(openAction);
 	fileMenu->addAction(saveAction);
 	fileMenu->addSeparator();
+	fileMenu->addAction(showPreferencesAction);
 	fileMenu->addAction(closeAction);
 	fileMenu->addAction(exitAction);
 	QMenu* viewMenu = menubar->addMenu(tr("&View"));
@@ -396,12 +404,18 @@ bool MainWindow::saveFile()
 		QVBoxLayout *vbox = new QVBoxLayout();
 		groupBox->setLayout(vbox);
 
-		QRadioButton* radio1 = new QRadioButton("Huffman Coding");
-		QRadioButton* radio2 = new QRadioButton("Run-Length Coding");
-		QRadioButton* radio3 = new QRadioButton("Arithmetic Coding");
+		QCheckBox* radio1 = new QCheckBox("Huffman Coding");
+		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
+		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
+		QSpinBox* compressionBox = new QSpinBox(dialog);
+		compressionBox->setMinimum(0);
+		compressionBox->setMaximum(100);
+		compressionBox->setValue(100);
 		vbox->addWidget(radio1);
 		vbox->addWidget(radio2);
 		vbox->addWidget(radio3);
+		vbox->addWidget(new QLabel("Quality: ", dialog));
+		vbox->addWidget(compressionBox);
 		vbox->addStretch(1);
 
 		QGroupBox* groupBoxRight = new QGroupBox("Frame Options");
@@ -427,7 +441,6 @@ bool MainWindow::saveFile()
 		layout->addWidget(groupBoxRight, 1, 2, 1, 1);
 		layout->addWidget(buttonBox, 2, 2, 1, 1, Qt::AlignRight);
 
-		// ADD ADDITIONAL OPTIONS FOR COMPRESSION LEVEL
 		if(!this->video)
 			groupBoxRight->hide();
 
@@ -436,6 +449,7 @@ bool MainWindow::saveFile()
 			bool huffman = radio1->isChecked();
 			bool arithmetic = radio3->isChecked();
 			bool runlength = radio2->isChecked();
+			int compression = compressionBox->text().toInt();
 
 			if(this->video)
 			{
@@ -530,4 +544,36 @@ void MainWindow::zoomIn()
 void MainWindow::zoomOut()
 {
 	this->display->scaleImage(ZOOM_OUT_FACTOR);
+}
+
+void MainWindow::showPreferences()
+{
+	QDialog* dialog = new QDialog(this);
+	QGridLayout* layout = new QGridLayout();
+	dialog->setWindowTitle("Preferences");
+	dialog->setModal(true);
+	dialog->setLayout(layout);
+
+	QGroupBox* groupBox = new QGroupBox("CUDA-Acceleration Options");
+	QVBoxLayout *vbox = new QVBoxLayout();
+	groupBox->setLayout(vbox);
+
+	QCheckBox* radio1 = new QCheckBox("Enable CUDA Accleration");
+	radio1->setDisabled(!this->CUDA_CAPABLE);
+	radio1->setChecked(this->CUDA_ENABLED);
+	vbox->addWidget(radio1);
+	QObject::connect(radio1, SIGNAL(clicked(bool)), this, SLOT(enableCUDA(bool)));
+	layout->addWidget(groupBox);
+
+	dialog->exec();
+
+	delete radio1;
+	delete vbox;
+	delete layout;
+	delete dialog;
+}
+
+void MainWindow::enableCUDA(bool b)
+{
+	this->CUDA_ENABLED = b;
 }
