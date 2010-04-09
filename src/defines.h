@@ -10,6 +10,6 @@
 #define ZOOM_IN_FACTOR 1.25
 #define ZOOM_OUT_FACTOR 0.8
 
-#define CLAMP(a) ((a > 255) ? 255 : ((a < 0) ? 0 : a))
+#define CLAMP(a) ( ((a) > 255) ? 255 : (((a) < 0) ? 0 : (int)(a)) )
 
 #endif // DEFINES_H
