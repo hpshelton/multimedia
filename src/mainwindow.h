@@ -23,6 +23,7 @@
 #include "documentdisplay.h"
 #include "defines.h"
 #include "encoder.h"
+#include "decoder.h"
 
 #include "cutil_inline.h"
 
