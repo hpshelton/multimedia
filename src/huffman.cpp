@@ -3,7 +3,7 @@
 
 #include <iostream>
 
-unsigned char* Encoder::huffman_encode(unsigned char** image, int width, int height)
+unsigned char* Encoder::huffman_encode(unsigned char** image, int width, int height, unsigned int* numBytes)
 {
 	// Maps the symbol to its huffman code
 	std::map<int, std::string> valueToCode;
@@ -122,6 +122,7 @@ unsigned char* Encoder::huffman_encode(unsigned char** image, int width, int hei
 	for(i = 0; i < 3; i++)
 		bitstream[bitstreamIndex++] = '\0';
 
+	*numBytes = bitstreamIndex;
 	return bitstream;
 }
 

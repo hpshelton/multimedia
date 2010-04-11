@@ -5,8 +5,11 @@
 #include <vector>
 #include <string>
 #include <algorithm>
+#include <iostream>
+#include <fstream>
 
 #include <QImage>
+#include <QString>
 
 #include "utility.h"
 
@@ -14,10 +17,10 @@ class Encoder
 {
 public:
 	//static QImage* test(QImage*);
-	static void write_ppc(QImage* image, bool huffman, bool arithmetic, bool runlength);
-	static unsigned char* huffman_encode(unsigned  char** image, int width, int height);
-	static unsigned char* runlength_encode(unsigned char* image);
-	static unsigned char* arithmetic_encode(unsigned char* image);
+	static void write_ppc(QImage* image, QString filename, bool huffman, bool arithmetic, bool runlength);
+	static unsigned char* huffman_encode(unsigned  char** image, int width, int height, unsigned int* numBytes);
+	static unsigned char* runlength_encode(unsigned char* image, unsigned int* numBytes);
+	static unsigned char* arithmetic_encode(unsigned char* image, unsigned int* numBytes);
 
 private:
 
@@ -70,6 +73,5 @@ private:
 		bool operator() (Node* i, Node* j) { return (i->probability < j->probability); }
 	} nodeComparator;
 };
-
 
 #endif // ENCODER_H

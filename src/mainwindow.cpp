@@ -368,7 +368,7 @@ void MainWindow::compress()
 void MainWindow::openFile()
 {
 	closeFile();
-	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.qcif *.jpg *.jpeg *.bmp *.gif *.tif *.tiff");
+	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.qcif *.jpg *.jpeg *.bmp *.gif *.tif *.tiff *.ppc");
 	if(!fileName.isEmpty())
 	{
 		if(fileName.endsWith(".qcif"))
@@ -380,14 +380,26 @@ void MainWindow::openFile()
 			this->video = false;
 			this->frames = 1;
 			this->file = (QImage**) malloc(sizeof(QImage*));
-			QImage img(fileName);
-			this->file[0] = new QImage(img.convertToFormat(QImage::Format_RGB32));
+			if(fileName.endsWith(".ppc"))
+			{
+				this->file[0] = Decoder::read_ppc(fileName);
+				if(this->file[0] != NULL)
+					this->file[0] = new QImage(this->file[0]->convertToFormat(QImage::Format_RGB32));
+			}
+			else
+			{
+				QImage img(fileName);
+				this->file[0] = new QImage(img.convertToFormat(QImage::Format_RGB32));
+			}
 		}
-		this->saveAction->setEnabled(true);
-		this->closeAction->setEnabled(true);
-		this->display->setLeftAndRightImages(this->file[0]);
-		this->hasChanged = false;
-		toggleActions(true);
+		if(this->file[0] != NULL)
+		{
+			this->saveAction->setEnabled(true);
+			this->closeAction->setEnabled(true);
+			this->display->setLeftAndRightImages(this->file[0]);
+			this->hasChanged = false;
+			toggleActions(true);
+		}
 	}
 }
 
@@ -470,13 +482,16 @@ bool MainWindow::saveFile()
 			}
 			else
 			{
-				if(fileName.endsWith(".pgm") || fileName.endsWith(".jpg") || fileName.endsWith(".jpeg"))
+				if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
+					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
 				{
 					QImage* img = this->display->getRightImage();
 					img->save(fileName, 0, compression);
 				}
 				// Save picture in ppc format
-				Encoder::write_ppc(this->file[0], huffman, arithmetic, runlength);
+				if(!fileName.endsWith(".ppc"))
+					fileName += ".ppc";
+				Encoder::write_ppc(this->file[0], fileName, huffman, arithmetic, runlength);
 				hasChanged = false;
 			}
 		}

@@ -49,21 +49,45 @@
 	return Utility::bytes_to_img(decompressed, img->width(), img->height());
 }*/
 
-void Encoder::write_ppc(QImage* img, bool huffman, bool arithmetic, bool runlength)
+void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength)
 {
 	unsigned char** image = Utility::img_to_bytes(img);
+	unsigned char* byte_stream = image[0];
+	int width = img->width();
+	int height = img->height();
+	unsigned int numBytes = width*height*3;
+	if(runlength)
+	{
+		byte_stream = runlength_encode(byte_stream, &numBytes);
+	}
 
-	unsigned char* byte_stream = huffman_encode(image, img->width(), img->height()*3);
-	byte_stream = runlength_encode(byte_stream);
-	// runlength > huffman
+	if(arithmetic)
+	{
+		byte_stream = arithmetic_encode(byte_stream, &numBytes);
+	}
+
+	if(huffman)
+	{
+		byte_stream = huffman_encode(image, width, height*3, &numBytes);
+	}
+
+	FILE* output;
+	if(!(output = fopen(filename.toStdString().c_str(), "w")))
+	{
+		std::cerr << "Failed to open " << filename.toStdString() << " for writing\n";
+		return;
+	}
+	fprintf(output, "%d %d %dl ", width, height, numBytes);
+	fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
+	fclose(output);
 }
 
-unsigned char* Encoder::runlength_encode(unsigned char* image)
+unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned int* numBytes)
 {
 	return NULL;
 }
 
-unsigned char* Encoder::arithmetic_encode(unsigned char* image)
+unsigned char* Encoder::arithmetic_encode(unsigned char* image, unsigned int* numBytes)
 {
 	return NULL;
 }
