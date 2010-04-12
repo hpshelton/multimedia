@@ -8,6 +8,7 @@ extern "C" void CUiwt97   (unsigned char* output, float* input, float* tempbank,
 extern "C" void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col);
 extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
 extern "C" void CUsetToVal(unsigned char* x, int len, int val);
+extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
 
 void CUquantize(float* x, int Qlevel, int maxval, int len)
 {
@@ -48,24 +49,6 @@ void CUfwt97(float* output, unsigned char* input, float* tempbank, int n)
 	fwt97<<<blocksPerGrid, threadsPerBlock>>>(output, input, tempbank, n);
 }
 
-void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col)
-{
-	int i;
-	int threadsPerBlock = col;
-	int blocksPerGrid = (col + threadsPerBlock - 1) / threadsPerBlock;
-	float* outputT;
-	cutilSafeCall(cudaMalloc((void**)&outputT, sizeof(float)*row*col));
-
-	// execute the kernel
-	for(i=0; i < row; i++)
-		fwt97<<<blocksPerGrid, threadsPerBlock>>>(&outputT[i*col], &input[i*col], tempbank, col);
-	CUtranspose(output, outputT, col, row);
-	for(i=0; i < col; i++)
-		fwt97<<<blocksPerGrid, threadsPerBlock>>>(&output[i*row], tempbank, row);
-
-	cutilSafeCall(cudaFree(outputT));
-}
-
 /*
 	n is the length of input, which must be a power of 2
 	output and tempbank should also be of length n
@@ -79,11 +62,33 @@ void CUiwt97(unsigned char* output, float* input, float* tempbank, int n)
 	iwt97<<<blocksPerGrid, threadsPerBlock>>>(output, input, tempbank, n);
 }
 
-void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col)
+void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col)
 {
 	int i;
 	int threadsPerBlock = col;
 	int blocksPerGrid = (col + threadsPerBlock - 1) / threadsPerBlock;
+	float* outputT;
+	cutilSafeCall(cudaMalloc((void**)&outputT, sizeof(float)*row*col));
+
+	// execute the kernel
+	for(i=0; i < row; i++)
+		fwt97<<<blocksPerGrid, threadsPerBlock>>>(&outputT[i*col], &input[i*col], tempbank, col);
+
+	CUtranspose(output, outputT, col,row);
+
+	threadsPerBlock = row;
+	blocksPerGrid = (row + threadsPerBlock - 1) / threadsPerBlock;
+
+	for(i=0; i < col; i++)
+		fwt97<<<blocksPerGrid, threadsPerBlock>>>(&output[i*row], tempbank, row);
+
+	cutilSafeCall(cudaFree(outputT));
+}
+void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col)
+{
+	int i;
+	int threadsPerBlock = row;
+	int blocksPerGrid = (row + threadsPerBlock - 1) / threadsPerBlock;
 	float* inputT;
 	cutilSafeCall(cudaMalloc((void**)&inputT, sizeof(float)*row*col));
 
@@ -91,7 +96,11 @@ void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, i
 
 	for(i=0; i < col; i++)
 		iwt97<<<blocksPerGrid, threadsPerBlock>>>(&input[i*row], tempbank, row);
-	CUtranspose(inputT, input, row, col);
+	CUtranspose(inputT, input, row,col);
+
+	threadsPerBlock = col;
+	blocksPerGrid = (col + threadsPerBlock - 1) / threadsPerBlock;
+
 	for(i=0; i < row; i++)
 		iwt97<<<blocksPerGrid, threadsPerBlock>>>(&output[i*col], &inputT[i*col], tempbank, col);
 
