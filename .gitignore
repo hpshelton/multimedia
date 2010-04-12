@@ -2,6 +2,7 @@ bin/
 lib/
 src/obj/*
 src/multimedia.pro.user
+src/multimedia_osx.pro.user
 multimedia.app
 Makefile
 .DS_Store

@@ -15,6 +15,7 @@
 #include <QDialogButtonBox>
 #include <QRadioButton>
 #include <QGroupBox>
+#include <QCheckBox>
 #include <QSpinBox>
 #include <QImage>
 
@@ -22,6 +23,7 @@
 #include "documentdisplay.h"
 #include "defines.h"
 #include "encoder.h"
+#include "decoder.h"
 
 #include "cutil_inline.h"
 
@@ -30,6 +32,11 @@ class MainWindow : public QMainWindow
 	Q_OBJECT
 
 private:
+	/* Set automatically if the computer has a CUDA-capable GPU */
+	bool CUDA_CAPABLE;
+	/* Set dynamically in the Preferences pane for demo purposes; initially true */
+	bool CUDA_ENABLED;
+
 	QMenuBar* menubar;
 	QToolBar* toolbar;
 
@@ -38,6 +45,7 @@ private:
 	QAction* saveAction;
 	QAction* exitAction;
 	QAction* closeAction;
+	QAction* showPreferencesAction;
 
 /* Toolbar actions */
 	QAction* cropAction;
@@ -64,14 +72,14 @@ private:
 	bool displaySavePrompt();
 	void toggleActions(bool);
 
-        QImage* brighten_image(float factor);
-        QImage* brighten_video(float factor);
+	QImage* brighten_image(float factor);
+	QImage* brighten_video(float factor);
 
-        QImage* edge_detect();
-        QImage* edge_detect_video();
+	QImage* edge_detect();
+	QImage* edge_detect_video();
 
 public:
-	MainWindow(QWidget *parent = 0);
+	MainWindow(bool c, QWidget *parent = 0);
 	~MainWindow();
 
 public slots:
@@ -90,6 +98,8 @@ public slots:
 	void closeFile();
 	void zoomIn();
 	void zoomOut();
+	void showPreferences();
+	void enableCUDA(bool b);
 };
 
 #endif // MAINWINDOW_H

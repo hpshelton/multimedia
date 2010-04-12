@@ -12,15 +12,13 @@
 
 int main(int argc, char *argv[])
 {
-	cudaSetDevice( cutGetMaxGflopsDeviceId() );
-
 	QCoreApplication::setOrganizationName(ORGANIZATION_NAME);
 	QCoreApplication::setOrganizationDomain(ORGANIZATION_DOMAIN);
 	QCoreApplication::setApplicationName(PROGRAM_NAME);
 
 	QApplication multimedia(argc, argv);
 	multimedia.setWindowIcon(QIcon(":/images/movie_reel.jpg"));
-	MainWindow mainWindow;
+	MainWindow mainWindow(cudaSetDevice(cutGetMaxGflopsDeviceId()) == cudaSuccess);
 	mainWindow.setWindowTitle("Multimedia");
 	mainWindow.setWindowIconText("Multimedia");
 

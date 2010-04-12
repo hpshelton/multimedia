@@ -7,13 +7,16 @@ HEADERS += mainwindow.h \
     defines.h \
     utility.h \
     documentdisplay.h \
-    encoder.h
+    encoder.h \
+    decoder.h
 SOURCES += main.cpp \
     mainwindow.cpp \
     documentdisplay.cpp \
     brighten.cpp \
     encoder.cpp \
-    edgeDetect.cpp
+    edgeDetect.cpp \
+    huffman.cpp \
+    decoder.cpp
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 RCC_DIR = ./obj
