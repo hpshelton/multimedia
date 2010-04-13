@@ -51,11 +51,14 @@
 
 void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength)
 {
-	unsigned char** image = Utility::img_to_bytes(img);
-	unsigned char* byte_stream = image[0];
 	int width = img->width();
 	int height = img->height();
 	unsigned int numBytes = width*height*3;
+
+	unsigned char** image = Utility::img_to_bytes(img);
+	unsigned char* byte_stream = Utility::linearArray(image, height*3, width);
+	unsigned char** newImg = Utility::blockArray(byte_stream, height*3, width);
+	std::cout << (int)image[10][12] << " " << (int)byte_stream[10*height*3 + 12] << " " << (int)newImg[10][12] << std::endl;
 	if(runlength)
 	{
 		byte_stream = runlength_encode(byte_stream, &numBytes);
@@ -68,7 +71,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 
 	if(huffman)
 	{
-		byte_stream = huffman_encode(image, width, height*3, &numBytes);
+		byte_stream = huffman_encode(byte_stream, numBytes, &numBytes);
 	}
 
 	FILE* output;

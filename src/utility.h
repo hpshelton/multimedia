@@ -4,6 +4,7 @@
 #include <math.h>
 #include <QImage>
 #include "defines.h"
+#include <iostream>
 
 class Utility
 {
@@ -142,6 +143,32 @@ public:
 		while ((c = binVal[i++]) != '\0')
 			;
 		return i-1;
+	}
+
+	/* Returns a liner array accessed as where matrix[r][c] = array[r*height*3 + c] */
+	static unsigned char* linearArray(unsigned char** matrix, int width, int height)
+	{
+		unsigned char* array = (unsigned char*) malloc(width*height*sizeof(unsigned char));
+		int index = 0;
+		for(int r = 0; r < height; r++)
+		{
+			for(int c = 0; c < width; c++)
+				array[index++] = matrix[r][c];
+		}
+		return array;
+	}
+
+	/* Inverts the previous function */
+	static unsigned char** blockArray(unsigned char* array, int width, int height)
+	{
+		unsigned char** matrix = Utility::allocate_uchar(height, width);
+		int index = 0;
+		for(int r = 0; r < height; r++)
+		{
+			for(int c = 0; c < width; c++)
+				matrix[r][c] = array[index++];
+		}
+		return matrix;
 	}
 };
 
