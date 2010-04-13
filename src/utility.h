@@ -4,7 +4,6 @@
 #include <math.h>
 #include <QImage>
 #include "defines.h"
-#include <iostream>
 
 class Utility
 {
