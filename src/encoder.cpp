@@ -53,6 +53,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 {
 	int width = img->width();
 	int height = img->height();
+	int mode = 4*runlength + 2*arithmetic + huffman;
 	unsigned int numBytes = width*height*3;
 	unsigned char** image = Utility::img_to_bytes(img);
 	unsigned char* byte_stream = Utility::linearArray(image, height*3, width);
@@ -78,7 +79,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		std::cerr << "Failed to open " << filename.toStdString() << " for writing\n";
 		return;
 	}
-	fprintf(output, "%d %d %dl ", width, height, numBytes);
+	fprintf(output, "%d %d %d %ul ", mode, width, height, numBytes);
 	fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
 	fclose(output);
 }

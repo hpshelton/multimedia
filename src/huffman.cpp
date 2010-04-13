@@ -118,7 +118,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned int num_va
 	return bitstream;
 }
 
-unsigned char** Decoder::huffman_decode(unsigned char* bitstream, int width, int height)
+unsigned char* Decoder::huffman_decode(unsigned char* bitstream, int width, int height)
 {
 	std::map<std::string, int> codeToValue;
 	int symbol;
@@ -150,5 +150,5 @@ unsigned char** Decoder::huffman_decode(unsigned char* bitstream, int width, int
 		image[index++] = codeToValue[*code];
 	}
 
-	return Utility::blockArray(image, height*3, width);
+	return image;
 }
