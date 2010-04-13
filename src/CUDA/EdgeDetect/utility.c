@@ -28,7 +28,7 @@ FILE *open_get_file (char *message,char *mode,char *dir,char *ext)
     return (fd);
 }
 
-FILE *open_file (char *file,char *mode)
+FILE *open_file (const char *file,const char *mode)
 {
     FILE           *fd;
 
