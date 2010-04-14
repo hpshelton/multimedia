@@ -88,8 +88,17 @@ private:
 	QImage* brighten_image(float factor);
 	QImage* brighten_video(float factor);
 
+	QImage* contrast_image(float factor);
+	QImage* contrast_video(float factor);
+
+	QImage* saturate_image(float factor);
+	QImage* saturate_video(float factor);
+
 	QImage* edge_detect();
 	QImage* edge_detect_video();
+
+	QImage* blur_image();
+	QImage* blur_video();
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);

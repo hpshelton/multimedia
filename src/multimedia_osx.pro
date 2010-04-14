@@ -17,7 +17,10 @@ SOURCES += main.cpp \
     edgeDetect.cpp \
     huffman.cpp \
     decoder.cpp \
-    grayscale.cpp
+    grayscale.cpp \
+    contrast.cpp \
+    saturation.cpp \
+    blur.cpp
 OBJECTS += obj/CUDA/*.o
 INCLUDEPATH += "/Developer/GPU Computing/C/common/inc" \
     /usr/local/cuda/include

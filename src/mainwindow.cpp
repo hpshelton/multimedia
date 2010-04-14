@@ -263,9 +263,7 @@ void MainWindow::brighten()
 			if(this->video)
 				this->display->setRightImage(brighten_video(factor));
 			else
-			{
 				this->display->setRightImage(brighten_image(factor));
-			}
 		}
 		else
 		{
@@ -290,6 +288,10 @@ void MainWindow::contrast()
 		{
 			// adjust contrast image by factor
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(contrast_video(factor));
+			else
+				this->display->setRightImage(contrast_image(factor));
 		}
 		else
 		{
@@ -314,6 +316,10 @@ void MainWindow::saturate()
 		{
 			// saturate image by factor
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(saturate_video(factor));
+			else
+				this->display->setRightImage(saturate_image(factor));
 		}
 		else
 		{
@@ -330,6 +336,10 @@ void MainWindow::saturate()
 void MainWindow::blur()
 {
 	hasChanged = true;
+	if(this->video)
+	   this->display->setRightImage(blur_video());
+	else
+		this->display->setRightImage(blur_image());
 }
 
 void MainWindow::edgeDetection()
