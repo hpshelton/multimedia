@@ -81,6 +81,7 @@ private:
 
 	bool displaySavePrompt();
 	void toggleActions(bool);
+	void closeEvent(QCloseEvent *);
 
 	QImage* grayscale_image();
 	QImage* grayscale_video();

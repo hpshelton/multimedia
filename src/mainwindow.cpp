@@ -499,12 +499,16 @@ bool MainWindow::saveFile()
 				{
 					QImage* img = this->display->getRightImage();
 					img->save(fileName, 0, compression);
+					hasChanged = false;
 				}
-				// Save picture in ppc format
-				if(!fileName.endsWith(".ppc"))
-					fileName += ".ppc";
-				Encoder::write_ppc(this->file[0], fileName, huffman, arithmetic, runlength);
-				hasChanged = false;
+				else
+				{
+					// Save picture in ppc format
+					if(!fileName.endsWith(".ppc"))
+						fileName += ".ppc";
+					Encoder::write_ppc(this->display->getRightImage(), fileName, huffman, arithmetic, runlength);
+					hasChanged = false;
+				}
 			}
 		}
 		delete radio1;
@@ -550,6 +554,14 @@ bool MainWindow::displaySavePrompt()
 		return true;
 	else
 		return false;
+}
+
+void MainWindow::closeEvent(QCloseEvent* e)
+{
+	if(!this->hasChanged || displaySavePrompt())
+		e->accept();
+	else
+		e->ignore();
 }
 
 void MainWindow::toggleActions(bool b)
