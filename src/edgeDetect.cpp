@@ -1,11 +1,31 @@
 #include "mainwindow.h"
 #include <iostream>
 
+/* cuda method is RGBA because RGB32 stores data as 0xffRRGGBB anyway
+  */
 QImage* MainWindow::edge_detect()
 {
-	float coeff[3][3] = {{-1, -1, -1},
-						 {-1,  8, -1},
-						 {-1, -1, -1}};
+	QImage* img = this->file[0];
+
+	unsigned char* CUinput;
+	unsigned char* CUoutput;
+	int memSize = img->byteCount();
+
+	cutilSafeCall(cudaMalloc((void**)&CUinput, memSize));
+	cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
+
+	cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
+	edgeDetectGPU_rgba(CUoutput, CUinput, img->height(), img->width());
+	cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
+
+	cutilSafeCall(cudaFree(CUinput));
+	cutilSafeCall(cudaFree(CUoutput));
+
+	return img;
+
+/*	float coeff[3][3] = {{-1, -1, -1},
+                             {-1,  8, -1},
+                             {-1, -1, -1}};
 
 	int i, j;
 	float convSumR, convSumG, convSumB;
@@ -32,7 +52,7 @@ QImage* MainWindow::edge_detect()
 		}
 	}
 	return img;
-}
+*/}
 
 QImage* MainWindow::edge_detect_video()
 {

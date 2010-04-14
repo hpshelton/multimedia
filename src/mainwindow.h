@@ -27,6 +27,16 @@
 
 #include "cutil_inline.h"
 
+extern "C" void edgeDetectGPU_rgba(unsigned char* input, unsigned char* output, int row, int col);
+extern "C" void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col);
+extern "C" void CUfwt97   (float* output, unsigned char* input, float* tempbank, int n);
+extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
+extern "C" void CUiwt97   (unsigned char* output, float* input, float* tempbank, int n);
+extern "C" void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col);
+extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
+extern "C" void CUsetToVal(unsigned char* x, int len, int val);
+extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT

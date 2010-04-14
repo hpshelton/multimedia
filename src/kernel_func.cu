@@ -1,6 +1,7 @@
 #include <cutil_inline.h>
 #include "kernels.cu"
 
+extern "C" void edgeDetectGPU_rgba(unsigned char* input, unsigned char* output, int row, int col);
 extern "C" void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col);
 extern "C" void CUfwt97   (float* output, unsigned char* input, float* tempbank, int n);
 extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
@@ -34,6 +35,13 @@ void CUsetToVal(unsigned char* x, int len, int val)
 void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col)
 {
 	edge_detect<<<row,col>>>(input, output, row, col);
+}
+
+void edgeDetectGPU_rgba(unsigned char* output, unsigned char* input, int row, int col)
+{
+	dim3 dimGrid(row/4+1, col/4+1);
+	dim3 dimThreadBlock(16,16);
+	edge_detect_rgba<<<dimGrid, dimThreadBlock>>>(input, output, row, col);
 }
 
 /*

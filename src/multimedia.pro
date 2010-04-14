@@ -24,14 +24,13 @@ RESOURCES = multimedia.qrc
 macx:ICON = ../images/icon.icns
 
 # Cuda extra-compiler for handling files specified in the CUSOURCES variable
-CUSOURCES = CUDA/EdgeDetect/kernel_func.cu
+CUSOURCES = kernel_func.cu
 unix:INCLUDEPATH += /home/adam/NVIDIA_GPU_Computing_SDK/C/common/inc
 unix:INCLUDEPATH += /usr/local/cuda/include
 unix:LIBS += -lcuda \
     -lcudart \
     -L/usr/lib64 \
     -L/usr/local/cuda/lib64
-win32:QMAKE_CUC = $(CUDA_BIN_PATH)/nvcc.exe
 unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
  { 
     cu.name = Cuda \
@@ -40,13 +39,11 @@ unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
     cu.CONFIG += no_link
     cu.variable_out = OBJECTS
     isEmpty(QMAKE_CUC) { 
-        win32:QMAKE_CUC = $(CUDA_BIN_PATH)/nvcc.exe
-        else:QMAKE_CUC = nvcc
+        QMAKE_CUC = nvcc
     }
     isEmpty(CU_DIR):CU_DIR = .
     isEmpty(QMAKE_CPP_MOD_CU):QMAKE_CPP_MOD_CU = 
     isEmpty(QMAKE_EXT_CPP_CU):QMAKE_EXT_CPP_CU = .cu
-    win32:INCLUDEPATH += $(CUDA_INC_PATH)
     unix:INCLUDEPATH += /usr/local/cuda/include
     unix:LIBPATH += /usr/local/cuda/lib64
     
@@ -82,3 +79,5 @@ unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
     else:cuclean.CONFIG += recursive
     QMAKE_EXTRA_TARGETS += cuclean
 }
+OTHER_FILES += kernel_func.cu \
+    kernels.cu

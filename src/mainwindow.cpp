@@ -1,7 +1,5 @@
 #include "mainwindow.h"
 
-extern "C" void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col);
-
 MainWindow::MainWindow(bool c, QWidget *parent)
 	: QMainWindow(parent), frames(0)
 {
