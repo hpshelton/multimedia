@@ -82,6 +82,9 @@ private:
 	bool displaySavePrompt();
 	void toggleActions(bool);
 
+	QImage* grayscale_image();
+	QImage* grayscale_video();
+
 	QImage* brighten_image(float factor);
 	QImage* brighten_video(float factor);
 

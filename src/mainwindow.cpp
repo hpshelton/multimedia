@@ -134,6 +134,10 @@ MainWindow::~MainWindow()
 void MainWindow::grayscale()
 {
 	hasChanged = true;
+	if(this->video)
+		this->display->setRightImage(grayscale_video());
+	else
+		this->display->setRightImage(grayscale_image());
 }
 
 void MainWindow::rotate()

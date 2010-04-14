@@ -1,8 +1,9 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::brighten_image(float factor)
+QImage* MainWindow::grayscale_image()
 {
 	QImage* img = this->file[0];
+	int r = 0, g = 0, b = 0;
 
 	// Scale each RGB value by the brightening factor
 	for(int y = 0; y < img->height(); y++)
@@ -10,16 +11,14 @@ QImage* MainWindow::brighten_image(float factor)
 		for(int x = 0; x < img->width(); x++)
 		{
 			QRgb p = img->pixel(x, y);
-			int r = CLAMP(qRed(p) * factor);
-			int g = CLAMP(qGreen(p) * factor);
-			int b = CLAMP(qBlue(p) * factor);
+			r = g = b = (qRed(p) * 0.3) + (qGreen(p) * 0.59) + (qBlue(p) * 0.11);
 			img->setPixel(x, y, qRgb(r, g, b));
 		}
 	}
 	return img;
 }
 
-QImage* MainWindow::brighten_video(float factor)
+QImage* MainWindow::grayscale_video()
 {
 	return NULL;
 }
