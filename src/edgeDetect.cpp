@@ -6,21 +6,28 @@ QImage* MainWindow::edge_detect()
 {
 	QImage* img = this->file[0];
 
-	unsigned char* CUinput;
-	unsigned char* CUoutput;
-	int memSize = img->byteCount();
+	if(CUDA_CAPABLE && CUDA_ENABLED)
+	{
+		unsigned char* CUinput;
+		unsigned char* CUoutput;
+		int memSize = img->byteCount();
 
-	cutilSafeCall(cudaMalloc((void**)&CUinput, memSize));
-	cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
+		cutilSafeCall(cudaMalloc((void**)&CUinput, memSize));
+		cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
 
-	cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
-	edgeDetectGPU_rgba(CUoutput, CUinput, img->height(), img->width());
-	cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
+		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
+		edgeDetectGPU_rgba(CUoutput, CUinput, img->height(), img->width());
+		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
 
-	cutilSafeCall(cudaFree(CUinput));
-	cutilSafeCall(cudaFree(CUoutput));
+		cutilSafeCall(cudaFree(CUinput));
+		cutilSafeCall(cudaFree(CUoutput));
 
-	return img;
+		return img;
+	}
+	else
+	{
+
+	}
 
 /*	float coeff[3][3] = {{-1, -1, -1},
 							 {-1,  8, -1},

@@ -51,24 +51,32 @@ void DocumentDisplay::init()
 
 void DocumentDisplay::setLeftImage(QImage *image)
 {
-	this->leftPanel->show();
-	this->leftImage->setPixmap(QPixmap::fromImage(*image));
-	this->leftImage->adjustSize();
-	this->leftScaleFactor = 1;
+	if(image != NULL)
+	{	this->leftPanel->show();
+		this->leftImage->setPixmap(QPixmap::fromImage(*image));
+		this->leftImage->adjustSize();
+		this->leftScaleFactor = 1;
+	}
 }
 
 void DocumentDisplay::setRightImage(QImage *image)
 {
-	this->rightPanel->show();
-	this->rightImage->setPixmap(QPixmap::fromImage(*image));
-	this->rightImage->adjustSize();
-	this->rightScaleFactor = 1;
+	if(image != NULL)
+	{
+		this->rightPanel->show();
+		this->rightImage->setPixmap(QPixmap::fromImage(*image));
+		this->rightImage->adjustSize();
+		this->rightScaleFactor = 1;
+	}
 }
 
 void DocumentDisplay::setLeftAndRightImages(QImage *image)
 {
-	setLeftImage(image);
-	setRightImage(image);
+	if(image != NULL)
+	{
+		setLeftImage(image);
+		setRightImage(image);
+	}
 }
 
 void DocumentDisplay::closeEvent(QCloseEvent* e)
