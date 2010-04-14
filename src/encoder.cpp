@@ -53,24 +53,19 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 {
 	int width = img->width();
 	int height = img->height();
-	unsigned int numBytes = width*height*3;
+	int mode = 4*runlength + 2*arithmetic + huffman;
+	unsigned long numBytes = width*height*3;
 	unsigned char** image = Utility::img_to_bytes(img);
 	unsigned char* byte_stream = Utility::linearArray(image, height*3, width);
 
 	if(runlength)
-	{
 		byte_stream = runlength_encode(byte_stream, &numBytes);
-	}
 
 	if(arithmetic)
-	{
 		byte_stream = arithmetic_encode(byte_stream, &numBytes);
-	}
 
 	if(huffman)
-	{
 		byte_stream = huffman_encode(byte_stream, numBytes, &numBytes);
-	}
 
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
@@ -78,17 +73,66 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		std::cerr << "Failed to open " << filename.toStdString() << " for writing\n";
 		return;
 	}
-	fprintf(output, "%d %d %dl ", width, height, numBytes);
+	fprintf(output, "%d %d %d %lu ", mode, width, height, numBytes);
 	fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
 	fclose(output);
 }
 
-unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned int* numBytes)
+unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned long* numBytes)
 {
-	return NULL;
+	unsigned char previous_symbol = image[0];
+	unsigned char* byte_stream = (unsigned char*) malloc(*numBytes * 2 * sizeof(unsigned char));
+//	for(int i = 0; i < 50; i++)
+//	{
+//		printf("%d ", image[i]);
+//	}
+//	printf("\n");
+
+	int index = 0;
+	int count = 1;
+	byte_stream[index++] = previous_symbol;
+//	printf("%d ", byte_stream[index-1]);
+	for(unsigned int i = 1; i < *numBytes; i++)
+	{
+		if(image[i] == previous_symbol)
+		{
+			count++;
+			if(count == 257)
+			{
+				byte_stream[index++] = (unsigned char)255;
+//				printf("c:%d ", 255);
+				count = 0;
+				previous_symbol = NULL;
+			}
+			else if(count < 3)
+			{
+				byte_stream[index++] = image[i];
+//				printf("%d ", byte_stream[index-1]);
+			}
+		}
+		else
+		{
+			if(count >= 2)
+			{
+				byte_stream[index++] = (unsigned char)(count-2);
+//				printf("c:%d ", byte_stream[index-1]);
+			}
+			byte_stream[index++] = image[i];
+//			printf("%d ", byte_stream[index-1]);
+			previous_symbol = image[i];
+			count = 1;
+		}
+	}
+
+	if(count > 2)
+		byte_stream[index++] = (unsigned char)(count-2);
+//	printf("c:%d ", byte_stream[index-1]);
+
+	*numBytes = index;
+	return byte_stream;
 }
 
-unsigned char* Encoder::arithmetic_encode(unsigned char* image, unsigned int* numBytes)
+unsigned char* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes)
 {
 	return NULL;
 }
