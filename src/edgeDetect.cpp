@@ -1,5 +1,4 @@
 #include "mainwindow.h"
-#include <iostream>
 
 /* cuda method is RGBA because RGB32 stores data as 0xffRRGGBB anyway
   */
@@ -24,8 +23,8 @@ QImage* MainWindow::edge_detect()
 	return img;
 
 /*	float coeff[3][3] = {{-1, -1, -1},
-                             {-1,  8, -1},
-                             {-1, -1, -1}};
+							 {-1,  8, -1},
+							 {-1, -1, -1}};
 
 	int i, j;
 	float convSumR, convSumG, convSumB;

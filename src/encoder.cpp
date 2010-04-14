@@ -1,9 +1,45 @@
 #include "encoder.h"
-//#include "decoder.h"
+#include "decoder.h"
 
-/*QImage* Encoder::test(QImage* img)
-{
-	for(int i = 0; i < 10; i++)
+//QImage* Encoder::test(QImage* img)
+//{
+	/*unsigned char* original = Utility::linearArray(Utility::img_to_bytes(img), img->height()*3, img->width());
+	unsigned long numBytes = img->width() * img->height() * 3;
+	unsigned char* decoded = Decoder::runlength_decode(Encoder::runlength_encode(original, &numBytes), &numBytes);
+	printf("Run Length:\n");
+	for(int i = 0; i < img->width()*img->height()*3; i++)
+	{
+		if(original[i] != decoded[i])
+		{
+			printf("%d %d %d %d %d %d %d %d\n", original[i-7], original[i-6], original[i-5], original[i-4], original[i-3], original[i-2], original[i-1], original[i]);
+			printf("%d %d %d %d %d %d %d %d\n", decoded[i-7], decoded[i-6], decoded[i-5], decoded[i-4], decoded[i-3], decoded[i-2], decoded[i-1], decoded[i]);
+		}
+	}
+	printf("Huffman:\n");
+	unsigned long numBytes2 = img->width() * img->height() * 3;
+	unsigned char* huffDecoded = Decoder::huffman_decode(Encoder::huffman_encode(original, &numBytes2), img->height()*3, img->width(), &numBytes2);
+	for(int i = 0; i < img->width()*img->height()*3; i++)
+	{
+		if(original[i] != huffDecoded[i])
+		{
+			printf("%d %d %d %d %d %d %d %d\n", original[i-7], original[i-6], original[i-5], original[i-4], original[i-3], original[i-2], original[i-1], original[i]);
+			printf("%d %d %d %d %d %d %d %d\n", huffDecoded[i-7], huffDecoded[i-6], huffDecoded[i-5], huffDecoded[i-4], huffDecoded[i-3], huffDecoded[i-2], huffDecoded[i-1], huffDecoded[i]);
+		}
+	}
+	printf("Huffman over Run Length:\n");
+	unsigned long numBytes3 = img->width() * img->height() * 3;
+	unsigned char* coded = Encoder::huffman_encode(Encoder::runlength_encode(original, &numBytes3), &numBytes3);
+	unsigned char* decoded3 = Decoder::runlength_decode(Decoder::huffman_decode(coded, img->height()*3, img->width(), &numBytes3), &numBytes3);
+	for(int i = 0; i < img->width()*img->height()*3; i++)
+	{
+		if(original[i] != decoded3[i])
+		{
+			printf("%d %d %d %d %d %d %d %d\n", original[i-7], original[i-6], original[i-5], original[i-4], original[i-3], original[i-2], original[i-1], original[i]);
+			printf("%d %d %d %d %d %d %d %d\n", decoded3[i-7], decoded3[i-6], decoded3[i-5], decoded3[i-4], decoded3[i-3], decoded3[i-2], decoded3[i-1], decoded3[i]);
+		}
+	}*/
+
+	/*for(int i = 0; i < 10; i++)
 	{
 		for(int j = 0; j < 10; j++)
 			printf("%d %d %d ", qRed(img->pixel(i, j)), qGreen(img->pixel(i,j)), qBlue(img->pixel(i,j)));
@@ -46,8 +82,8 @@
 				printf("Mismatch in decompression: %d != %d\n", image[i][j], decompressed[i][j]);
 		}
 	}
-	return Utility::bytes_to_img(decompressed, img->width(), img->height());
-}*/
+	return Utility::bytes_to_img(decompressed, img->width(), img->height());*/
+//}
 
 void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength)
 {
@@ -65,7 +101,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		byte_stream = arithmetic_encode(byte_stream, &numBytes);
 
 	if(huffman)
-		byte_stream = huffman_encode(byte_stream, numBytes, &numBytes);
+		byte_stream = huffman_encode(byte_stream, &numBytes);
 
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
@@ -82,16 +118,9 @@ unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned long* nu
 {
 	unsigned char previous_symbol = image[0];
 	unsigned char* byte_stream = (unsigned char*) malloc(*numBytes * 2 * sizeof(unsigned char));
-//	for(int i = 0; i < 50; i++)
-//	{
-//		printf("%d ", image[i]);
-//	}
-//	printf("\n");
-
 	int index = 0;
 	int count = 1;
 	byte_stream[index++] = previous_symbol;
-//	printf("%d ", byte_stream[index-1]);
 	for(unsigned int i = 1; i < *numBytes; i++)
 	{
 		if(image[i] == previous_symbol)
@@ -100,14 +129,11 @@ unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned long* nu
 			if(count == 257)
 			{
 				byte_stream[index++] = (unsigned char)255;
-//				printf("c:%d ", 255);
 				count = 0;
-				previous_symbol = NULL;
 			}
 			else if(count < 3)
 			{
 				byte_stream[index++] = image[i];
-//				printf("%d ", byte_stream[index-1]);
 			}
 		}
 		else
@@ -115,18 +141,15 @@ unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned long* nu
 			if(count >= 2)
 			{
 				byte_stream[index++] = (unsigned char)(count-2);
-//				printf("c:%d ", byte_stream[index-1]);
 			}
 			byte_stream[index++] = image[i];
-//			printf("%d ", byte_stream[index-1]);
 			previous_symbol = image[i];
 			count = 1;
 		}
 	}
 
-	if(count > 2)
+	if(count >= 2)
 		byte_stream[index++] = (unsigned char)(count-2);
-//	printf("c:%d ", byte_stream[index-1]);
 
 	*numBytes = index;
 	return byte_stream;

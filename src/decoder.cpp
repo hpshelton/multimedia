@@ -1,4 +1,5 @@
 #include "decoder.h"
+#include <iostream>
 
 QImage* Decoder::read_ppc(QString filename)
 {
@@ -33,19 +34,21 @@ QImage* Decoder::read_ppc(QString filename)
 
 unsigned char* Decoder::runlength_decode(unsigned char* image, unsigned long* numBytes)
 {
-	unsigned char previous_symbol = image[0];
 	unsigned char* byte_stream = (unsigned char*) malloc(*numBytes * 260 * sizeof(unsigned char));
-	int index = 0;
+	unsigned char previous_symbol = image[0];
+	byte_stream[0] = previous_symbol;
+	int index = 1;
 	int count = 1;
 	for(unsigned int i = 1; i < *numBytes; i++)
 	{
 		if(count == 2)
 		{
 			int mult = (int) image[i];
-			while(mult-- > 0)
+			while(mult > 0)
+			{
+				mult--;
 				byte_stream[index++] = previous_symbol;
-
-			previous_symbol = NULL;
+			}
 			count = 0;
 		}
 		else if(image[i] == previous_symbol)

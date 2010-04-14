@@ -3,10 +3,11 @@
 
 #include <iostream>
 
-unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned int num_values, unsigned long* numBytes)
+unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numBytes)
 {
 	// Maps the symbol to its huffman code
 	std::map<int, std::string> valueToCode;
+	unsigned long num_values = *numBytes;
 
 	// Compute probabilities
 	float probabilities[256];
