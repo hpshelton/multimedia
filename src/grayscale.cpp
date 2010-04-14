@@ -2,7 +2,7 @@
 
 QImage* MainWindow::grayscale_image()
 {
-	QImage* img = this->file[0];
+	QImage* img = this->display->getRightImage();
 	int r = 0, g = 0, b = 0;
 
 	// Scale each RGB value by the brightening factor

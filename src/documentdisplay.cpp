@@ -52,7 +52,8 @@ void DocumentDisplay::init()
 void DocumentDisplay::setLeftImage(QImage *image)
 {
 	if(image != NULL)
-	{	this->leftPanel->show();
+	{
+		this->leftPanel->show();
 		this->leftImage->setPixmap(QPixmap::fromImage(*image));
 		this->leftImage->adjustSize();
 		this->leftScaleFactor = 1;

@@ -2,7 +2,7 @@
 
 QImage* MainWindow::brighten_image(float factor)
 {
-	QImage* img = this->file[0];
+	QImage* img = this->display->getRightImage();
 
 	// Scale each RGB value by the brightening factor
 	for(int y = 0; y < img->height(); y++)

@@ -209,6 +209,10 @@ void MainWindow::crop()
 		{
 			// crop using x1, x2, y1, y2
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(crop_video(x1, x2, y1, y2));
+			else
+				this->display->setRightImage(crop_image(x1, x2, y1, y2));
 		}
 		else
 		{

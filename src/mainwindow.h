@@ -83,6 +83,9 @@ private:
 	void toggleActions(bool);
 	void closeEvent(QCloseEvent *);
 
+	QImage* crop_image(int x1, int x2, int y1, int y2);
+	QImage* crop_video(int x1, int x2, int y1, int y2);
+
 	QImage* grayscale_image();
 	QImage* grayscale_video();
 

@@ -2,8 +2,7 @@
 
 QImage* MainWindow::saturate_image(float factor)
 {
-	QImage* img = this->file[0];
-
+	QImage* img = this->display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 	int r = 0, g = 0, b = 0;
