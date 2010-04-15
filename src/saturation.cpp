@@ -5,30 +5,52 @@ QImage* MainWindow::saturate_image(float factor)
 	QImage* img = this->display->getRightImage();
 	int width = img->width();
 	int height = img->height();
-	int r = 0, g = 0, b = 0;
-	float lum = 0;
 
-	// Modify the saturation
-	for(int y = 0; y < height; y++)
+	if(CUDA_CAPABLE && CUDA_ENABLED)
 	{
-		for(int x = 0; x < width; x++)
-		{
-			QRgb p = img->pixel(x, y);
-			lum = (qRed(p) * 0.3) + (qGreen(p) * 0.59) + (qBlue(p) * 0.11);
+		unsigned char* CUinput;
+		unsigned char* CUoutput;
+		int memSize = img->byteCount();
 
-			r = (1-factor)*lum + factor*(qRed(p));
-			r = CLAMP(r);
+		cutilSafeCall(cudaMalloc((void**)&CUinput, memSize));
+		cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
 
-			g = (1-factor)*lum + factor*(qGreen(p));
-			g = CLAMP(g);
+		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
+		CUsaturate(CUoutput, CUinput, height, width, factor);
+		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
 
-			b = (1-factor)*lum + factor*(qBlue(p));
-			b = CLAMP(b);
+		cutilSafeCall(cudaFree(CUinput));
+		cutilSafeCall(cudaFree(CUoutput));
 
-			img->setPixel(x,y, qRgb(r, g, b));
-		}
+		return img;
 	}
-	return img;
+	else
+	{
+		int r = 0, g = 0, b = 0;
+		float lum = 0;
+
+		// Modify the saturation
+		for(int y = 0; y < height; y++)
+		{
+			for(int x = 0; x < width; x++)
+			{
+				QRgb p = img->pixel(x, y);
+				lum = (qRed(p) * 0.3) + (qGreen(p) * 0.59) + (qBlue(p) * 0.11);
+
+				r = (1-factor)*lum + factor*(qRed(p));
+				r = CLAMP(r);
+
+				g = (1-factor)*lum + factor*(qGreen(p));
+				g = CLAMP(g);
+
+				b = (1-factor)*lum + factor*(qBlue(p));
+				b = CLAMP(b);
+
+				img->setPixel(x,y, qRgb(r, g, b));
+			}
+		}
+		return img;
+	}
 }
 
 QImage* MainWindow::saturate_video(float factor)

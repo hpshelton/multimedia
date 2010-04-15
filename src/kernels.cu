@@ -8,47 +8,19 @@ __global__ void setToVal(unsigned char* x, int len, int val)
 		x[index] = val;	
 }
 
-__global__ void edge_detect(unsigned char* input, unsigned char* output, int row, int col)
-{
-	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
-	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
-	int index = xIndex + yIndex * row;
-
-	if(index < row*col && index%4!=3){
-		float coeff[3][3]= {{-1, -1, -1},
-							{-1,  8, -1},
-							{-1, -1, -1}};
-
-		int i, j;
-		float convSum=0;
-		for(i=-1; i < 2; i++){
-			for(j=-1; j < 2; j++){
-				if(-1 < (index+j)+(row*i) && (index+j)+(row*i) < row*col){
-					convSum += coeff[i+1][j+1]*input[(index+j)+(row*i)];
-				}
-			}
-		}
-		output[index] = CLAMP(convSum);
-	}
-}
-
-__global__ void edge_detect_rgba(unsigned char* input, unsigned char* output, int row, int col)
+__global__ void conv3x3(unsigned char* input, unsigned char* output, int row, int col, float* kernel)
 {
 	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
 	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
 	int index = (xIndex + yIndex * row*4);
 
 	if(index < row*col*4){
-		float coeff[3][3]= {{-1, -1, -1},
-							{-1,  8, -1},
-							{-1, -1, -1}};
-
 		int i, j;
 		float convSum=0;
 		for(i=-1; i < 2; i++){
 			for(j=-1; j < 2; j++){
 				if(-1 < (index+4*j)+(4*col*i) && (index+4*j)+(4*col*i) < row*col*4){
-					convSum += coeff[i+1][j+1]*input[(index+4*j)+(4*col*i)];
+					convSum += kernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
 				}
 			}
 		}
@@ -63,6 +35,48 @@ __global__ void quantize(float* x, int Qlevel, float maxval, int n)
 		x[i] = (int)( (x[i]/maxval) *Qlevel ) * (maxval / (float)Qlevel);
 }
 
+__global__ void brighten(unsigned char* input, unsigned char* output, int row, int col, float factor)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int index = (xIndex + yIndex * row*4);
+
+	if(index < row*col*4){
+		output[index]=CLAMP(factor*input[index]);
+	}
+}
+
+__global__ void greyscale(unsigned char* input, unsigned char* output, int row, int col)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int index = (4*xIndex + yIndex * row*4);
+
+	if(index < row*col*4){
+		int lum = 0.11*input[index] + 0.59*input[index+1] + 0.3*input[index+2];
+
+		output[index]=lum;
+		output[index+1]=lum;
+		output[index+2]=lum;
+		output[index+3]=0;
+	}
+}
+
+__global__ void saturate(unsigned char* input, unsigned char* output, int row, int col, float factor)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int index = (4*xIndex + yIndex * row*4);
+
+	if(index < row*col*4){
+		int lum = 0.11*input[index] + 0.59*input[index+1] + 0.3*input[index+2];
+
+		output[index]=CLAMP( (1-factor)*lum + factor*input[index] );
+		output[index+1]=CLAMP( (1-factor)*lum + factor*input[index+1] );
+		output[index+2]=CLAMP( (1-factor)*lum + factor*input[index+2] );
+		output[index+3]=0;
+	}
+}
 
 __global__ void fwt97(float* output, unsigned char* input, float* tempbank, int n)
 {

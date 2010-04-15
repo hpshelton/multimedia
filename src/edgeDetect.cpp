@@ -18,7 +18,7 @@ QImage* MainWindow::edge_detect()
 		cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
 
 		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
-		edgeDetectGPU_rgba(CUoutput, CUinput, height, width);
+		CUedgeDetect(CUoutput, CUinput, height, width);
 		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
 
 		cutilSafeCall(cudaFree(CUinput));

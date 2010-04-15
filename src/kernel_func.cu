@@ -1,15 +1,18 @@
 #include <cutil_inline.h>
 #include "kernels.cu"
 
-extern "C" void edgeDetectGPU_rgba(unsigned char* input, unsigned char* output, int row, int col);
-extern "C" void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col);
+extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
+extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
+extern "C" void CUsetToVal(unsigned char* x, int len, int val);
+extern "C" void CUedgeDetect(unsigned char* input, unsigned char* output, int row, int col);
+extern "C" void CUblur(unsigned char* output, unsigned char* input, int row, int col);
+extern "C" void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor);
+extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col);
+extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUfwt97   (float* output, unsigned char* input, float* tempbank, int n);
-extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
 extern "C" void CUiwt97   (unsigned char* output, float* input, float* tempbank, int n);
 extern "C" void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col);
-extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
-extern "C" void CUsetToVal(unsigned char* x, int len, int val);
-extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
+extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
 
 void CUquantize(float* x, int Qlevel, int maxval, int len)
 {
@@ -32,16 +35,61 @@ void CUsetToVal(unsigned char* x, int len, int val)
 	setToVal<<<blocksPerGrid, threadsPerBlock>>>(x, len, val);
 }
 
-void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col)
-{
-	edge_detect<<<row,col>>>(input, output, row, col);
-}
-
-void edgeDetectGPU_rgba(unsigned char* output, unsigned char* input, int row, int col)
+void CUedgeDetect(unsigned char* output, unsigned char* input, int row, int col)
 {
 	dim3 dimGrid(row/4+1, col/4+1);
 	dim3 dimThreadBlock(16,16);
-	edge_detect_rgba<<<dimGrid, dimThreadBlock>>>(input, output, row, col);
+
+	float coeff[9]= {-1, -1, -1, \
+					 -1,  8, -1, \
+					 -1, -1, -1};
+	float* CUcoeff;
+	cutilSafeCall(cudaMalloc((void**)&CUcoeff, sizeof(float)*9));
+	cutilSafeCall(cudaMemcpy(CUcoeff, coeff, sizeof(float)*9, cudaMemcpyHostToDevice));
+
+	conv3x3<<<dimGrid, dimThreadBlock>>>(input, output, row, col, CUcoeff);
+	cutilSafeCall(cudaFree(CUcoeff));
+}
+
+void CUblur(unsigned char* output, unsigned char* input, int row, int col)
+{
+	dim3 dimGrid(row/4+1, col/4+1);
+	dim3 dimThreadBlock(16,16);
+
+	float coeff[9]= { 0.0625, 0.125, 0.0625, \
+					  0.125,  0.25,  0.125,  \
+					  0.0625, 0.125, 0.0625 };
+
+	float* CUcoeff;
+	cutilSafeCall(cudaMalloc((void**)&CUcoeff, sizeof(float)*9));
+	cutilSafeCall(cudaMemcpy(CUcoeff, coeff, sizeof(float)*9, cudaMemcpyHostToDevice));
+
+	conv3x3<<<dimGrid, dimThreadBlock>>>(input, output, row, col, CUcoeff);
+	cutilSafeCall(cudaFree(CUcoeff));
+}
+
+void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor)
+{
+	dim3 dimGrid(row/4+1, col/4+1);
+	dim3 dimThreadBlock(16,16);
+
+	brighten<<<dimGrid, dimThreadBlock>>>(input, output, row, col, factor);
+}
+
+void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col)
+{
+	dim3 dimGrid(row/16+1, col/16+1);
+	dim3 dimThreadBlock(16,16);
+
+	greyscale<<<dimGrid, dimThreadBlock>>>(input, output, row, col);
+}
+
+void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor)
+{
+	dim3 dimGrid(row/16+1, col/16+1);
+	dim3 dimThreadBlock(16,16);
+
+	saturate<<<dimGrid, dimThreadBlock>>>(input, output, row, col, factor);
 }
 
 /*

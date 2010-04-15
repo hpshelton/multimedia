@@ -8,6 +8,20 @@ QImage* MainWindow::blur_image()
 
 	if(CUDA_CAPABLE && CUDA_ENABLED)
 	{
+		unsigned char* CUinput;
+		unsigned char* CUoutput;
+		int memSize = img->byteCount();
+
+		cutilSafeCall(cudaMalloc((void**)&CUinput, memSize));
+		cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
+
+		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
+		CUblur(CUoutput, CUinput, height, width);
+		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
+
+		cutilSafeCall(cudaFree(CUinput));
+		cutilSafeCall(cudaFree(CUoutput));
+
 		return img;
 	}
 	else
