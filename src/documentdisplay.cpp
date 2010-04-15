@@ -49,7 +49,7 @@ void DocumentDisplay::init()
 	this->rightScaleFactor = 0;
 }
 
-void DocumentDisplay::setLeftImage(QImage *image)
+void DocumentDisplay::setLeftImage(QImage* image)
 {
 	if(image != NULL)
 	{
@@ -60,7 +60,7 @@ void DocumentDisplay::setLeftImage(QImage *image)
 	}
 }
 
-void DocumentDisplay::setRightImage(QImage *image)
+void DocumentDisplay::setRightImage(QImage* image)
 {
 	if(image != NULL)
 	{

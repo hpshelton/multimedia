@@ -10,9 +10,12 @@ QImage* MainWindow::brighten_image(float factor)
 		for(int x = 0; x < img->width(); x++)
 		{
 			QRgb p = img->pixel(x, y);
-			int r = CLAMP(qRed(p) * factor);
-			int g = CLAMP(qGreen(p) * factor);
-			int b = CLAMP(qBlue(p) * factor);
+			int r = qRed(p) * factor;
+			r = CLAMP(r);
+			int g = qGreen(p) * factor;
+			g = CLAMP(g);
+			int b = qBlue(p) * factor;
+			b = CLAMP(b);
 			img->setPixel(x, y, qRgb(r, g, b));
 		}
 	}

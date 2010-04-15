@@ -448,6 +448,14 @@ bool MainWindow::saveFile()
 		vbox->addWidget(compressionBox);
 		vbox->addStretch(1);
 
+		if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
+			|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
+		{
+			radio1->setEnabled(false);
+			radio2->setEnabled(false);
+			radio3->setEnabled(false);
+		}
+
 		QGroupBox* groupBoxRight = new QGroupBox("Frame Options");
 		QVBoxLayout *vboxRight = new QVBoxLayout();
 		groupBoxRight->setLayout(vboxRight);
