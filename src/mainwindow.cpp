@@ -155,6 +155,10 @@ void MainWindow::rotate()
 				a -= 360;
 			// rotate image by degree a
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(rotate_video(a));
+			else
+				this->display->setRightImage(rotate_image(a));
 		}
 		else
 		{
@@ -240,6 +244,10 @@ void MainWindow::scale()
 		{
 			// scale image by factor
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(scale_video(factor));
+			else
+				this->display->setRightImage(scale_image(factor));
 		}
 		else
 		{

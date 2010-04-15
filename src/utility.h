@@ -169,6 +169,49 @@ public:
 		}
 		return matrix;
 	}
+
+	static QRgb GaussianSample(QImage* image, float x, float y, float variance, float radius)
+	{
+		int width = image->width();
+		int height = image->height();
+		float p = pow(variance, 2);
+		float coeff = 1/(2.0 * PI * p);
+		float denom = (2.0 * p);
+		float weight = 0, powx = 0, powy = 0;
+		int r = 0, g = 0, b = 0;
+
+		// Estimate sampling area
+		int lowx = (int)floor(x-1);
+		int lowy = (int)floor(y-1);
+		int highx = (int)ceil(x+1);
+		int highy = (int)ceil(y+1);
+
+		// Scan estimated area
+		for(int i = lowx; i <= highx; i++)
+		{
+			for(int j = lowy; j <= highy; j++)
+			{
+				// Sample area within radius
+				if(i >= 0 && j >= 0 && i < width && j < height)
+				{
+					powx = pow(i-x, 2);
+					powy = pow(j-y, 2);
+					if(sqrt(powx + powy) <= radius)
+					{
+						QRgb pixel = image->pixel(i,j);
+						weight = coeff * exp(-1 * (powx + powy)/denom);
+						r += qRed(pixel) * weight;
+						r = CLAMP(r);
+						g += qGreen(pixel) * weight;
+						g = CLAMP(g);
+						b += qBlue(pixel) * weight;
+						b = CLAMP(b);
+					}
+				}
+			}
+		}
+		return qRgb(r, g, b);
+	}
 };
 
 #endif // UTILITY_H
