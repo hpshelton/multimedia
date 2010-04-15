@@ -10,13 +10,17 @@ HEADERS += mainwindow.h \
     encoder.h \
     decoder.h
 SOURCES += main.cpp \
-    mainwindow.cpp \
-    documentdisplay.cpp \
-    brighten.cpp \
-    encoder.cpp \
-    edgeDetect.cpp \
-    huffman.cpp \
-    decoder.cpp
+	mainwindow.cpp \
+	documentdisplay.cpp \
+	brighten.cpp \
+	encoder.cpp \
+	edgeDetect.cpp \
+	huffman.cpp \
+	decoder.cpp \
+	grayscale.cpp \
+	contrast.cpp \
+	saturation.cpp \
+	blur.cpp
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 RCC_DIR = ./obj

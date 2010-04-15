@@ -3,20 +3,41 @@
 QImage* MainWindow::brighten_image(float factor)
 {
 	QImage* img = this->file[0];
+	int width = img->width();
+	int height = img->height();
 
-	// Scale each RGB value by the brightening factor
-	for(int y = 0; y < img->height(); y++)
-	{
-		for(int x = 0; x < img->width(); x++)
-		{
-			QRgb p = img->pixel(x, y);
-			int r = CLAMP(qRed(p) * factor);
-			int g = CLAMP(qGreen(p) * factor);
-			int b = CLAMP(qBlue(p) * factor);
-			img->setPixel(x, y, qRgb(r, g, b));
-		}
+	if(CUDA_CAPABLE && CUDA_ENABLED) {
+		unsigned char* CUinput;
+		unsigned char* CUoutput;
+		int memSize = img->byteCount();
+
+		cutilSafeCall(cudaMalloc((void**)&CUinput, memSize));
+		cutilSafeCall(cudaMalloc((void**)&CUoutput, memSize));
+
+		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
+		CUbrighten(CUoutput, CUinput, height, width, factor);
+		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
+
+		cutilSafeCall(cudaFree(CUinput));
+		cutilSafeCall(cudaFree(CUoutput));
+
+		return img;
 	}
-	return img;
+	else{
+		// Scale each RGB value by the brightening factor
+		for(int y = 0; y < img->height(); y++)
+		{
+			for(int x = 0; x < img->width(); x++)
+			{
+				QRgb p = img->pixel(x, y);
+				int r = CLAMP(qRed(p) * factor);
+				int g = CLAMP(qGreen(p) * factor);
+				int b = CLAMP(qBlue(p) * factor);
+				img->setPixel(x, y, qRgb(r, g, b));
+			}
+		}
+		return img;
+	}
 }
 
 QImage* MainWindow::brighten_video(float factor)
