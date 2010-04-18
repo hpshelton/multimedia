@@ -89,19 +89,18 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 {
 	int width = img->width();
 	int height = img->height();
-	int mode = 4*runlength + 2*arithmetic + huffman;
+	int mode = 4*runlength + 2*huffman + arithmetic;
 	unsigned long numBytes = width*height*3;
 	unsigned char** image = Utility::img_to_bytes(img);
 	unsigned char* byte_stream = Utility::linearArray(image, height*3, width);
+	double* arithmetic_stream = NULL;
 
 	if(runlength)
 		byte_stream = runlength_encode(byte_stream, &numBytes);
-
-	if(arithmetic)
-		byte_stream = arithmetic_encode(byte_stream, &numBytes);
-
 	if(huffman)
 		byte_stream = huffman_encode(byte_stream, &numBytes);
+	if(arithmetic)
+		arithmetic_stream = arithmetic_encode(byte_stream, &numBytes);
 
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
@@ -110,7 +109,10 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		return;
 	}
 	fprintf(output, "%d %d %d %lu ", mode, width, height, numBytes);
-	fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
+	if(!arithmetic)
+		fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
+	else
+		fwrite(arithmetic_stream, sizeof(double), numBytes, output);
 	fclose(output);
 }
 
@@ -155,7 +157,74 @@ unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned long* nu
 	return byte_stream;
 }
 
-unsigned char* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes)
+double* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes)
 {
-	return NULL;
+	// Compute initial uniform probabilities
+	double probabilities[256];
+	double symbol_count = 256;
+	for(int i = 0; i < 256; i++)
+		probabilities[i] = 1;
+
+	int input_symbol;
+	double low = 0.0, high = 1.0;
+	double output_symbol;
+	unsigned long output_count = 0;
+	double* output_stream = (double*) malloc(*numBytes/4 * sizeof(double));
+
+//	double probabilities[3];
+//	double symbol_count = 3;
+//	for(int i = 0; i < 3; i++)
+//		probabilities[i] = 1;
+//
+//	image[0] = 1;
+//	image[1] = 2;
+//	image[2] = 2;
+//	image[3] = 1;
+//	image[4] = 1;
+//	image[5] = 1;
+//	image[6] = 1;
+//	image[7] = 1;
+//
+//	int input_symbol;
+//	double low = 0.0, high = 1.0;
+//	double output_symbol;
+//	unsigned long output_count = 0;
+//	double* output_stream = (double*) malloc(3 * sizeof(double));
+
+	for(unsigned long index = 0; index < *numBytes; index++)
+//	for(unsigned long index = 0; index < 8; index++)
+	{
+		// TODO - CLEANUP!
+		input_symbol = (int) image[index];
+	//	printf("%d => ", input_symbol);
+		int i = 0;
+		double subintervalLow = 0;
+		while(i < input_symbol)
+			subintervalLow += probabilities[i++];
+		subintervalLow /= symbol_count;
+		double subintervalHigh = probabilities[i]/symbol_count + subintervalLow;
+
+		double range = high - low;
+		high = low + range * subintervalHigh;
+		low = low + range * subintervalLow;
+
+	//	printf("!%.15f %.15f!", low, high);
+
+		probabilities[input_symbol]++;
+		symbol_count++;
+
+		//if(index % 7 == 0 && index > 0)
+		if((index+1) % 4 == 0 && index > 0)
+		{
+			output_symbol = low + ((high-low) / 2.0);
+			output_stream[output_count++] = output_symbol;
+	//		printf(" = %.15f\n", output_symbol);
+			high = 1;
+			low = 0;
+		}
+	}
+
+	//printf("\n\n\n\n");
+	*numBytes = output_count;
+	return output_stream;
 }

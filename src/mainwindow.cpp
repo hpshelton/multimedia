@@ -445,6 +445,10 @@ bool MainWindow::saveFile()
 		QCheckBox* radio1 = new QCheckBox("Huffman Coding");
 		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
 		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
+
+		// TODO - DISABLE HERE
+		radio3->setChecked(true);
+
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
 		compressionBox->setMaximum(100);

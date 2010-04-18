@@ -57,6 +57,7 @@ void DocumentDisplay::setLeftImage(QImage* image)
 		this->leftImage->setPixmap(QPixmap::fromImage(*image));
 		this->leftImage->adjustSize();
 		this->leftScaleFactor = 1;
+		this->leftPanel->hasFocus();
 	}
 }
 
@@ -68,6 +69,7 @@ void DocumentDisplay::setRightImage(QImage* image)
 		this->rightImage->setPixmap(QPixmap::fromImage(*image));
 		this->rightImage->adjustSize();
 		this->rightScaleFactor = 1;
+		this->rightPanel->hasFocus();
 	}
 }
 
