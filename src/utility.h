@@ -46,40 +46,6 @@ public:
 		return p;
 	}
 
-	/* Returns an array that can be accessed as [width][height*3] for R, [width][height*3+1] for G, [width][height*3+2] for B */
-	static unsigned char** img_to_bytes(QImage* image)
-	{
-		unsigned char** bytes = allocate_uchar(image->width(), image->height()*3);
-		for(int r = 0; r < image->height(); r++)
-		{
-			for(int c = 0; c < image->width(); c++)
-			{
-				QRgb pixel = image->pixel(c, r);
-				bytes[c][r*3] = (unsigned char)qRed(pixel);
-				bytes[c][r*3 + 1] = (unsigned char)qGreen(pixel);
-				bytes[c][r*3 + 2] = (unsigned char)qBlue(pixel);
-			}
-		}
-		return bytes;
-	}
-
-	/* Inverts previous function */
-	static QImage* bytes_to_img(unsigned char** bytes, int width, int height)
-	{
-		QImage* img = new QImage(width, height, QImage::Format_RGB32);
-		for(int r = 0; r < height; r++)
-		{
-			for(int c = 0; c < width; c++)
-			{
-				int red = (int)bytes[c][r*3];
-				int green = (int)bytes[c][r*3+1];
-				int blue = (int)bytes[c][r*3+2];
-				img->setPixel(c, r, qRgb(red, green, blue));
-			}
-		}
-		return img;
-	}
-
 	static unsigned char** img_to_lum(QImage* image)
 	{
 		unsigned char** lum = allocate_uchar(image->width(), image->height());
@@ -142,32 +108,6 @@ public:
 		while ((c = binVal[i++]) != '\0')
 			;
 		return i-1;
-	}
-
-	/* Returns a liner array accessed as where matrix[r][c] = array[r*height*3 + c] */
-	static unsigned char* linearArray(unsigned char** matrix, int width, int height)
-	{
-		unsigned char* array = (unsigned char*) malloc(width*height*sizeof(unsigned char));
-		int index = 0;
-		for(int r = 0; r < height; r++)
-		{
-			for(int c = 0; c < width; c++)
-				array[index++] = matrix[r][c];
-		}
-		return array;
-	}
-
-	/* Inverts the previous function */
-	static unsigned char** blockArray(unsigned char* array, int width, int height)
-	{
-		unsigned char** matrix = Utility::allocate_uchar(height, width);
-		int index = 0;
-		for(int r = 0; r < height; r++)
-		{
-			for(int c = 0; c < width; c++)
-				matrix[r][c] = array[index++];
-		}
-		return matrix;
 	}
 
 	static QRgb GaussianSample(QImage* image, float x, float y, float variance, float radius)
