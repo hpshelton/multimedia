@@ -1,89 +1,79 @@
 #include "encoder.h"
 #include "decoder.h"
 
-//QImage* Encoder::test(QImage* img)
-//{
-	/*unsigned char* original = Utility::linearArray(Utility::img_to_bytes(img), img->height()*3, img->width());
-	unsigned long numBytes = img->width() * img->height() * 3;
-	unsigned char* decoded = Decoder::runlength_decode(Encoder::runlength_encode(original, &numBytes), &numBytes);
-	printf("Run Length:\n");
-	for(int i = 0; i < img->width()*img->height()*3; i++)
+QImage* Encoder::test(QImage* img)
+{
+	unsigned char* original;
+	unsigned long numBytes;
+	unsigned char* decoded, *coded;
+	bool failed = false;
+
+	printf("Run Length: ");
+	original = img->bits();
+	numBytes = img->byteCount();
+	decoded = Decoder::runlength_decode(Encoder::runlength_encode(original, &numBytes), &numBytes);
+	for(int i = 0; i < numBytes; i++)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("%d %d %d %d %d %d %d %d\n", original[i-7], original[i-6], original[i-5], original[i-4], original[i-3], original[i-2], original[i-1], original[i]);
-			printf("%d %d %d %d %d %d %d %d\n", decoded[i-7], decoded[i-6], decoded[i-5], decoded[i-4], decoded[i-3], decoded[i-2], decoded[i-1], decoded[i]);
+			printf("Failed!\n");
+			failed = true;
 		}
 	}
-	printf("Huffman:\n");
-	unsigned long numBytes2 = img->width() * img->height() * 3;
-	unsigned char* huffDecoded = Decoder::huffman_decode(Encoder::huffman_encode(original, &numBytes2), img->height()*3, img->width(), &numBytes2);
-	for(int i = 0; i < img->width()*img->height()*3; i++)
+	if(!failed)
+		printf("Passed!\n");
+	failed = false;
+
+	printf("Huffman: ");
+	original = img->bits();
+	numBytes = img->byteCount();
+	decoded = Decoder::huffman_decode(Encoder::huffman_encode(original, &numBytes), img->height(), img->width(), &numBytes);
+	for(int i = 0; i < numBytes; i++)
 	{
-		if(original[i] != huffDecoded[i])
+		if(original[i] != decoded[i])
 		{
-			printf("%d %d %d %d %d %d %d %d\n", original[i-7], original[i-6], original[i-5], original[i-4], original[i-3], original[i-2], original[i-1], original[i]);
-			printf("%d %d %d %d %d %d %d %d\n", huffDecoded[i-7], huffDecoded[i-6], huffDecoded[i-5], huffDecoded[i-4], huffDecoded[i-3], huffDecoded[i-2], huffDecoded[i-1], huffDecoded[i]);
+			printf("Failed!\n");
+			failed = true;
 		}
 	}
-	printf("Huffman over Run Length:\n");
-	unsigned long numBytes3 = img->width() * img->height() * 3;
-	unsigned char* coded = Encoder::huffman_encode(Encoder::runlength_encode(original, &numBytes3), &numBytes3);
-	unsigned char* decoded3 = Decoder::runlength_decode(Decoder::huffman_decode(coded, img->height()*3, img->width(), &numBytes3), &numBytes3);
-	for(int i = 0; i < img->width()*img->height()*3; i++)
+	if(!failed)
+		printf("Passed!\n");
+	failed = false;
+
+	printf("Huffman over Run Length: ");
+	original = img->bits();
+	numBytes = img->byteCount();
+	coded = Encoder::huffman_encode(Encoder::runlength_encode(original, &numBytes), &numBytes);
+	decoded = Decoder::runlength_decode(Decoder::huffman_decode(coded, img->height(), img->width(), &numBytes), &numBytes);
+	for(int i = 0; i < numBytes; i++)
 	{
-		if(original[i] != decoded3[i])
+		if(original[i] != decoded[i])
 		{
-			printf("%d %d %d %d %d %d %d %d\n", original[i-7], original[i-6], original[i-5], original[i-4], original[i-3], original[i-2], original[i-1], original[i]);
-			printf("%d %d %d %d %d %d %d %d\n", decoded3[i-7], decoded3[i-6], decoded3[i-5], decoded3[i-4], decoded3[i-3], decoded3[i-2], decoded3[i-1], decoded3[i]);
+			printf("Failed!\n");
+			failed = true;
 		}
-	}*/
-
-	/*for(int i = 0; i < 10; i++)
-	{
-		for(int j = 0; j < 10; j++)
-			printf("%d %d %d ", qRed(img->pixel(i, j)), qGreen(img->pixel(i,j)), qBlue(img->pixel(i,j)));
-		printf("\n");
 	}
-	printf("\n");
+	if(!failed)
+		printf("Passed!\n");
+	failed = false;
 
-	unsigned char** image = Utility::img_to_bytes(img);
-	for(int i = 0; i < 10; i++)
+	printf("Arithmetic: ");
+	original = img->bits();
+	numBytes = img->byteCount();
+	decoded = Decoder::arithmetic_decode(Encoder::arithmetic_encode(original, &numBytes), &numBytes);
+	for(int i = 0; i < numBytes; i++)
 	{
-		for(int j = 0; j < 10; j++)
-			printf("%d %d %d ", image[i][j*3], image[i][j*3+1], image[i][j*3+2]);
-		printf("\n");
-	}
-	printf("\n");
-
-	QImage* newImage = Utility::bytes_to_img(Utility::img_to_bytes(img), img->width(), img->height());
-	for(int i = 0; i < 10; i++)
-	{
-		for(int j = 0; j < 10; j++)
-			printf("%d %d %d ", qRed(newImage->pixel(i, j)), qGreen(newImage->pixel(i,j)), qBlue(newImage->pixel(i,j)));
-		printf("\n");
-	}
-	printf("\n");
-
-	unsigned char* compressed = huffman_encode(image, img->width(), img->height()*3);
-	unsigned char** decompressed = Decoder::huffman_decode(compressed, img->width(), img->height());
-	for(int i = 0; i < 10; i++)
-	{
-		for(int j = 0; j < 10; j++)
-			printf("%d %d %d ", decompressed[i][j*3], decompressed[i][j*3+1], decompressed[i][j*3+2]);
-		printf("\n");
-	}
-
-	for(int i = 0; i < img->width(); i++)
-	{
-		for(int j = 0; j < img->height()*3; j++)
+		if(original[i] != decoded[i])
 		{
-			if(image[i][j] != decompressed[i][j])
-				printf("Mismatch in decompression: %d != %d\n", image[i][j], decompressed[i][j]);
+			printf("Failed!\n");
+			failed = true;
 		}
 	}
-	return Utility::bytes_to_img(decompressed, img->width(), img->height());*/
-//}
+	if(!failed)
+		printf("Passed!\n");
+
+	return new QImage(decoded, img->width(), img->height(), QImage::Format_RGB32);
+}
 
 void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength)
 {
@@ -161,7 +151,7 @@ double* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes
 {
 	// Compute initial uniform probabilities
 	double probabilities[256];
-	double symbol_count = 256;
+	unsigned long symbol_count = 256;
 	for(int i = 0; i < 256; i++)
 		probabilities[i] = 1;
 
@@ -169,7 +159,7 @@ double* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes
 	double low = 0.0, high = 1.0;
 	double output_symbol;
 	unsigned long output_count = 0;
-	double* output_stream = (double*) malloc(*numBytes/4 * sizeof(double));
+	double* output_stream = (double*) malloc((*numBytes+1)/4 * sizeof(double));
 
 //	double probabilities[3];
 //	double symbol_count = 3;
@@ -196,7 +186,7 @@ double* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes
 	{
 		// TODO - CLEANUP!
 		input_symbol = (int) image[index];
-	//	printf("%d => ", input_symbol);
+//		printf("%d ", input_symbol);
 		int i = 0;
 		double subintervalLow = 0;
 		while(i < input_symbol)
@@ -218,9 +208,9 @@ double* Encoder::arithmetic_encode(unsigned char* image, unsigned long* numBytes
 		{
 			output_symbol = low + ((high-low) / 2.0);
 			output_stream[output_count++] = output_symbol;
-	//		printf(" = %.15f\n", output_symbol);
-			high = 1;
-			low = 0;
+			//printf(" => %.15f\n", output_symbol);
+			high = 1.0;
+			low = 0.0;
 		}
 	}
 

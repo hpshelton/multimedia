@@ -423,6 +423,12 @@ void MainWindow::openFile()
 			this->display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
+
+			// TESTING
+			this->display->setLeftImage(Encoder::test(file[0]));
+			QRgb* p = (QRgb*) file[0]->bits();
+			printf("%d %d %d\n", qRed(*p), qGreen(*p), qBlue(*p));
+			printf("%d %d %d\n", qRed(*(p+1)), qGreen(*(p+1)), qBlue(*(p+1)));
 		}
 	}
 }

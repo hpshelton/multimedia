@@ -81,19 +81,19 @@ unsigned char* Decoder::runlength_decode(unsigned char* image, unsigned long* nu
 
 unsigned char* Decoder::arithmetic_decode(double* bitstream, unsigned long* numBytes)
 {
-	unsigned char* output_stream = (unsigned char*) malloc(*numBytes * 16 * sizeof(unsigned char));
+	unsigned char* output_stream = (unsigned char*) malloc(*numBytes * 4 * sizeof(unsigned char));
 	unsigned long output_index = 0;
 	double symbol;
 	double low = 0.0, high = 1.0;
 
 	// Compute initial uniform probabilities
 	double counts[256];
-	double symbol_count = 256.0;
+	unsigned long symbol_count = 256;
 	double probabilities[256];
 	for(int i = 0; i < 256; i++)
 	{
-		counts[i] = 1;
-		probabilities[i] = counts[i] / symbol_count;
+		counts[i] = 1.0;
+		probabilities[i] = 1.0 / symbol_count;
 	}
 
 //		double counts[3];
@@ -123,7 +123,7 @@ unsigned char* Decoder::arithmetic_decode(double* bitstream, unsigned long* numB
 				subintervalHigh += probabilities[i++];
 			double subintervalLow = subintervalHigh - probabilities[--i];
 
-			unsigned char output_symbol = (unsigned char)i;
+			unsigned char output_symbol = (unsigned char) i;
 			output_stream[output_index++] = output_symbol;
 
 			high = low + range * subintervalHigh;
@@ -140,6 +140,7 @@ unsigned char* Decoder::arithmetic_decode(double* bitstream, unsigned long* numB
 	}
 
 	*numBytes = output_index;
+//	printf("%lu\n", *numBytes);
 	return output_stream;
 }
 
