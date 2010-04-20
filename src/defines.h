@@ -12,4 +12,6 @@
 
 #define CLAMP(a) ( ((a) > 255) ? 255 : (((a) < 0) ? 0 : (int)(a)) )
 
+#define PI 3.14159265358979
+
 #endif // DEFINES_H

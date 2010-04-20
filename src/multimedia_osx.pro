@@ -21,7 +21,9 @@ SOURCES += main.cpp \
     contrast.cpp \
     saturation.cpp \
     blur.cpp \
-    crop.cpp
+    crop.cpp \
+    scale.cpp \
+    rotate.cpp
 OBJECTS += obj/CUDA/*.o
 INCLUDEPATH += "/Developer/GPU Computing/C/common/inc" \
     /usr/local/cuda/include

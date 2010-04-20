@@ -46,40 +46,6 @@ public:
 		return p;
 	}
 
-	/* Returns an array that can be accessed as [width][height*3] for R, [width][height*3+1] for G, [width][height*3+2] for B */
-	static unsigned char** img_to_bytes(QImage* image)
-	{
-		unsigned char** bytes = allocate_uchar(image->width(), image->height()*3);
-		for(int r = 0; r < image->height(); r++)
-		{
-			for(int c = 0; c < image->width(); c++)
-			{
-				QRgb pixel = image->pixel(c, r);
-				bytes[c][r*3] = (unsigned char)qRed(pixel);
-				bytes[c][r*3 + 1] = (unsigned char)qGreen(pixel);
-				bytes[c][r*3 + 2] = (unsigned char)qBlue(pixel);
-			}
-		}
-		return bytes;
-	}
-
-	/* Inverts previous function */
-	static QImage* bytes_to_img(unsigned char** bytes, int width, int height)
-	{
-		QImage* img = new QImage(width, height, QImage::Format_RGB32);
-		for(int r = 0; r < height; r++)
-		{
-			for(int c = 0; c < width; c++)
-			{
-				int red = (int)bytes[c][r*3];
-				int green = (int)bytes[c][r*3+1];
-				int blue = (int)bytes[c][r*3+2];
-				img->setPixel(c, r, qRgb(red, green, blue));
-			}
-		}
-		return img;
-	}
-
 	static unsigned char** img_to_lum(QImage* image)
 	{
 		unsigned char** lum = allocate_uchar(image->width(), image->height());
@@ -144,30 +110,47 @@ public:
 		return i-1;
 	}
 
-	/* Returns a liner array accessed as where matrix[r][c] = array[r*height*3 + c] */
-	static unsigned char* linearArray(unsigned char** matrix, int width, int height)
+	static QRgb GaussianSample(QImage* image, float x, float y, float variance, float radius)
 	{
-		unsigned char* array = (unsigned char*) malloc(width*height*sizeof(unsigned char));
-		int index = 0;
-		for(int r = 0; r < height; r++)
-		{
-			for(int c = 0; c < width; c++)
-				array[index++] = matrix[r][c];
-		}
-		return array;
-	}
+		int width = image->width();
+		int height = image->height();
+		float p = pow(variance, 2);
+		float coeff = 1/(2.0 * PI * p);
+		float denom = (2.0 * p);
+		float weight = 0, powx = 0, powy = 0;
+		int r = 0, g = 0, b = 0;
 
-	/* Inverts the previous function */
-	static unsigned char** blockArray(unsigned char* array, int width, int height)
-	{
-		unsigned char** matrix = Utility::allocate_uchar(height, width);
-		int index = 0;
-		for(int r = 0; r < height; r++)
+		// Estimate sampling area
+		int lowx = (int)floor(x-1);
+		int lowy = (int)floor(y-1);
+		int highx = (int)ceil(x+1);
+		int highy = (int)ceil(y+1);
+
+		// Scan estimated area
+		for(int i = lowx; i <= highx; i++)
 		{
-			for(int c = 0; c < width; c++)
-				matrix[r][c] = array[index++];
+			for(int j = lowy; j <= highy; j++)
+			{
+				// Sample area within radius
+				if(i >= 0 && j >= 0 && i < width && j < height)
+				{
+					powx = pow(i-x, 2);
+					powy = pow(j-y, 2);
+					if(sqrt(powx + powy) <= radius)
+					{
+						QRgb pixel = image->pixel(i,j);
+						weight = coeff * exp(-1 * (powx + powy)/denom);
+						r += qRed(pixel) * weight;
+						r = CLAMP(r);
+						g += qGreen(pixel) * weight;
+						g = CLAMP(g);
+						b += qBlue(pixel) * weight;
+						b = CLAMP(b);
+					}
+				}
+			}
 		}
-		return matrix;
+		return qRgb(r, g, b);
 	}
 };
 

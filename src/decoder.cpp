@@ -14,22 +14,34 @@ QImage* Decoder::read_ppc(QString filename)
 	}
 
 	fscanf(input, "%d %d %d %lu ", &mode, &width, &height, &numBytes);
-	unsigned char* byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char*));
-	fread(byte_stream, sizeof(unsigned char), numBytes, input);
+
+	bool arithmetic = (mode % 2 == 1);
+	mode /= 2;
+	bool huffman = (mode % 2 == 1);
+	mode /= 2;
+	bool runlength = (mode % 2 == 1);
+
+	unsigned char* byte_stream;
+	double* double_stream;
+	if(!arithmetic)
+	{
+		byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
+		fread(byte_stream, sizeof(unsigned char), numBytes, input);
+	}
+	else
+	{
+		double_stream = (double*) malloc(numBytes * sizeof(double));
+		fread(double_stream, sizeof(double), numBytes, input);
+		byte_stream = arithmetic_decode(double_stream, &numBytes);
+	}
 	fclose(input);
 
-	if(mode % 2 == 1)
-		byte_stream = huffman_decode(byte_stream, width, height, &numBytes);
-	mode /= 2;
-
-	if(mode % 2 == 1)
-		byte_stream = arithmetic_decode(byte_stream);
-	mode /= 2;
-
-	if(mode % 2 == 1)
+	if(huffman)
+		byte_stream = huffman_decode(byte_stream, &numBytes);
+	if(runlength)
 		byte_stream = runlength_decode(byte_stream, &numBytes);
 
-	return Utility::bytes_to_img(Utility::blockArray(byte_stream, height*3, width), width, height);
+	return new QImage(byte_stream, width, height, QImage::Format_RGB32);
 }
 
 unsigned char* Decoder::runlength_decode(unsigned char* image, unsigned long* numBytes)
@@ -67,9 +79,53 @@ unsigned char* Decoder::runlength_decode(unsigned char* image, unsigned long* nu
 	return byte_stream;
 }
 
-unsigned char* Decoder::arithmetic_decode(unsigned char* bitstream)
+unsigned char* Decoder::arithmetic_decode(double* bitstream, unsigned long* numBytes)
 {
+	unsigned char* output_stream = (unsigned char*) malloc(*numBytes * 4 * sizeof(unsigned char));
+	unsigned long output_index = 0;
+	double symbol;
+	double low = 0.0, high = 1.0;
 
+	// Compute initial uniform probabilities
+	double counts[256];
+	unsigned long symbol_count = 256;
+	double probabilities[256];
+	for(int i = 0; i < 256; i++)
+	{
+		counts[i] = 1.0;
+		probabilities[i] = 1.0 / symbol_count;
+	}
+
+	for(unsigned long input_index = 0; input_index < *numBytes; input_index++)
+	{
+		symbol =  bitstream[input_index];
+		high = 1.0;
+		low = 0.0;
+
+		// TODO - CLEANUP!
+		for(int j = 0; j < 4; j++)
+		{
+			double range = high - low;
+			int i = 0;
+			double subintervalHigh = 0;
+			double modSYmbol = (symbol - low) / range;
+			while(subintervalHigh < modSYmbol)
+				subintervalHigh += probabilities[i++];
+			double subintervalLow = subintervalHigh - probabilities[--i];
+
+			unsigned char output_symbol = (unsigned char) i;
+			output_stream[output_index++] = output_symbol;
+
+			high = low + range * subintervalHigh;
+			low = low + range * subintervalLow;
+
+			counts[i]++;
+			symbol_count++;
+			for(int j = 0; j < 256; j++)
+				probabilities[j] = (counts[j] / symbol_count);
+		}
+	}
+
+	*numBytes = output_index;
+	return output_stream;
 }
-
-

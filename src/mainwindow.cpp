@@ -155,6 +155,10 @@ void MainWindow::rotate()
 				a -= 360;
 			// rotate image by degree a
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(rotate_video(a));
+			else
+				this->display->setRightImage(rotate_image(a));
 		}
 		else
 		{
@@ -240,6 +244,10 @@ void MainWindow::scale()
 		{
 			// scale image by factor
 			hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(scale_video(factor));
+			else
+				this->display->setRightImage(scale_image(factor));
 		}
 		else
 		{
@@ -437,6 +445,10 @@ bool MainWindow::saveFile()
 		QCheckBox* radio1 = new QCheckBox("Huffman Coding");
 		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
 		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
+
+		// TODO - DISABLE HERE
+		radio3->setChecked(true);
+
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
 		compressionBox->setMaximum(100);

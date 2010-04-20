@@ -54,7 +54,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 	}
 
 	// Populate lookup table and write compressed bitstream table
-	unsigned char* bitstream = (unsigned char*) malloc(num_values*8*sizeof(unsigned char));
+	unsigned char* bitstream = (unsigned char*) malloc(num_values * 8 * sizeof(unsigned char));
 	char buffer[8];
 	int bufferIndex = 0, bitstreamIndex = 0;
 
@@ -64,7 +64,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 		{
 			valueToCode[symbols[i]->symbol] = symbols[i]->code;
 			bitstream[bitstreamIndex++] = (unsigned char) symbols[i]->symbol;
-			bitstream[bitstreamIndex++] = (unsigned char) ((int)ceil(symbols[i]->code.length()/8.0));
+			bitstream[bitstreamIndex++] = (unsigned char) ((int) ceil(symbols[i]->code.length()/8.0));
 			for(unsigned int stringIndex = 0; stringIndex < symbols[i]->code.length(); stringIndex++)
 			{
 				buffer[bufferIndex++] = symbols[i]->code[stringIndex];
@@ -92,7 +92,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 	for(unsigned int i = 0; i < num_values; i++)
 	{
 		std::string code = valueToCode[image[i]];
-		bitstream[bitstreamIndex++] = (unsigned char) ((int)ceil(code.length()/8.0));
+		bitstream[bitstreamIndex++] = (unsigned char) ((int) ceil(code.length()/8.0));
 		for(unsigned int stringIndex = 0; stringIndex < code.length(); stringIndex++)
 		{
 			buffer[bufferIndex++] = code[stringIndex];
@@ -119,7 +119,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 	return bitstream;
 }
 
-unsigned char* Decoder::huffman_decode(unsigned char* bitstream, int width, int height, unsigned long* numBytes)
+unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* numBytes)
 {
 	std::map<std::string, int> codeToValue;
 	int symbol;
@@ -130,24 +130,24 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, int width, int 
 	// Read in the Huffman table
 	while(bitstream[bitstreamIndex] != '\0' || bitstream[bitstreamIndex+1] != '\0' || bitstream[bitstreamIndex+2] != '\0')
 	{
-		symbol = (int)bitstream[bitstreamIndex++];
-		bytes = (int)bitstream[bitstreamIndex++];
+		symbol = (int) bitstream[bitstreamIndex++];
+		bytes = (int) bitstream[bitstreamIndex++];
 		code = new std::string();
 		for(int b = 0; b < bytes; b++)
-			code->append(Utility::getBinVal((int)bitstream[bitstreamIndex++], 8));
+			code->append(Utility::getBinVal((int) bitstream[bitstreamIndex++], 8));
 		codeToValue[*code] = symbol;
 	}
 	bitstreamIndex += 3;
 
 	// Read in the symbols
-	unsigned char* image = (unsigned char*) malloc(width*height*3*sizeof(unsigned char));
+	unsigned char* image = (unsigned char*) malloc(*numBytes * 8 *sizeof(unsigned char));
 	int index = 0;
 	while(bitstream[bitstreamIndex] != '\0' || bitstream[bitstreamIndex+1] != '\0' || bitstream[bitstreamIndex+2] != '\0')
 	{
-		bytes = (int)bitstream[bitstreamIndex++];
+		bytes = (int) bitstream[bitstreamIndex++];
 		code = new std::string();
 		for(int b = 0; b < bytes; b++)
-			code->append(Utility::getBinVal((int)bitstream[bitstreamIndex++], 8));
+			code->append(Utility::getBinVal((int) bitstream[bitstreamIndex++], 8));
 		image[index++] = codeToValue[*code];
 	}
 

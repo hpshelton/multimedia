@@ -92,6 +92,9 @@ private:
 	QImage* grayscale_image();
 	QImage* grayscale_video();
 
+	QImage* scale_image(float factor);
+	QImage* scale_video(float factor);
+
 	QImage* brighten_image(float factor);
 	QImage* brighten_video(float factor);
 
@@ -106,6 +109,9 @@ private:
 
 	QImage* blur_image();
 	QImage* blur_video();
+
+	QImage* rotate_image(float angle);
+	QImage* rotate_video(float angle);
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);
