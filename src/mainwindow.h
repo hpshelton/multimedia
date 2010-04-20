@@ -35,8 +35,6 @@ extern "C" void CUblur(unsigned char* output, unsigned char* input, int row, int
 extern "C" void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col);
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
-extern "C" void CUfwt97   (float* output, unsigned char* input, float* tempbank, int n);
-extern "C" void CUiwt97   (unsigned char* output, float* input, float* tempbank, int n);
 extern "C" void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col);
 extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
 
