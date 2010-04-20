@@ -78,252 +78,225 @@ __global__ void saturate(unsigned char* input, unsigned char* output, int row, i
 	}
 }
 
-__global__ void fwt97(float* output, unsigned char* input, float* tempbank, int n)
+__global__ void readIn(float* output, unsigned char* input, int n, int dim)
 {
-	float a;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-
-	if(i<n){
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
 		output[i] = input[i];
-		__syncthreads();
+	}
+}
 
-		// Predict 1
-		a = -1.586134342;
+__global__ void predict1(float* output, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a = -1.586134342;
 		if(i%2==1 && i!=(n-1)){
 			output[i]+=a*(output[i-1]+output[i+1]);
 		}
 		if(i==(n-1))
 			output[n-1]+=2*a*output[n-2];
-		__syncthreads();
+	}
+}
 
-		// Update 1
-		a = -0.05298011854;
+__global__ void update1(float* output, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a = -0.05298011854;
 		if(i%2==0 && i!=0){
 			output[i]+=a*(output[i-1]+output[i+1]);
 		}
 		if(i==0)
 			output[0]+=2*a*output[1];
-		__syncthreads();
+	}
+}
 
-		// Predict 2
-		a = 0.8829110762;
+__global__ void predict2(float* output, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a = 0.8829110762;
 		if(i%2==1 && i!=(n-1)){
 			output[i]+=a*(output[i-1]+output[i+1]);
 		}
 		if(i==(n-1))
 			output[n-1]+=2*a*output[n-2];
-		__syncthreads();
+	}
+}
 
-		// Update 2
-		a = 0.4435068522;
+__global__ void update2(float* output, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a = 0.4435068522;
 		if(i%2==0 && i!=0){
 			output[i]+=a*(output[i-1]+output[i+1]);
 		}
 		if(i==0)
 			output[0]+=2*a*output[1];
-		__syncthreads();
+	}
+}
 
-		// Scale
-		a = 1/1.149604398;
-			if (i%2)
-				output[i]*=a;
-			else
-				output[i]/=a;
-		__syncthreads();
+__global__ void scale(float* output, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a = 1/1.149604398;
+		if (i%2)
+			output[i]*=a;
+		else
+			output[i]/=a;
+	}
+}
 
-		// Pack
-			if (i%2==0)
-				tempbank[i/2]=output[i];
-			else
-				tempbank[n/2+i/2]=output[i];
-		__syncthreads();
+__global__ void pack(float* output, float* tempbank, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		if (i%2==0)
+			tempbank[i/2]=output[i];
+		else
+			tempbank[n/2+i/2]=output[i];
+	}
+}
 
+__global__ void readOut(float* output, float* tempbank, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
 		output[i]=tempbank[i];
 	}
 }
 
-__global__ void fwt97(float* output, float* tempbank, int n)
+__global__ void UNpack(float* input, float* tempbank, int n, int dim)
 {
-	float a;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-
-	if(i<n){
-
-		// Predict 1
-		a = -1.586134342;
-		if(i%2==1 && i!=(n-1)){
-			output[i]+=a*(output[i-1]+output[i+1]);
-		}
-		if(i==(n-1))
-			output[n-1]+=2*a*output[n-2];
-		__syncthreads();
-
-		// Update 1
-		a = -0.05298011854;
-		if(i%2==0 && i!=0){
-			output[i]+=a*(output[i-1]+output[i+1]);
-		}
-		if(i==0)
-			output[0]+=2*a*output[1];
-		__syncthreads();
-
-		// Predict 2
-		a = 0.8829110762;
-		if(i%2==1 && i!=(n-1)){
-			output[i]+=a*(output[i-1]+output[i+1]);
-		}
-		if(i==(n-1))
-			output[n-1]+=2*a*output[n-2];
-		__syncthreads();
-
-		// Update 2
-		a = 0.4435068522;
-		if(i%2==0 && i!=0){
-			output[i]+=a*(output[i-1]+output[i+1]);
-		}
-		if(i==0)
-			output[0]+=2*a*output[1];
-		__syncthreads();
-
-		// Scale
-		a = 1/1.149604398;
-			if (i%2)
-				output[i]*=a;
-			else
-				output[i]/=a;
-		__syncthreads();
-
-		// Pack
-			if (i%2==0)
-				tempbank[i/2]=output[i];
-			else
-				tempbank[n/2+i/2]=output[i];
-		__syncthreads();
-
-		output[i]=tempbank[i];
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		if(i%2==0)
+			tempbank[i] = input[i/2];
+		else
+			tempbank[i] = input[i/2 + n/2]; //might be wrong
 	}
 }
 
-__global__ void iwt97(unsigned char* output, float* input, float* tempbank, int n)
+//readOut tempBank -> input
+
+__global__ void UNscale(float* input, int n, int dim)
 {
-	float a;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+//		float a=1.149604398;
+		float a=1.13; // this one works better, i think
+		if (i%2)
+			input[i]*=a;
+		else
+			input[i]/=a;
+	}
+}
 
-	if(i<n){
-		// Unpack
-		if(i<(n/2)){
-			tempbank[i*2]=input[i];
-			tempbank[i*2+1]=input[i+n/2];
-		}
-		__syncthreads();
-		input[i]=tempbank[i];
-		__syncthreads();
-
-		// Undo scale
-		a=1.149604398;
-			if (i%2)
-				input[i]*=a;
-			else
-				input[i]/=a;
-		__syncthreads();
-
-		// Undo update 2
-		a=-0.4435068522;
+__global__ void UNupdate2(float* input, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a=-0.4435068522;
 		if(i%2==0 && i!=0){
 			input[i]+=a*(input[i-1]+input[i+1]);
 		}
 		if(i==0)
 			input[0]+=2*a*input[1];
-		__syncthreads();
+	}
+}
 
-		// Undo predict 2
-		a=-0.8829110762;
+__global__ void UNpredict2(float* input, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a=-0.8829110762;
 		if(i%2==1 && i!=(n-1)){
 			input[i]+=a*(input[i-1]+input[i+1]);
 		}
 		if(i==(n-1))
 			input[n-1]+=2*a*input[n-2];
-		__syncthreads();
+	}
+}
 
-		// Undo update 1
-		a=0.05298011854;
+__global__ void UNupdate1(float* input, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a=0.05298011854;
 		if(i%2==0 && i!=0){
 			input[i]+=a*(input[i-1]+input[i+1]);
 		}
 		if(i==0)
 			input[0]+=2*a*input[1];
-		__syncthreads();
+	}
+}
 
-		// Undo predict 1
-		a=1.586134342;
+__global__ void UNpredict1(float* input, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
+		float a=1.586134342;
 		if(i%2==1 && i!=(n-1)){
 			input[i]+=a*(input[i-1]+input[i+1]);
 		} 
 		if(i==(n-1))
 			input[n-1]+=2*a*input[n-2];
-		__syncthreads();
+	}
+}
 
+__global__ void clamp(unsigned char* output, float* input, int n, int dim)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int i = (xIndex + yIndex * dim);
+	if (i<n)
+	{
 		output[i]=CLAMP(input[i]);
-	}
-}
-
-__global__ void iwt97(float* input, float* tempbank, int n)
-{
-	float a;
-	int i = blockDim.x * blockIdx.x + threadIdx.x;
-
-	if(i<n){
-		// Unpack
-		if(i<(n/2)){
-			tempbank[i*2]=input[i];
-			tempbank[i*2+1]=input[i+n/2];
-		}
-		__syncthreads();
-		input[i]=tempbank[i];
-		__syncthreads();
-
-		// Undo scale
-		a=1.149604398;
-			if (i%2)
-				input[i]*=a;
-			else
-				input[i]/=a;
-		__syncthreads();
-
-		// Undo update 2
-		a=-0.4435068522;
-		if(i%2==0 && i!=0){
-			input[i]+=a*(input[i-1]+input[i+1]);
-		}
-		if(i==0)
-			input[0]+=2*a*input[1];
-		__syncthreads();
-
-		// Undo predict 2
-		a=-0.8829110762;
-		if(i%2==1 && i!=(n-1)){
-			input[i]+=a*(input[i-1]+input[i+1]);
-		}
-		if(i==(n-1))
-			input[n-1]+=2*a*input[n-2];
-		__syncthreads();
-
-		// Undo update 1
-		a=0.05298011854;
-		if(i%2==0 && i!=0){
-			input[i]+=a*(input[i-1]+input[i+1]);
-		}
-		if(i==0)
-			input[0]+=2*a*input[1];
-		__syncthreads();
-
-		// Undo predict 1
-		a=1.586134342;
-		if(i%2==1 && i!=(n-1)){
-			input[i]+=a*(input[i-1]+input[i+1]);
-		} 
-		if(i==(n-1))
-			input[n-1]+=2*a*input[n-2];
 	}
 }
 

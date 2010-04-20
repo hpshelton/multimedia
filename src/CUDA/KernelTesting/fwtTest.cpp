@@ -61,6 +61,8 @@ int main(int argc, char* argv[])
 	cutilSafeCall(cudaMalloc((void**)&CUpic, sizeof(unsigned char)*len));
 	cutilSafeCall(cudaMalloc((void**)&CUpicOUT, sizeof(unsigned char)*len));
 
+//	CUsetToVal(CUpicOUT, len, 0); 
+
 	cutilSafeCall(cudaMemcpy(CUpic, pic[0], sizeof(unsigned char)*len, cudaMemcpyHostToDevice));
 
 	CUfwt97_2D(CUpicF, CUpic, CUtempbank, row,col);
