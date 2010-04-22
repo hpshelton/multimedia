@@ -359,7 +359,7 @@ void MainWindow::edgeDetection()
 	hasChanged = true;
 	if(this->video)
 	   this->display->setRightImage(edge_detect_video());
-	else
+        else
 	{
 		this->display->setRightImage(edge_detect());
 	}
@@ -374,8 +374,11 @@ void MainWindow::compress()
 		float factor = i.toFloat(&accepted);
 		if(accepted && factor >= 0.0 && factor < 100)
 		{
-			// compress image by factor
-			hasChanged = true;
+                    if(this->video)
+                        this->display->setRightImage(compress_video(factor));
+                    else
+                        this->display->setRightImage(compress_image(factor));
+                    hasChanged = true;
 		}
 		else
 		{
