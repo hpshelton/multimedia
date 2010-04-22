@@ -71,15 +71,15 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 				if(bufferIndex == 8)
 				{
 					bufferIndex = 0;
-					bitstream[bitstreamIndex++] += (unsigned char)Utility::BintoChar(buffer);
+					bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
 				}
 			}
 			// Pad with zeroes?
 			if(bufferIndex > 0)
 			{
-				while(bufferIndex != 8)
+				while(bufferIndex < 8)
 					buffer[bufferIndex++] = '0';
-				bitstream[bitstreamIndex++] += (unsigned char)Utility::BintoChar(buffer);
+				bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
 			}
 			bufferIndex = 0;
 		}
@@ -99,7 +99,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 			if(bufferIndex == 8)
 			{
 				bufferIndex = 0;
-				bitstream[bitstreamIndex++] += (unsigned char)Utility::BintoChar(buffer);
+				bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
 			}
 		}
 		// Pad with zeroes?
@@ -107,7 +107,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 		{
 			while(bufferIndex != 8)
 				buffer[bufferIndex++] = '0';
-			bitstream[bitstreamIndex++] += (unsigned char)Utility::BintoChar(buffer);
+			bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
 		}
 		bufferIndex = 0;
 	}
