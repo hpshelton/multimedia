@@ -2,6 +2,7 @@
 #include "kernels.cu"
 
 extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
+extern "C" void CUzeroOut(float* x, float threshold, int len);
 extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
 extern "C" void CUsetToVal(unsigned char* x, int len, int val);
 extern "C" void CUedgeDetect(unsigned char* input, unsigned char* output, int row, int col);
@@ -9,14 +10,21 @@ extern "C" void CUblur(unsigned char* output, unsigned char* input, int row, int
 extern "C" void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col);
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
-extern "C" void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col);
-extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
+extern "C" void CUfwt97_2D(float* output, unsigned char* input, int row, int col);
+extern "C" void CUiwt97_2D(unsigned char* output, float* input, int row, int col);
 
 void CUquantize(float* x, int Qlevel, int maxval, int len)
 {
 	int threadsPerBlock = 512;
 	int blocksPerGrid = (len + threadsPerBlock - 1) / threadsPerBlock;
 	quantize<<<blocksPerGrid, threadsPerBlock>>>(x, Qlevel, maxval, len);
+}
+
+void CUzeroOut(float* x, float threshold, int len)
+{
+	int threadsPerBlock = 512;
+	int blocksPerGrid = (len + threadsPerBlock - 1) / threadsPerBlock;
+	zeroOut<<<blocksPerGrid, threadsPerBlock>>>(x, threshold, len);
 }
 
 void CUtranspose(float* d_odata, float* d_idata, int col, int row)
@@ -90,7 +98,7 @@ void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, f
 	saturate<<<dimGrid, dimThreadBlock>>>(input, output, row, col, factor);
 }
 
-void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col)
+void CUfwt97_2D(float* output, unsigned char* input, int row, int col)
 {
 	if(row%2)
 		row++;
@@ -103,6 +111,9 @@ void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, i
 	dim3 numBlocks(blocknum,blocknum);
 	dim3 threadsPerBlock(16,16);
 	int dim = 16*blocknum;
+
+	float* tempbank;
+	cutilSafeCall(cudaMalloc((void**)&tempbank, sizeof(float) * ((row>col)?row:col) * 4));
 
 	float* outputT;
 	cutilSafeCall(cudaMalloc((void**)&outputT, sizeof(float)*row*col));
@@ -131,10 +142,11 @@ void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, i
 		readOut <<<numBlocks, threadsPerBlock>>>(&output[i*row], tempbank, row, dim);
 	}
 
+	cutilSafeCall(cudaFree(tempbank));
 	cutilSafeCall(cudaFree(outputT));
 }
 
-void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col)
+void CUiwt97_2D(unsigned char* output, float* input, int row, int col)
 {
 	if(row%2)
 		row++;
@@ -147,6 +159,9 @@ void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, i
 	dim3 numBlocks(blocknum,blocknum);
 	dim3 threadsPerBlock(16,16);
 	int dim = 16*blocknum;
+
+	float* tempbank;
+	cutilSafeCall(cudaMalloc((void**)&tempbank, sizeof(float) * ((row>col)?row:col) * 4));
 
 	float* inputT;
 	cutilSafeCall(cudaMalloc((void**)&inputT, sizeof(float)*row*col));
@@ -177,4 +192,5 @@ void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, i
 	}
 
 	cutilSafeCall(cudaFree(inputT));
+	cutilSafeCall(cudaFree(tempbank));
 }
