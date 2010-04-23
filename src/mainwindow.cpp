@@ -359,7 +359,7 @@ void MainWindow::edgeDetection()
 	hasChanged = true;
 	if(this->video)
 	   this->display->setRightImage(edge_detect_video());
-        else
+		else
 	{
 		this->display->setRightImage(edge_detect());
 	}
@@ -374,11 +374,11 @@ void MainWindow::compress()
 		float factor = i.toFloat(&accepted);
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
-                    if(this->video)
-                        this->display->setRightImage(compress_video(factor));
-                    else
-                        this->display->setRightImage(compress_image(factor));
-                    hasChanged = true;
+					if(this->video)
+						this->display->setRightImage(compress_video(factor));
+					else
+						this->display->setRightImage(compress_image(factor));
+					hasChanged = true;
 		}
 		else
 		{
@@ -426,13 +426,14 @@ void MainWindow::openFile()
 			this->display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
+			Encoder::test(this->file[0]);
 		}
 	}
 }
 
 bool MainWindow::saveFile()
 {
-	QString fileName = QFileDialog::getSaveFileName(this, "Save the edited file", "/huff.ppc", (this->video) ? "*.pvc" : "*.ppc");
+	QString fileName = QFileDialog::getSaveFileName(this, "Save the edited file", "/", (this->video) ? "*.pvc" : "*.ppc");
 	if(!fileName.isEmpty())
 	{
 		QDialog* dialog = new QDialog(this);
@@ -448,8 +449,6 @@ bool MainWindow::saveFile()
 		QCheckBox* radio1 = new QCheckBox("Huffman Coding");
 		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
 		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
-
-		radio1->setChecked(true);
 
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);

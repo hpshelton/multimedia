@@ -24,6 +24,5 @@ int main(int argc, char *argv[])
 
 	mainWindow.raise();
 	mainWindow.showNormal();
-	mainWindow.openFile();
 	return multimedia.exec();
 }

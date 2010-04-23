@@ -1,7 +1,6 @@
 #include "encoder.h"
 #include "decoder.h"
 
-/*
 QImage* Encoder::test(QImage* img)
 {
 	unsigned char* original;
@@ -127,7 +126,7 @@ QImage* Encoder::test(QImage* img)
 
 	return new QImage(decoded, img->width(), img->height(), QImage::Format_RGB32);
 }
-*/
+
 void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength)
 {
 	int width = img->width();

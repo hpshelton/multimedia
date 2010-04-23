@@ -91,124 +91,6 @@ void addToTree(tree_node* root, char* path, int sym)
 
 unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numBytes)
 {
-	/*// Maps the symbol to its huffman code
-	std::map<int, std::string> valueToCode;
-	unsigned long num_values = *numBytes;
-
-	// Compute probabilities
-	double probabilities[256];
-	for(int i = 0; i < 256; i++)
-		probabilities[i] = 0.0;
-
-	for(unsigned int i = 0; i < num_values; i++)
-		probabilities[image[i]]++;
-
-	for(int i = 0; i < 256; i++)
-		probabilities[i] /= num_values;
-
-	// Initialize all the symbols
-	std::vector<Symbol*> symbols(256);
-	for(int i = 0; i < 256; i++)
-	{
-		symbols[i] = new Symbol();
-		symbols[i]->symbol = i;
-		symbols[i]->probability = probabilities[i];
-		symbols[i]->code = "";
-	}
-	sort(symbols.begin(), symbols.end(), symbolComparator);
-
-	// Remove empty probabilities
-	unsigned int i = 0;
-	while(!symbols[i++]->probability)
-		;
-
-	// Create the heap
-	std::vector<Node*> nodes;
-	for(i = i-1; i < symbols.size(); i++)
-		nodes.push_back(new Node(symbols[i]));
-
-	// Combine nodes and prepend the next bit of the code
-	while(nodes.size() > 1)
-	{
-		Node* s1 = nodes[0];
-		Node* s2 = nodes[1];
-		s1->prependToCode("0");
-		s2->prependToCode("1");
-		nodes.push_back(new Node(s1, s2));
-		nodes.erase(nodes.begin(), nodes.begin() + 2);
-		std::sort(nodes.begin(), nodes.end(), nodeComparator);
-	}
-
-	// Populate lookup table and write compressed bitstream table
-	unsigned char* bitstream = (unsigned char*) malloc(num_values * 8 * sizeof(unsigned char));
-	char buffer[8];
-	int bufferIndex = 0, bitstreamIndex = 0;
-
-	for(i = 0; i < symbols.size(); i++)
-	{
-		if(symbols[i]->code.length() > 0)
-		{
-			std::string no_trailing_zeros(symbols[i]->code);
-			while(no_trailing_zeros[no_trailing_zeros.length()-1] == '0' && no_trailing_zeros.length() > 1)
-				no_trailing_zeros = no_trailing_zeros.substr(0, no_trailing_zeros.length()-1);
-			valueToCode[symbols[i]->symbol] = no_trailing_zeros;
-
-			printf("%d %s %s\n", symbols[i]->symbol, symbols[i]->code.c_str(), no_trailing_zeros.c_str());
-			bitstream[bitstreamIndex++] = (unsigned char) symbols[i]->symbol;
-			bitstream[bitstreamIndex++] = (unsigned char) ((int) ceil(no_trailing_zeros.length()/8.0));
-			for(unsigned int stringIndex = 0; stringIndex < no_trailing_zeros.length(); stringIndex++)
-			{
-				buffer[bufferIndex++] = no_trailing_zeros[stringIndex];
-				if(bufferIndex == 8)
-				{
-					bufferIndex = 0;
-					bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
-				}
-			}
-			// Pad with zeroes?
-			if(bufferIndex > 0)
-			{
-				while(bufferIndex < 8)
-					buffer[bufferIndex++] = '0';
-				bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
-			}
-			bufferIndex = 0;
-		}
-	}
-
-	for(i = 0; i < 3; i++)
-		bitstream[bitstreamIndex++] = '\0';
-
-	// Write encoded symbols
-	for(unsigned int i = 0; i < num_values; i++)
-	{
-		std::string code = valueToCode[image[i]];
-		for(unsigned int stringIndex = 0; stringIndex < code.length(); stringIndex++)
-		{
-			buffer[bufferIndex++] = code[stringIndex];
-			if(bufferIndex == 8)
-			{
-				bufferIndex = 0;
-				bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
-			}
-		}
-	}
-
-	// Pad with zeroes?
-	if(bufferIndex > 0)
-	{
-		while(bufferIndex != 8)
-			buffer[bufferIndex++] = '0';
-		bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
-	}
-	bufferIndex = 0;
-
-	for(i = 0; i < 3; i++)
-		bitstream[bitstreamIndex++] = '\0';
-
-	*numBytes = bitstreamIndex;
-	return bitstream; */
-
 	int block, i, j;
 	int root = 0;
 	int index = 0;
@@ -220,7 +102,6 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 
 	tree_node** forest;
 
-	//char** lookup;
 
 	int numbits;
 	char byte[8];
@@ -284,51 +165,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 
 	//	tbl_out = fopen(argv[2], "w");
 	fprint_ascii_codes(NULL, forest[root], 0, 0, lookup);
-	/*	for(int i = 0; i < sizeOfForest; i++)
-	{
-		if(hist[i] > 0.0)
-		{
-			std::string code(lookup[i]);
-			if(code.length() > 0)
-			{
-				bitstream[bitstreamIndex++] = (unsigned char) i;
-//				bitstream[bitstreamIndex++] = (unsigned char) ((int) ceil(code.length()/8.0));
-				for(unsigned int b = 0; b < code.length(); b++)
-				{
-					buffer[bufferIndex++] = code[b];
-					if(bufferIndex == 8)
-					{
-						bufferIndex = 0;
-						bitstream[bitstreamIndex++] = (unsigned char) Utility::BintoChar(buffer);
-					}
-				}
-//				// Pad with zeroes?
-//				if(bufferIndex > 0)
-//				{
-//					while(bufferIndex < 8)
-//						buffer[bufferIndex++] = '0';
-//					bitstream[bitstreamIndex++] = (unsigned char)Utility::BintoChar(buffer);
-//				}
-//				bufferIndex = 0;
-				buffer[bufferIndex++] = '\n';
-				if(bufferIndex == 8)
-				{
-					bufferIndex = 0;
-					bitstream[bitstreamIndex++] = (unsigned char) Utility::BintoChar(buffer);
-				}
-			}
-		}
-	}
 
-	for(i = 0; i < 3; i++)
-		bitstream[bitstreamIndex++] = '\0';
-	//	fclose(tbl_out);
-
-//	printf("1: %d %d\n", bitstream[0], bitstream[1]);
-
-	//freeTree(forest[root]);
-	//free(forest);
-*/
 	for(std::map<int,char*>::iterator iterator = lookup.begin(); iterator != lookup.end(); iterator++)
 	{
 		bitstream[bitstreamIndex++] = iterator->first;
@@ -340,7 +177,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 			exit(1);
 		}
 		bitstream[bitstreamIndex++] = (unsigned char) len;
-		printf("%d %d %s ", iterator->first, len, code);
+	//	printf("%d %d %s ", iterator->first, len, code);
 		for(int i = 0; i < len; i++)
 		{
 			buffer[bufferIndex++] = code[i];
@@ -348,7 +185,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 			{
 				bufferIndex = 0;
 				bitstream[bitstreamIndex++] = (unsigned char) Utility::BintoChar(buffer);
-				printf("%d ", Utility::BintoChar(buffer));
+		//		printf("%d ", Utility::BintoChar(buffer));
 			}
 		}
 		if(bufferIndex > 0)
@@ -357,15 +194,15 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 				buffer[bufferIndex++] = '0';
 			bitstream[bitstreamIndex++] = (unsigned char) Utility::BintoChar(buffer);
 			bufferIndex = 0;
-			printf("%d\n",Utility::BintoChar(buffer));
+	//		printf("%d\n",Utility::BintoChar(buffer));
 		}
 	}
 
 	for(int i = 0; i < 3; i++)
 		bitstream[bitstreamIndex++] = '\n';
 
-	*numBytes = bitstreamIndex;
-	/*	// Encode the file using lookup table
+	//*numBytes = bitstreamIndex;
+	// Encode the file using lookup table
 	numbits = 0;
 	//	rewind(infile);
 	//compressed_bitstream = fopen(argv[3],"w");
@@ -374,12 +211,13 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 	// Write encoded symbols
 	for(unsigned int i = 0; i < *numBytes; i++)
 	{
-		block = image[i];
+		unsigned char block2 = image[i];
 		//printf("%d ", block);
 		j = 0;
-		while(lookup[block][j] != '\0')
+		char* code = lookup[(int)block2];
+		while(code[j] != '\0')
 		{
-			Iqueue[Qindex++] = lookup[block][j];
+			Iqueue[Qindex++] = code[j];
 			if(Qindex == 8)
 			{
 				Qindex = 0;
@@ -392,7 +230,7 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 			}
 			j++;
 		}
-		numbits += Utility::numBits(lookup[block]);
+		numbits += Utility::numBits(code);
 //		printf("\n");
 	}
 
@@ -412,13 +250,8 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 		numbits++;
 	}
 
-	// Free all memory
-	//for(i=0; i < 256; i++)
-		//free(lookup[i]);
-//	free(lookup);
-
+	// TODO - Free all memory
 	*numBytes = bitstreamIndex;
-	return bitstream;*/
 	return bitstream;
 }
 
@@ -454,27 +287,22 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* 
 	}
 	bitstreamIndex += 3;
 
-	printf("%d\n", codeToValue[std::string("10")]);
-/*	// Read in the symbols
+	// Read in the symbols
 	unsigned char* image = (unsigned char*) malloc(*numBytes * 8 * sizeof(unsigned char));
 	int index = 0;
 	code = new std::string();
-	while(bitstream[bitstreamIndex] != '\0' || bitstream[bitstreamIndex+1] != '\0' || bitstream[bitstreamIndex+2] != '\0')
+	while(bitstreamIndex < *numBytes)
 	{
 		bits = Utility::getBinVal((int) bitstream[bitstreamIndex++], 8);
 		for(int b = 0; b < 8; b++)
 		{
 			code->append(1, bits[b]);
-			std::string padded(*code);
 			int value;
-			int count = 0;
-			while(padded.length() % 8 != 0)
-				padded.append(1, '0');
-			std::map<std::string, int>::iterator v = codeToValue.find(padded);
+			std::map<std::string, int>::iterator v = codeToValue.find(*code);
 			if(v != codeToValue.end())
 			{
 				value = v->second;
-				printf("%d\n", (int) value);
+	//			printf("%d\n", (int) value);
 				image[index++] = (unsigned char) value;
 				code = new std::string();
 			}
@@ -482,99 +310,7 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* 
 	}
 
 	*numBytes = index;
-	return image;*/
+	return image;
 
-/*	tree_node* root;
-	int sym;
-	int newVal = 1;
-	char c = 1;
-	char* BPP;
-	int i = 0;
-
-	int byte;
-	char* bits;
-	char bit;
-
-	int bitstreamIndex = 0;
-	tree_node* current;
-
-	// Parse in the huffman_table, build the lookup tree
-	root = (tree_node*) malloc(sizeof(tree_node));
-
-	// Read in the Huffman table
-	while(bitstream[bitstreamIndex] != '\0' || bitstream[bitstreamIndex+1] != '\0' || bitstream[bitstreamIndex+2] != '\0')
-	{
-		sym = (int) bitstream[bitstreamIndex++];
-		//		int	bytes = (int) bitstream[bitstreamIndex++];
-		char* byte2 = Utility::charToBin(bitstream[bitstreamIndex++]);
-		printf("%s\n", byte2);
-		int byte_index = 0;
-		BPP = (char*) malloc(sizeof(char) * 32);
-		while(byte2[byte_index] != '\n')
-		{
-			BPP[i++] = (char)byte2[byte_index++];
-			if(byte_index == 8)
-			{
-				byte_index = 0;
-				byte2 = Utility::charToBin(bitstream[bitstreamIndex++]);
-			}
-		}
-
-		//		BPP = (char*) malloc(sizeof(char) * 32);
-		//	if(fscanf(huff_tbl, "%d\t", &sym)!=EOF){
-		//	}
-		//	else{
-		//		newVal=0;
-		//	}
-
-		//while( (c=fgetc(huff_tbl)) != '\n' && c!=EOF){
-	//		BPP[i++]=c;
-		//}
-		BPP[i] = '\0';
-		printf("%d %s: ", sym, BPP);
-		i = 0;
-		addToTree(root, BPP, sym);
-		free(BPP);
-	}*/
-	/*
-	// Read in the compressed file, convert it into binary, decode the binary, and write it out
-	current = root;
-	while(bitstream[bitstreamIndex] != '\0' || bitstream[bitstreamIndex+1] != '\0' || bitstream[bitstreamIndex+2] != '\0')
-	{
-		bits = Utility::charToBin(bitstream[bitstreamIndex++]);
-		i=0;
-		while((bit = bits[i]) != '\0' && bit != 0)
-		{
-			if(bit == '0')
-			{
-				if(current->left)
-					current = current->left;
-				if(!current->left && !current->right)
-				{
-					printf("%d", current->sym);
-					current = root;
-				}
-			}
-			else if(bit == '1')
-			{
-				if(current->right)
-					current=current->right;
-				if(!current->left && !current->right)
-				{
-					printf("%d", current->sym);
-					current = root;
-				}
-			}
-			i++;
-		}
-		free(bits);
-	}
-
-	// Free all memory
-
-	freeTree(root);
-	//fclose(huff_tbl);
-	//fclose(cbs);
-//	fclose(out);
-	return 0; */
+	// TODO - Free all memory
 }
