@@ -6,9 +6,9 @@
 
 extern "C" void edgeDetectGPU(unsigned char* input, unsigned char* output, int row, int col);
 extern "C" void CUfwt97(float* output, unsigned char* input, float* tempbank, int n);
-extern "C" void CUfwt97_2D(float* output, unsigned char* input, float* tempbank, int row, int col);
+extern "C" void CUfwt97_2D(float* output, unsigned char* input, int row, int col);
 extern "C" void CUiwt97(unsigned char* output, float* input, float* tempbank, int n);
-extern "C" void CUiwt97_2D(unsigned char* output, float* input, float* tempbank, int row, int col);
+extern "C" void CUiwt97_2D(unsigned char* output, float* input,  int row, int col);
 extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
 extern "C" void CUsetToVal(unsigned char* x, int len, int val);
 extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
@@ -65,7 +65,7 @@ int main(int argc, char* argv[])
 
 	cutilSafeCall(cudaMemcpy(CUpic, pic[0], sizeof(unsigned char)*len, cudaMemcpyHostToDevice));
 
-	CUfwt97_2D(CUpicF, CUpic, CUtempbank, row,col);
+	CUfwt97_2D(CUpicF, CUpic, row,col);
 
 	int Qlevel = atoi(argv[3]);
 
@@ -84,7 +84,7 @@ int main(int argc, char* argv[])
 
 //	CUsetToVal(CUpicOUT, len, 0);
 
-	CUiwt97_2D(CUpicOUT, CUpicF, CUtempbank, row,col);
+	CUiwt97_2D(CUpicOUT, CUpicF,  row,col);
 
 	cutilSafeCall(cudaMemcpy(picOUT[0], CUpicOUT, sizeof(unsigned char)*len, cudaMemcpyDeviceToHost));
 
