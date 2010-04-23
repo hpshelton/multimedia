@@ -21,7 +21,12 @@ SOURCES += main.cpp \
     contrast.cpp \
     saturation.cpp \
     blur.cpp \
-    crop.cpp
+    crop.cpp \
+    scale.cpp \
+    rotate.cpp \
+    runlength.cpp \
+    arithmetic.cpp \
+    compress.cpp
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 RCC_DIR = ./obj
@@ -32,9 +37,9 @@ macx:ICON = ../images/icon.icns
 CUSOURCES = kernel_func.cu
 unix:INCLUDEPATH += /home/adam/NVIDIA_GPU_Computing_SDK/C/common/inc
 unix:INCLUDEPATH += /usr/local/cuda/include
-unix:LIBS += -lcuda \
-    -lcudart \
-    -L/usr/lib64 \
+unix:LIBS += -lcudart \
+    -L/usr/local/cuda/lib
+unix:LIBS += -lcudart \
     -L/usr/local/cuda/lib64
 unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
  { 
@@ -43,13 +48,12 @@ unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
     cu.input = CUSOURCES
     cu.CONFIG += no_link
     cu.variable_out = OBJECTS
-    isEmpty(QMAKE_CUC) { 
-        QMAKE_CUC = nvcc
-    }
+    isEmpty(QMAKE_CUC):QMAKE_CUC = nvcc
     isEmpty(CU_DIR):CU_DIR = .
     isEmpty(QMAKE_CPP_MOD_CU):QMAKE_CPP_MOD_CU = 
     isEmpty(QMAKE_EXT_CPP_CU):QMAKE_EXT_CPP_CU = .cu
     unix:INCLUDEPATH += /usr/local/cuda/include
+    unix:LIBPATH += /usr/local/cuda/lib
     unix:LIBPATH += /usr/local/cuda/lib64
     
     # QMAKE_CUFLAGS += $$QMAKE_CXXFLAGS
@@ -65,6 +69,7 @@ unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
         $$join(QMAKE_COMPILER_DEFINES, " -D", -D)
     QMAKE_CUEXTRAFLAGS += -c
     
+    # QMAKE_CUEXTRAFLAGS += -deviceemu
     # QMAKE_CUEXTRAFLAGS += -keep
     # QMAKE_CUEXTRAFLAGS += -clean
     QMAKE_EXTRA_VARIABLES += QMAKE_CUEXTRAFLAGS
