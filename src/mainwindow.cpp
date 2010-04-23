@@ -426,7 +426,7 @@ void MainWindow::openFile()
 			this->display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
-			//Encoder::test(this->file[0]);
+			Encoder::test(this->file[0]);
 		}
 	}
 }

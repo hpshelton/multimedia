@@ -1,7 +1,8 @@
 #include "encoder.h"
 #include "decoder.h"
 
-typedef struct tree_node{
+typedef struct tree_node
+{
 	float prob;
 	int sym;
 	char* code;
@@ -179,6 +180,11 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 	for(int i = 0; i < 3; i++)
 		bitstream[bitstreamIndex++] = '\n';
 
+//	printf("\n\nEncoder: %d / %lu ", bitstreamIndex, *numBytes);
+//	for(int i = 0; i < 25; i ++)
+//		printf("%d ", bitstream[i]);
+//	printf("\n\n");
+
 	// Write out the file using the lookup table
 	for(unsigned int i = 0; i < *numBytes; i++)
 	{
@@ -212,10 +218,16 @@ unsigned char* Encoder::huffman_encode(unsigned char* image, unsigned long* numB
 
 unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* numBytes)
 {
+//	printf("huff: %lu ", *numBytes);
 	std::map<std::string, int> codeToValue;
 	unsigned int bitstreamIndex = 0;
 	char* bits;
 	char* symbol_code;
+
+//	printf("\n\nDecoder: ");
+//	for(int i = 0; i < 25; i ++)
+//		printf("%d ", bitstream[i]);
+//	printf("\n\n");
 
 	// Read in the Huffman table
 	while(bitstream[bitstreamIndex] != '\n' || bitstream[bitstreamIndex+1] != '\n' || bitstream[bitstreamIndex+2] != '\n')
@@ -224,12 +236,13 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* 
 		int num_bits = (int) bitstream[bitstreamIndex++];
 		bits = Utility::charToBin(bitstream[bitstreamIndex++]);
 		symbol_code = (char*) malloc((num_bits+1)*sizeof(char));
+	//	printf("%d %d ", symbol, num_bits);
 		int bit_index = 0;
 		int code_index = 0;
 		while(code_index < num_bits)
 		{
 			symbol_code[code_index++] = bits[bit_index++];
-			if(bit_index == 8 && num_bits > 8)
+			if(bit_index == 8 && code_index < num_bits)
 			{
 				bits = Utility::charToBin(bitstream[bitstreamIndex++]);
 				bit_index = 0;
@@ -237,11 +250,13 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* 
 		}
 		symbol_code[code_index] = '\0';
 		codeToValue[std::string(symbol_code)] = symbol;
+//		printf("%s\n", symbol_code);
 	}
 	bitstreamIndex += 3;
 
+//	printf("%d / %lu ", bitstreamIndex, *numBytes);
 	// Read in the symbols
-	unsigned char* image = (unsigned char*) malloc(ceil(*numBytes * 1.5) * sizeof(unsigned char));
+	unsigned char* image = (unsigned char*) malloc(ceil(*numBytes * 2) * sizeof(unsigned char));
 	int image_index = 0;
 	std::string* code = new std::string();
 	while(bitstreamIndex < *numBytes)
@@ -265,5 +280,6 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* 
 	delete symbol_code;
 
 	*numBytes = image_index;
+//	printf("%lu\n", *numBytes);
 	return image;
 }
