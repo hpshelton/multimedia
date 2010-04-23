@@ -452,11 +452,11 @@ bool MainWindow::saveFile()
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
 		compressionBox->setMaximum(100);
-		compressionBox->setValue(100);
+		compressionBox->setValue(0);
 		vbox->addWidget(radio1);
 		vbox->addWidget(radio2);
 		vbox->addWidget(radio3);
-		vbox->addWidget(new QLabel("Quality: ", dialog));
+		vbox->addWidget(new QLabel("Compression Ratio (Percentage): ", dialog));
 		vbox->addWidget(compressionBox);
 		vbox->addStretch(1);
 
@@ -515,6 +515,9 @@ bool MainWindow::saveFile()
 					error->exec();
 					delete error;
 				}
+				if(compression > 0)
+					compress_video(compression);
+				// write video
 			}
 			else
 			{
@@ -522,15 +525,18 @@ bool MainWindow::saveFile()
 					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
 				{
 					QImage* img = this->display->getRightImage();
-					img->save(fileName, 0, compression);
+					img->save(fileName, 0, 100-compression);
 					hasChanged = false;
 				}
 				else
-				{
+				{				
 					// Save picture in ppc format
+					if(compression > 0)
+						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
+					else
+						Encoder::write_ppc(this->display->getRightImage(), fileName, huffman, arithmetic, runlength);
 					if(!fileName.endsWith(".ppc"))
 						fileName += ".ppc";
-					Encoder::write_ppc(this->display->getRightImage(), fileName, huffman, arithmetic, runlength);
 					hasChanged = false;
 				}
 			}
