@@ -372,7 +372,7 @@ void MainWindow::compress()
 	if(accepted)
 	{
 		float factor = i.toFloat(&accepted);
-		if(accepted && factor >= 0.0 && factor < 100)
+		if(accepted && factor >= 0.0 && factor <= 100)
 		{
 			// compress image by factor
 			hasChanged = true;
@@ -429,7 +429,7 @@ void MainWindow::openFile()
 
 bool MainWindow::saveFile()
 {
-	QString fileName = QFileDialog::getSaveFileName(this, "Save the edited file", "/", (this->video) ? "*.pvc" : "*.ppc");
+	QString fileName = QFileDialog::getSaveFileName(this, "Save the edited file", "/huff.ppc", (this->video) ? "*.pvc" : "*.ppc");
 	if(!fileName.isEmpty())
 	{
 		QDialog* dialog = new QDialog(this);
@@ -445,6 +445,8 @@ bool MainWindow::saveFile()
 		QCheckBox* radio1 = new QCheckBox("Huffman Coding");
 		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
 		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
+
+		radio1->setChecked(true);
 
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);

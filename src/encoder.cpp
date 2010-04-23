@@ -1,5 +1,6 @@
 #include "encoder.h"
 #include "decoder.h"
+
 /*
 QImage* Encoder::test(QImage* img)
 {
@@ -143,16 +144,18 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	if(arithmetic)
 		arithmetic_stream = arithmetic_encode(byte_stream, &numBytes);
 
+	//printf("2: %d %d\n", byte_stream[0], byte_stream[1]);
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
 	{
 		std::cerr << "Failed to open " << filename.toStdString() << " for writing\n";
 		return;
 	}
-	fprintf(output, "%d %d %d %lu ", mode, width, height, numBytes);
+	fprintf(output, "%d %d %d %lu", mode, width, height, numBytes);
 	if(!arithmetic)
 		fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
 	else
 		fwrite(arithmetic_stream, sizeof(double), numBytes, output);
+	//printf("3: %d %d\n", byte_stream[0], byte_stream[1]);
 	fclose(output);
 }

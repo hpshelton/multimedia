@@ -13,7 +13,9 @@ QImage* Decoder::read_ppc(QString filename)
 		return NULL;
 	}
 
-	fscanf(input, "%d %d %d %lu ", &mode, &width, &height, &numBytes);
+	//unsigned char one, two, three;
+	fscanf(input, "%d %d %d %lu", &mode, &width, &height, &numBytes);
+	//printf("%d %d %d", one, two, three);
 
 	bool arithmetic = (mode % 2 == 1);
 	mode /= 2;
@@ -26,7 +28,9 @@ QImage* Decoder::read_ppc(QString filename)
 	if(!arithmetic)
 	{
 		byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
+	//	printf("4: %d %d\n", byte_stream[0], byte_stream[1]);
 		fread(byte_stream, sizeof(unsigned char), numBytes, input);
+//		printf("5: %d %d\n", byte_stream[0], byte_stream[1]);
 	}
 	else
 	{
