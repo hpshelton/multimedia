@@ -426,7 +426,7 @@ void MainWindow::openFile()
 			this->display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
-			Encoder::test(this->file[0]);
+			//Encoder::test(this->file[0]);
 		}
 	}
 }
@@ -530,7 +530,7 @@ bool MainWindow::saveFile()
 					hasChanged = false;
 				}
 				else
-				{				
+				{
 					// Save picture in ppc format
 					if(compression > 0)
 						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
