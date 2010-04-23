@@ -35,6 +35,19 @@ __global__ void quantize(float* x, int Qlevel, float maxval, int n)
 		x[i] = (int)( (x[i]/maxval) *Qlevel ) * (maxval / (float)Qlevel);
 }
 
+#define ABS(a) (a<0?-a:a)
+
+
+__global__ void zeroOut(float* x, float threshold, int n)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if(i<n){
+		if(ABS(x[i]) < threshold)
+			x[i]=0;
+	}
+}
+
+
 __global__ void brighten(unsigned char* input, unsigned char* output, int row, int col, float factor)
 {
 	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
@@ -216,8 +229,8 @@ __global__ void UNscale(float* input, int n, int dim)
 	int i = (xIndex + yIndex * dim);
 	if (i<n)
 	{
-//		float a=1.149604398;
-		float a=1.13; // this one works better, i think
+		float a=1.149604398;
+//		float a=1.13; // this one works better, i think
 		if (i%2)
 			input[i]*=a;
 		else
