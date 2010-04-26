@@ -5,6 +5,8 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 {
 	this->CUDA_CAPABLE = c;
 	this->CUDA_ENABLED = c;
+	this->file = (QImage**) malloc(sizeof(QImage*));
+	this->frames = 0;
 
 	QDesktopWidget qdw;
 	int screenCenterX = qdw.width() / 2;
@@ -349,7 +351,7 @@ void MainWindow::blur()
 {
 	hasChanged = true;
 	if(this->video)
-	   this->display->setRightImage(blur_video());
+		this->display->setRightImage(blur_video());
 	else
 		this->display->setRightImage(blur_image());
 }
@@ -358,8 +360,8 @@ void MainWindow::edgeDetection()
 {
 	hasChanged = true;
 	if(this->video)
-	   this->display->setRightImage(edge_detect_video());
-		else
+		this->display->setRightImage(edge_detect_video());
+	else
 	{
 		this->display->setRightImage(edge_detect());
 	}
@@ -374,11 +376,11 @@ void MainWindow::compress()
 		float factor = i.toFloat(&accepted);
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
-					if(this->video)
-						this->display->setRightImage(compress_video(factor));
-					else
-						this->display->setRightImage(compress_image(factor));
-					hasChanged = true;
+			if(this->video)
+				this->display->setRightImage(compress_video(factor));
+			else
+				this->display->setRightImage(compress_image(factor));
+			hasChanged = true;
 		}
 		else
 		{
@@ -395,18 +397,24 @@ void MainWindow::compress()
 void MainWindow::openFile()
 {
 	closeFile();
-	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.qcif *.jpg *.jpeg *.bmp *.gif *.tif *.tiff *.ppc");
+	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.jpg *.jpeg *.bmp *.gif *.tif *.tiff *.qcif *.cif *.ppc");
 	if(!fileName.isEmpty())
 	{
 		if(fileName.endsWith(".qcif"))
 		{
 			this->video = true;
+			this->file = Decoder::read_qcif(fileName, &(this->frames));
+		}
+		else if(fileName.endsWith(".cif"))
+		{
+			this->video = true;
+			this->file = Decoder::read_cif(fileName, &(this->frames));
+			printf("Done!\n");
 		}
 		else
 		{
 			this->video = false;
 			this->frames = 1;
-			this->file = (QImage**) malloc(sizeof(QImage*));
 			if(fileName.endsWith(".ppc"))
 			{
 				this->file[0] = Decoder::read_ppc(fileName);
@@ -426,7 +434,7 @@ void MainWindow::openFile()
 			this->display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
-			//Encoder::test(this->file[0]);
+			//	Encoder::test(this->file[0]);
 		}
 	}
 }
@@ -463,7 +471,7 @@ bool MainWindow::saveFile()
 
 		if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
 			|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
-		{
+			{
 			radio1->setEnabled(false);
 			radio2->setEnabled(false);
 			radio3->setEnabled(false);
@@ -524,7 +532,7 @@ bool MainWindow::saveFile()
 			{
 				if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
 					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
-				{
+					{
 					QImage* img = this->display->getRightImage();
 					img->save(fileName, 0, 100-compression);
 					hasChanged = false;

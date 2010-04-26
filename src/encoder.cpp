@@ -17,7 +17,7 @@ QImage* Encoder::test(QImage* img)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("Failed!\n");
+			printf("Failed: %d %lu\n", i, numBytes);
 			failed = true;
 		}
 	}
@@ -33,7 +33,7 @@ QImage* Encoder::test(QImage* img)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("Failed!\n");
+			printf("Failed: %d %lu\n", i, numBytes);
 			failed = true;
 		}
 	}
@@ -49,29 +49,30 @@ QImage* Encoder::test(QImage* img)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("Failed!\n");
+			printf("Failed: %d %lu\n", i, numBytes);
 			failed = true;
 		}
 	}
 	if(!failed)
 		printf("Passed!\n");
 
-//	printf("Huffman over Run Length: ");
-//	original = img->bits();
-//	numBytes = img->byteCount();
-//	coded = Encoder::huffman_encode(Encoder::runlength_encode(original, &numBytes), &numBytes);
-//	decoded = Decoder::runlength_decode(Decoder::huffman_decode(coded, &numBytes), &numBytes);
-//	for(unsigned int i = 0; i < numBytes; i++)
-//	{
-//		if(original[i] != decoded[i])
-//		{
-//			printf("Failed!\n");
-//			failed = true;
-//		}
-//	}
-//	if(!failed)
-//		printf("Passed!\n");
-//	failed = false;
+	printf("Huffman over Run Length: ");
+	original = img->bits();
+	numBytes = img->byteCount();
+	coded = Encoder::huffman_encode(Encoder::runlength_encode(original, &numBytes), &numBytes);
+	decoded = Decoder::huffman_decode(coded, &numBytes);
+	decoded = Decoder::runlength_decode(decoded, &numBytes);
+	for(unsigned int i = 0; i < numBytes; i++)
+	{
+		if(original[i] != decoded[i])
+		{
+			printf("Failed: %d %lu\n", i, numBytes);
+			failed = true;
+		}
+	}
+	if(!failed)
+		printf("Passed!\n");
+	failed = false;
 
 	printf("Arithmetic over Run Length: ");
 	original = img->bits();
@@ -82,7 +83,7 @@ QImage* Encoder::test(QImage* img)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("Failed!\n");
+			printf("Failed: %d %lu\n", i, numBytes);
 			failed = true;
 		}
 	}
@@ -99,7 +100,7 @@ QImage* Encoder::test(QImage* img)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("Failed!\n");
+			printf("Failed: %d %lu\n", i, numBytes);
 			failed = true;
 		}
 	}
@@ -107,7 +108,7 @@ QImage* Encoder::test(QImage* img)
 		printf("Passed!\n");
 	failed = false;
 
-	printf("Huffman over Arithmetic over Runlength: ");
+	printf("Huffman over Arithmetic over Run Length: ");
 	original = img->bits();
 	numBytes = img->byteCount();
 	arithEncoded = Encoder::arithmetic_encode(Encoder::huffman_encode(Encoder::runlength_encode(original, &numBytes), &numBytes), &numBytes);
@@ -116,7 +117,7 @@ QImage* Encoder::test(QImage* img)
 	{
 		if(original[i] != decoded[i])
 		{
-			printf("Failed!\n");
+			printf("Failed: %d %lu\n", i, numBytes);
 			failed = true;
 		}
 	}

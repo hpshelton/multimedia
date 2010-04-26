@@ -52,14 +52,14 @@ private:
 	QMenuBar* menubar;
 	QToolBar* toolbar;
 
-/* Menu actions */
+	/* Menu actions */
 	QAction* openAction;
 	QAction* saveAction;
 	QAction* exitAction;
 	QAction* closeAction;
 	QAction* showPreferencesAction;
 
-/* Toolbar actions */
+	/* Toolbar actions */
 	QAction* cropAction;
 	QAction* rotateAction;
 	QAction* scaleAction;
@@ -112,8 +112,8 @@ private:
 	QImage* rotate_image(float angle);
 	QImage* rotate_video(float angle);
 
-        QImage* compress_image(float factor);
-        QImage* compress_video(float factor);
+	QImage* compress_image(float factor);
+	QImage* compress_video(float factor);
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);
@@ -135,8 +135,8 @@ public slots:
 	void zoomIn();
 	void zoomOut();
 	void showPreferences();
-        void enableCUDA(bool b);
-        void compress();
+	void enableCUDA(bool b);
+	void compress();
 };
 
 #endif // MAINWINDOW_H

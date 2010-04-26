@@ -7,6 +7,12 @@
 #define PROGRAM_NAME "Multimedia"
 #define VERSION "0.1"
 
+#define QCIF_WIDTH 176
+#define QCIF_HEIGHT 144
+
+#define CIF_WIDTH 352
+#define CIF_HEIGHT 288
+
 #define ZOOM_IN_FACTOR 1.25
 #define ZOOM_OUT_FACTOR 0.8
 
