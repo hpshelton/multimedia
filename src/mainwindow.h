@@ -38,6 +38,8 @@ extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUfwt97_2D(float* output, unsigned char* input, int row, int col);
 extern "C" void CUiwt97_2D(unsigned char* output, float* input, int row, int col);
+extern "C" void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col);
+extern "C" void CUiwt97_2D_rgba(unsigned char* output, float* input, int row, int col);
 
 class MainWindow : public QMainWindow
 {
