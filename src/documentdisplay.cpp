@@ -45,8 +45,8 @@ void DocumentDisplay::init()
 	layout->addWidget(this->rightPanel);
 	this->setLayout(layout);
 
-	this->leftScaleFactor = 0;
-	this->rightScaleFactor = 0;
+	this->leftScaleFactor = 1.0;
+	this->rightScaleFactor = 1.0;
 }
 
 void DocumentDisplay::setLeftImage(QImage* image)
@@ -55,9 +55,15 @@ void DocumentDisplay::setLeftImage(QImage* image)
 	{
 		this->leftPanel->show();
 		this->leftImage->setPixmap(QPixmap::fromImage(*image));
-		this->leftImage->adjustSize();
-		this->leftScaleFactor = 1;
-		this->leftPanel->hasFocus();
+		float scale = this->leftScaleFactor;
+		if(scale != 1.0)
+		{
+			this->leftScaleFactor = 1.0;
+			this->leftPanel->hasFocus();
+			scaleImage(scale);
+		}
+		else
+			this->leftImage->adjustSize();
 	}
 }
 
@@ -67,9 +73,15 @@ void DocumentDisplay::setRightImage(QImage* image)
 	{
 		this->rightPanel->show();
 		this->rightImage->setPixmap(QPixmap::fromImage(*image));
-		this->rightImage->adjustSize();
-		this->rightScaleFactor = 1;
-		this->rightPanel->hasFocus();
+		float scale = this->rightScaleFactor;
+		if(scale != 1.0)
+		{
+			this->rightScaleFactor = 1;
+			this->rightPanel->hasFocus();
+			scaleImage(scale);
+		}
+		else
+			this->rightImage->adjustSize();
 	}
 }
 
