@@ -20,7 +20,8 @@
 #include <QImage>
 
 #include "utility.h"
-#include "documentdisplay.h"
+#include "imagedisplay.h"
+#include "videodisplay.h"
 #include "defines.h"
 #include "encoder.h"
 #include "decoder.h"
@@ -83,7 +84,8 @@ private:
 	QImage** file;
 	bool hasChanged;
 
-	DocumentDisplay* display;
+	ImageDisplay* image_display;
+	VideoDisplay* video_display;
 
 	bool displaySavePrompt();
 	void toggleActions(bool);

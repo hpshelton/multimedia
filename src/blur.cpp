@@ -2,7 +2,7 @@
 
 QImage* MainWindow::blur_image()
 {
-	QImage* img = this->display->getRightImage();
+	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 

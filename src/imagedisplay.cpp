@@ -1,19 +1,19 @@
-#include "documentdisplay.h"
+#include "imagedisplay.h"
 
-DocumentDisplay::DocumentDisplay(QWidget *parent)
+ImageDisplay::ImageDisplay(QWidget *parent)
 	: QWidget(parent)
 {
 	init();
 }
 
-DocumentDisplay::DocumentDisplay(QImage *image, QWidget* parent)
+ImageDisplay::ImageDisplay(QImage *image, QWidget* parent)
 	: QWidget(parent)
 {
 	init();
 	setLeftAndRightImages(image);
 }
 
-void DocumentDisplay::init()
+void ImageDisplay::init()
 {
 	this->leftImage = new QLabel(this);
 	this->leftImage->setBackgroundRole(QPalette::Base);
@@ -49,7 +49,7 @@ void DocumentDisplay::init()
 	this->rightScaleFactor = 1.0;
 }
 
-void DocumentDisplay::setLeftImage(QImage* image)
+void ImageDisplay::setLeftImage(QImage* image)
 {
 	if(image != NULL)
 	{
@@ -67,7 +67,7 @@ void DocumentDisplay::setLeftImage(QImage* image)
 	}
 }
 
-void DocumentDisplay::setRightImage(QImage* image)
+void ImageDisplay::setRightImage(QImage* image)
 {
 	if(image != NULL)
 	{
@@ -85,7 +85,7 @@ void DocumentDisplay::setRightImage(QImage* image)
 	}
 }
 
-void DocumentDisplay::setLeftAndRightImages(QImage *image)
+void ImageDisplay::setLeftAndRightImages(QImage *image)
 {
 	if(image != NULL)
 	{
@@ -94,14 +94,14 @@ void DocumentDisplay::setLeftAndRightImages(QImage *image)
 	}
 }
 
-void DocumentDisplay::closeEvent(QCloseEvent* e)
+void ImageDisplay::closeEvent(QCloseEvent* e)
 {
 	this->rightPanel->hide();
 	this->leftPanel->hide();
 	e->ignore();
 }
 
-void DocumentDisplay::scaleImage(float factor)
+void ImageDisplay::scaleImage(float factor)
 {
 	if(this->leftPanel->hasFocus())
 	{
@@ -119,7 +119,7 @@ void DocumentDisplay::scaleImage(float factor)
 	}
 }
 
-float DocumentDisplay::getScaleFactor()
+float ImageDisplay::getScaleFactor()
 {
 	if(this->leftPanel->hasFocus())
 		return leftScaleFactor;
@@ -127,18 +127,18 @@ float DocumentDisplay::getScaleFactor()
 		return rightScaleFactor;
 }
 
-void DocumentDisplay::adjustScrollBar(QScrollBar* scrollBar, float factor)
+void ImageDisplay::adjustScrollBar(QScrollBar* scrollBar, float factor)
 {
 	scrollBar->setValue(int(factor * scrollBar->value()
 							+ ((factor - 1) * scrollBar->pageStep()/2)));
 }
 
-QImage* DocumentDisplay::getLeftImage()
+QImage* ImageDisplay::getLeftImage()
 {
 	return new QImage(this->leftImage->pixmap()->toImage());
 }
 
-QImage* DocumentDisplay::getRightImage()
+QImage* ImageDisplay::getRightImage()
 {
 	return new QImage(this->rightImage->pixmap()->toImage());
 }

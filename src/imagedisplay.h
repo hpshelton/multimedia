@@ -1,5 +1,5 @@
-#ifndef DOCUMENTDISPLAY_H
-#define DOCUMENTDISPLAY_H
+#ifndef IMAGEDISPLAY_H
+#define IMAGEDISPLAY_H
 
 #include <QWidget>
 #include <QScrollArea>
@@ -9,7 +9,7 @@
 #include <QCloseEvent>
 #include <QScrollBar>
 
-class DocumentDisplay : public QWidget
+class ImageDisplay : public QWidget
 {
 private:
 	QLabel* leftImage;
@@ -23,8 +23,8 @@ private:
 	void adjustScrollBar(QScrollBar* scrollbar, float factor);
 
 public:
-	DocumentDisplay(QWidget* parent = 0);
-	DocumentDisplay(QImage* image, QWidget* parent = 0);
+	ImageDisplay(QWidget* parent = 0);
+	ImageDisplay(QImage* image, QWidget* parent = 0);
 
 	void setLeftImage(QImage* image);
 	void setRightImage(QImage* image);
@@ -37,4 +37,4 @@ public:
 	void scaleImage(float factor);
 };
 
-#endif // DOCUMENTDISPLAY_H
+#endif // IMAGEDISPLAY_H

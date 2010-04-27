@@ -2,7 +2,7 @@
 
 QImage* MainWindow::brighten_image(float factor)
 {
-	QImage* img = this->display->getRightImage();
+	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 

@@ -13,8 +13,8 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	int screenCenterY = qdw.height() / 2;
 	this->setGeometry(screenCenterX - 500, screenCenterY - 350, 1000, 600);
 
-	this->display = new DocumentDisplay(this);
-	this->setCentralWidget(this->display);
+	this->image_display = new ImageDisplay(this);
+	this->setCentralWidget(this->image_display);
 
 	this->openAction = new QAction(QIcon(":/images/open.png"), "Open", this);
 	this->openAction->setStatusTip(tr("Open File"));
@@ -143,9 +143,9 @@ void MainWindow::grayscale()
 {
 	hasChanged = true;
 	if(this->video)
-		this->display->setRightImage(grayscale_video());
+		this->image_display->setRightImage(grayscale_video());
 	else
-		this->display->setRightImage(grayscale_image());
+		this->image_display->setRightImage(grayscale_image());
 }
 
 void MainWindow::rotate()
@@ -164,9 +164,9 @@ void MainWindow::rotate()
 			// rotate image by degree a
 			hasChanged = true;
 			if(this->video)
-				this->display->setRightImage(rotate_video(a));
+				this->image_display->setRightImage(rotate_video(a));
 			else
-				this->display->setRightImage(rotate_image(a));
+				this->image_display->setRightImage(rotate_image(a));
 		}
 		else
 		{
@@ -222,9 +222,9 @@ void MainWindow::crop()
 			// crop using x1, x2, y1, y2
 			hasChanged = true;
 			if(this->video)
-				this->display->setRightImage(crop_video(x1, x2, y1, y2));
+				this->image_display->setRightImage(crop_video(x1, x2, y1, y2));
 			else
-				this->display->setRightImage(crop_image(x1, x2, y1, y2));
+				this->image_display->setRightImage(crop_image(x1, x2, y1, y2));
 		}
 		else
 		{
@@ -253,9 +253,9 @@ void MainWindow::scale()
 			// scale image by factor
 			hasChanged = true;
 			if(this->video)
-				this->display->setRightImage(scale_video(factor));
+				this->image_display->setRightImage(scale_video(factor));
 			else
-				this->display->setRightImage(scale_image(factor));
+				this->image_display->setRightImage(scale_image(factor));
 		}
 		else
 		{
@@ -281,9 +281,9 @@ void MainWindow::brighten()
 			// brighten image by factor
 			hasChanged = true;
 			if(this->video)
-				this->display->setRightImage(brighten_video(factor));
+				this->image_display->setRightImage(brighten_video(factor));
 			else
-				this->display->setRightImage(brighten_image(factor));
+				this->image_display->setRightImage(brighten_image(factor));
 		}
 		else
 		{
@@ -309,9 +309,9 @@ void MainWindow::contrast()
 			// adjust contrast image by factor
 			hasChanged = true;
 			if(this->video)
-				this->display->setRightImage(contrast_video(factor));
+				this->image_display->setRightImage(contrast_video(factor));
 			else
-				this->display->setRightImage(contrast_image(factor));
+				this->image_display->setRightImage(contrast_image(factor));
 		}
 		else
 		{
@@ -337,9 +337,9 @@ void MainWindow::saturate()
 			// saturate image by factor
 			hasChanged = true;
 			if(this->video)
-				this->display->setRightImage(saturate_video(factor));
+				this->image_display->setRightImage(saturate_video(factor));
 			else
-				this->display->setRightImage(saturate_image(factor));
+				this->image_display->setRightImage(saturate_image(factor));
 		}
 		else
 		{
@@ -357,19 +357,19 @@ void MainWindow::blur()
 {
 	hasChanged = true;
 	if(this->video)
-		this->display->setRightImage(blur_video());
+		this->image_display->setRightImage(blur_video());
 	else
-		this->display->setRightImage(blur_image());
+		this->image_display->setRightImage(blur_image());
 }
 
 void MainWindow::edgeDetection()
 {
 	hasChanged = true;
 	if(this->video)
-		this->display->setRightImage(edge_detect_video());
+		this->image_display->setRightImage(edge_detect_video());
 	else
 	{
-		this->display->setRightImage(edge_detect());
+		this->image_display->setRightImage(edge_detect());
 	}
 }
 
@@ -383,9 +383,9 @@ void MainWindow::compress()
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
 			if(this->video)
-				this->display->setRightImage(compress_video(factor));
+				this->image_display->setRightImage(compress_video(factor));
 			else
-				this->display->setRightImage(compress_image(factor));
+				this->image_display->setRightImage(compress_image(factor));
 			hasChanged = true;
 		}
 		else
@@ -437,7 +437,7 @@ void MainWindow::openFile()
 		{
 			this->saveAction->setEnabled(true);
 			this->closeAction->setEnabled(true);
-			this->display->setLeftAndRightImages(this->file[0]);
+			this->image_display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
 			//	Encoder::test(this->file[0]);
@@ -539,7 +539,7 @@ bool MainWindow::saveFile()
 				if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
 					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
 					{
-					QImage* img = this->display->getRightImage();
+					QImage* img = this->image_display->getRightImage();
 					img->save(fileName, 0, 100-compression);
 					hasChanged = false;
 				}
@@ -549,7 +549,7 @@ bool MainWindow::saveFile()
 					if(compression > 0)
 						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
 					else
-						Encoder::write_ppc(this->display->getRightImage(), fileName, huffman, arithmetic, runlength);
+						Encoder::write_ppc(this->image_display->getRightImage(), fileName, huffman, arithmetic, runlength);
 					if(!fileName.endsWith(".ppc"))
 						fileName += ".ppc";
 					hasChanged = false;
@@ -580,7 +580,7 @@ void MainWindow::closeFile()
 		this->closeAction->setEnabled(false);
 		toggleActions(false);
 		hasChanged = false;
-		this->display->close();
+		this->image_display->close();
 	}
 }
 
@@ -630,12 +630,12 @@ void MainWindow::toggleActions(bool b)
 
 void MainWindow::zoomIn()
 {
-	this->display->scaleImage(ZOOM_IN_FACTOR);
+	this->image_display->scaleImage(ZOOM_IN_FACTOR);
 }
 
 void MainWindow::zoomOut()
 {
-	this->display->scaleImage(ZOOM_OUT_FACTOR);
+	this->image_display->scaleImage(ZOOM_OUT_FACTOR);
 }
 
 void MainWindow::showPreferences()
@@ -672,5 +672,5 @@ void MainWindow::enableCUDA(bool b)
 
 void MainWindow::reset()
 {
-	this->display->setRightImage(this->display->getLeftImage());
+	this->image_display->setRightImage(this->image_display->getLeftImage());
 }
