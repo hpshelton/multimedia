@@ -76,6 +76,8 @@ private:
 	QAction* zoomInAction;
 	QAction* zoomOutAction;
 
+	QAction* resetAction;
+
 	bool video;
 	int frames;
 	QImage** file;
@@ -139,6 +141,7 @@ public slots:
 	void showPreferences();
 	void enableCUDA(bool b);
 	void compress();
+	void reset();
 };
 
 #endif // MAINWINDOW_H

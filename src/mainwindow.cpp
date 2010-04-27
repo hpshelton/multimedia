@@ -93,6 +93,11 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	QObject::connect(this->zoomOutAction, SIGNAL(triggered()), this, SLOT(zoomOut()));
 	this->toolbar->addAction(zoomOutAction);
 
+	this->toolbar->addSeparator();
+	this->resetAction = new QAction("Reset", this);
+	QObject::connect(this->resetAction, SIGNAL(triggered()), this, SLOT(reset()));
+	this->toolbar->addAction(resetAction);
+
 	this->toolbar->setFloatable(false);
 	this->toolbar->setMovable(false);
 	this->toolbar->setAllowedAreas(Qt::TopToolBarArea);
@@ -131,6 +136,7 @@ MainWindow::~MainWindow()
 	delete blurAction;
 	delete edgeDetectAction;
 	delete grayscaleAction;
+	delete resetAction;
 }
 
 void MainWindow::grayscale()
@@ -619,6 +625,7 @@ void MainWindow::toggleActions(bool b)
 	this->compressAction->setEnabled(b);
 	this->zoomInAction->setEnabled(b);
 	this->zoomOutAction->setEnabled(b);
+	this->resetAction->setEnabled(b);
 }
 
 void MainWindow::zoomIn()
@@ -661,4 +668,9 @@ void MainWindow::showPreferences()
 void MainWindow::enableCUDA(bool b)
 {
 	this->CUDA_ENABLED = b;
+}
+
+void MainWindow::reset()
+{
+	this->display->setRightImage(this->display->getLeftImage());
 }
