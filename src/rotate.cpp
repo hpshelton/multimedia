@@ -53,7 +53,7 @@ QImage* MainWindow::rotate_image(float a)
 	return newImg;
 }
 
-QImage* MainWindow::rotate_video(float a)
+QImage** MainWindow::rotate_video(float a)
 {
 
 }

@@ -14,7 +14,7 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->setGeometry(screenCenterX - 500, screenCenterY - 350, 1000, 600);
 
 	this->image_display = new ImageDisplay(this);
-	this->setCentralWidget(this->image_display);
+	this->video_display = new VideoDisplay(this);
 
 	this->openAction = new QAction(QIcon(":/images/open.png"), "Open", this);
 	this->openAction->setStatusTip(tr("Open File"));
@@ -143,7 +143,7 @@ void MainWindow::grayscale()
 {
 	hasChanged = true;
 	if(this->video)
-		this->image_display->setRightImage(grayscale_video());
+		this->video_display->setRightVideo(grayscale_video());
 	else
 		this->image_display->setRightImage(grayscale_image());
 }
@@ -164,7 +164,7 @@ void MainWindow::rotate()
 			// rotate image by degree a
 			hasChanged = true;
 			if(this->video)
-				this->image_display->setRightImage(rotate_video(a));
+				this->video_display->setRightVideo(rotate_video(a));
 			else
 				this->image_display->setRightImage(rotate_image(a));
 		}
@@ -222,7 +222,7 @@ void MainWindow::crop()
 			// crop using x1, x2, y1, y2
 			hasChanged = true;
 			if(this->video)
-				this->image_display->setRightImage(crop_video(x1, x2, y1, y2));
+				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2));
 			else
 				this->image_display->setRightImage(crop_image(x1, x2, y1, y2));
 		}
@@ -253,7 +253,7 @@ void MainWindow::scale()
 			// scale image by factor
 			hasChanged = true;
 			if(this->video)
-				this->image_display->setRightImage(scale_video(factor));
+				this->video_display->setRightVideo(scale_video(factor));
 			else
 				this->image_display->setRightImage(scale_image(factor));
 		}
@@ -281,7 +281,7 @@ void MainWindow::brighten()
 			// brighten image by factor
 			hasChanged = true;
 			if(this->video)
-				this->image_display->setRightImage(brighten_video(factor));
+				this->video_display->setRightVideo(brighten_video(factor));
 			else
 				this->image_display->setRightImage(brighten_image(factor));
 		}
@@ -309,7 +309,7 @@ void MainWindow::contrast()
 			// adjust contrast image by factor
 			hasChanged = true;
 			if(this->video)
-				this->image_display->setRightImage(contrast_video(factor));
+				this->video_display->setRightVideo(contrast_video(factor));
 			else
 				this->image_display->setRightImage(contrast_image(factor));
 		}
@@ -337,7 +337,7 @@ void MainWindow::saturate()
 			// saturate image by factor
 			hasChanged = true;
 			if(this->video)
-				this->image_display->setRightImage(saturate_video(factor));
+				this->video_display->setRightVideo(saturate_video(factor));
 			else
 				this->image_display->setRightImage(saturate_image(factor));
 		}
@@ -357,7 +357,7 @@ void MainWindow::blur()
 {
 	hasChanged = true;
 	if(this->video)
-		this->image_display->setRightImage(blur_video());
+		this->video_display->setRightVideo(blur_video());
 	else
 		this->image_display->setRightImage(blur_image());
 }
@@ -366,7 +366,7 @@ void MainWindow::edgeDetection()
 {
 	hasChanged = true;
 	if(this->video)
-		this->image_display->setRightImage(edge_detect_video());
+		this->video_display->setRightVideo(edge_detect_video());
 	else
 	{
 		this->image_display->setRightImage(edge_detect());
@@ -383,7 +383,7 @@ void MainWindow::compress()
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
 			if(this->video)
-				this->image_display->setRightImage(compress_video(factor));
+				this->video_display->setRightVideo(compress_video(factor));
 			else
 				this->image_display->setRightImage(compress_image(factor));
 			hasChanged = true;
@@ -410,12 +410,13 @@ void MainWindow::openFile()
 		{
 			this->video = true;
 			this->file = Decoder::read_qcif(fileName, &(this->frames));
+			printf("QCIF Video Decoder Finished\n");
 		}
 		else if(fileName.endsWith(".cif"))
 		{
 			this->video = true;
 			this->file = Decoder::read_cif(fileName, &(this->frames));
-			printf("Done!\n");
+			printf("CIF Video Decoder Finished\n");
 		}
 		else
 		{
@@ -435,9 +436,21 @@ void MainWindow::openFile()
 		}
 		if(this->file[0] != NULL)
 		{
+			if(this->video)
+			{
+				this->image_display = new ImageDisplay(this);
+				this->setCentralWidget(this->video_display);
+				this->video_display->setLeftAndRightVideos(this->file);
+			}
+			else
+			{
+				this->video_display = new VideoDisplay(this);
+				this->setCentralWidget(this->image_display);
+				this->image_display->setLeftAndRightImages(this->file[0]);
+
+			}
 			this->saveAction->setEnabled(true);
 			this->closeAction->setEnabled(true);
-			this->image_display->setLeftAndRightImages(this->file[0]);
 			this->hasChanged = false;
 			toggleActions(true);
 			//	Encoder::test(this->file[0]);
@@ -580,7 +593,10 @@ void MainWindow::closeFile()
 		this->closeAction->setEnabled(false);
 		toggleActions(false);
 		hasChanged = false;
-		this->image_display->close();
+		if(this->video)
+			this->video_display->close();
+		else
+			this->image_display->close();
 	}
 }
 
@@ -630,12 +646,18 @@ void MainWindow::toggleActions(bool b)
 
 void MainWindow::zoomIn()
 {
-	this->image_display->scaleImage(ZOOM_IN_FACTOR);
+	if(this->video)
+		this->video_display->scaleVideo(ZOOM_IN_FACTOR);
+	else
+		this->image_display->scaleImage(ZOOM_IN_FACTOR);
 }
 
 void MainWindow::zoomOut()
 {
-	this->image_display->scaleImage(ZOOM_OUT_FACTOR);
+	if(this->video)
+		this->video_display->scaleVideo(ZOOM_OUT_FACTOR);
+	else
+		this->image_display->scaleImage(ZOOM_OUT_FACTOR);
 }
 
 void MainWindow::showPreferences()
@@ -672,5 +694,15 @@ void MainWindow::enableCUDA(bool b)
 
 void MainWindow::reset()
 {
-	this->image_display->setRightImage(this->image_display->getLeftImage());
+	if(this->video)
+	{
+		this->video_display->setLeftVideo(this->video_display->getLeftVideo(), true);
+		this->video_display->setRightVideo(this->video_display->getLeftVideo(), true);
+	}
+	else
+	{
+		this->image_display->setLeftImage(this->image_display->getLeftImage(), true);
+		this->image_display->setRightImage(this->image_display->getLeftImage(), true);
+	}
+	this->hasChanged = false;
 }

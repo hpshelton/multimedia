@@ -179,7 +179,7 @@ QImage* MainWindow::edge_detect()
 	}
 }
 
-QImage* MainWindow::edge_detect_video()
+QImage** MainWindow::edge_detect_video()
 {
 	return NULL;
 }

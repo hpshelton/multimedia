@@ -24,7 +24,7 @@ QImage* MainWindow::scale_image(float factor)
 	return newImg;
 }
 
-QImage* MainWindow::scale_video(float factor)
+QImage** MainWindow::scale_video(float factor)
 {
 
 }

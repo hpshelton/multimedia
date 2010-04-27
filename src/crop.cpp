@@ -65,7 +65,7 @@ QImage* MainWindow::crop_image(int x1, int x2, int y1, int y2)
 	return newImg;
 }
 
-QImage* MainWindow::crop_video(int x1, int x2, int y1, int y2)
+QImage** MainWindow::crop_video(int x1, int x2, int y1, int y2)
 {
 	return NULL;
 }

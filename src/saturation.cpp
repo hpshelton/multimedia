@@ -53,7 +53,7 @@ QImage* MainWindow::saturate_image(float factor)
 	}
 }
 
-QImage* MainWindow::saturate_video(float factor)
+QImage** MainWindow::saturate_video(float factor)
 {
 	return NULL;
 }

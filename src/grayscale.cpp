@@ -42,7 +42,7 @@ QImage* MainWindow::grayscale_image()
 	}
 }
 
-QImage* MainWindow::grayscale_video()
+QImage** MainWindow::grayscale_video()
 {
 	return NULL;
 }

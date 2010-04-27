@@ -26,8 +26,8 @@ public:
 	ImageDisplay(QWidget* parent = 0);
 	ImageDisplay(QImage* image, QWidget* parent = 0);
 
-	void setLeftImage(QImage* image);
-	void setRightImage(QImage* image);
+	void setLeftImage(QImage* image, bool rescale = false);
+	void setRightImage(QImage* image, bool rescale = false);
 	void setLeftAndRightImages(QImage* image);
 
 	float getScaleFactor();

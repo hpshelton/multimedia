@@ -177,7 +177,7 @@ QImage* MainWindow::blur_image()
 	}
 }
 
-QImage* MainWindow::blur_video()
+QImage** MainWindow::blur_video()
 {
 	return NULL;
 }

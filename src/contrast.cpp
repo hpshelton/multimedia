@@ -48,7 +48,7 @@ QImage* MainWindow::contrast_image(float factor)
 	}
 }
 
-QImage* MainWindow::contrast_video(float factor)
+QImage** MainWindow::contrast_video(float factor)
 {
 	return NULL;
 }

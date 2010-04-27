@@ -49,13 +49,13 @@ void ImageDisplay::init()
 	this->rightScaleFactor = 1.0;
 }
 
-void ImageDisplay::setLeftImage(QImage* image)
+void ImageDisplay::setLeftImage(QImage* image, bool rescale)
 {
 	if(image != NULL)
 	{
 		this->leftPanel->show();
 		this->leftImage->setPixmap(QPixmap::fromImage(*image));
-		float scale = this->leftScaleFactor;
+		float scale = (rescale) ? (this->leftScaleFactor = 1.0) : this->leftScaleFactor;
 		if(scale != 1.0)
 		{
 			this->leftScaleFactor = 1.0;
@@ -67,13 +67,13 @@ void ImageDisplay::setLeftImage(QImage* image)
 	}
 }
 
-void ImageDisplay::setRightImage(QImage* image)
+void ImageDisplay::setRightImage(QImage* image, bool rescale)
 {
 	if(image != NULL)
 	{
 		this->rightPanel->show();
 		this->rightImage->setPixmap(QPixmap::fromImage(*image));
-		float scale = this->rightScaleFactor;
+		float scale = (rescale) ? (this->rightScaleFactor = 1.0) : this->rightScaleFactor;
 		if(scale != 1.0)
 		{
 			this->rightScaleFactor = 1;
