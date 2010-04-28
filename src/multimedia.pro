@@ -38,8 +38,6 @@ CUSOURCES = kernel_func.cu
 unix:INCLUDEPATH += /home/adam/NVIDIA_GPU_Computing_SDK/C/common/inc
 unix:INCLUDEPATH += /usr/local/cuda/include
 unix:LIBS += -lcudart \
-    -L/usr/local/cuda/lib
-unix:LIBS += -lcudart \
     -L/usr/local/cuda/lib64
 unix:QMAKE_CUC = /usr/local/cuda/bin/nvcc
  { 
