@@ -54,6 +54,7 @@ private:
 
 	QMenuBar* menubar;
 	QToolBar* toolbar;
+	QToolBar* videobar;
 
 	/* Menu actions */
 	QAction* openAction;
@@ -78,6 +79,12 @@ private:
 	QAction* zoomOutAction;
 
 	QAction* resetAction;
+
+	/* Video control actions */
+	QAction* play;
+	QAction* pause;
+	QAction* start;
+	QAction* end;
 
 	bool video;
 	int frames;

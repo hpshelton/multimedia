@@ -11,6 +11,8 @@
 
 class VideoDisplay : public QWidget
 {
+	Q_OBJECT
+
 private:
 	QImage** leftVideo;
 	QImage** rightVideo;
@@ -19,25 +21,32 @@ private:
 	QScrollArea* leftPanel;
 	QScrollArea* rightPanel;
 	int frameNum;
+	int numFrames;
 	float leftScaleFactor;
 	float rightScaleFactor;
 
-	void init();
+	void init(int numFrames);
 	void adjustScrollBar(QScrollBar* scrollbar, float factor);
 
 public:
-	VideoDisplay(QWidget* parent = 0);
-	VideoDisplay(QImage** video, QWidget* parent = 0);
+	VideoDisplay(int numFrames, QWidget* parent = 0);
+	VideoDisplay(QImage** video, int numFrames, QWidget* parent = 0);
 
-	void setLeftVideo(QImage** video, bool rescale = false);
-	void setRightVideo(QImage** video, bool rescale = false);
-	void setLeftAndRightVideos(QImage** video);
+	void setLeftVideo(QImage** video, int numFrames, bool rescale = false);
+	void setRightVideo(QImage** video, int numFrames, bool rescale = false);
+	void setLeftAndRightVideos(QImage** video, int numFrames = -1);
 
 	float getScaleFactor();
 	QImage** getLeftVideo();
 	QImage** getRightVideo();
 	void closeEvent(QCloseEvent* e);
 	void scaleVideo(float factor);
+
+public slots:
+	void play();
+	void pause();
+	void videoStart();
+	void videoEnd();
 };
 #endif // VIDEODISPLAY_H
 

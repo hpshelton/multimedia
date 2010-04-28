@@ -1,20 +1,22 @@
 #include "videodisplay.h"
 
-VideoDisplay::VideoDisplay(QWidget *parent)
+VideoDisplay::VideoDisplay(int num_frames, QWidget *parent)
 	: QWidget(parent)
 {
-	init();
+	init(num_frames);
 }
 
-VideoDisplay::VideoDisplay(QImage** video, QWidget* parent)
+VideoDisplay::VideoDisplay(QImage** video, int num_frames, QWidget* parent)
 	: QWidget(parent)
 {
-	init();
-	setLeftAndRightVideos(video);
+	init(num_frames);
+	setLeftAndRightVideos(video, 0);
 }
 
-void VideoDisplay::init()
+void VideoDisplay::init(int num_frames)
 {
+	this->numFrames = num_frames;
+
 	this->leftFrame = new QLabel(this);
 	this->leftFrame->setBackgroundRole(QPalette::Base);
 	this->leftFrame->setSizePolicy(QSizePolicy::Ignored, QSizePolicy::Ignored);
@@ -49,13 +51,13 @@ void VideoDisplay::init()
 	this->rightScaleFactor = 1.0;
 }
 
-void VideoDisplay::setLeftVideo(QImage** video, bool rescale)
+void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
 {
 	if(video != NULL)
 	{
 		this->leftVideo = video;
 		this->leftPanel->show();
-		this->leftFrame->setPixmap(QPixmap::fromImage(*video[0]));
+		this->leftFrame->setPixmap(QPixmap::fromImage(*video[frame]));
 		float scale = (rescale) ? (this->leftScaleFactor = 1.0) : this->leftScaleFactor;
 		if(scale != 1.0)
 		{
@@ -68,13 +70,13 @@ void VideoDisplay::setLeftVideo(QImage** video, bool rescale)
 	}
 }
 
-void VideoDisplay::setRightVideo(QImage**video, bool rescale)
+void VideoDisplay::setRightVideo(QImage**video, int frame, bool rescale)
 {
 	if(video != NULL)
 	{
 		this->rightVideo = video;
 		this->rightPanel->show();
-		this->rightFrame->setPixmap(QPixmap::fromImage(*video[0]));
+		this->rightFrame->setPixmap(QPixmap::fromImage(*video[frame]));
 		float scale = (rescale) ? (this->rightScaleFactor = 1.0) : this->rightScaleFactor;
 		if(scale != 1.0)
 		{
@@ -87,12 +89,13 @@ void VideoDisplay::setRightVideo(QImage**video, bool rescale)
 	}
 }
 
-void VideoDisplay::setLeftAndRightVideos(QImage** video)
+void VideoDisplay::setLeftAndRightVideos(QImage** video, int frame)
 {
 	if(video != NULL)
 	{
-		setLeftVideo(video);
-		setRightVideo(video);
+		this->frameNum = frame;
+		setLeftVideo(video, frameNum);
+		setRightVideo(video, frameNum);
 	}
 }
 
@@ -143,4 +146,26 @@ QImage** VideoDisplay::getLeftVideo()
 QImage** VideoDisplay::getRightVideo()
 {
 	return this->rightVideo;
+}
+
+void VideoDisplay::videoStart()
+{
+	this->frameNum = 0;
+	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+}
+
+void VideoDisplay::videoEnd()
+{
+	this->frameNum = this->numFrames - 1;
+	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+}
+
+void VideoDisplay::play()
+{
+
+}
+
+void VideoDisplay::pause()
+{
+
 }

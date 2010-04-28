@@ -14,7 +14,7 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->setGeometry(screenCenterX - 500, screenCenterY - 350, 1000, 600);
 
 	this->image_display = new ImageDisplay(this);
-	this->video_display = new VideoDisplay(this);
+	this->video_display = new VideoDisplay(0, this);
 
 	this->openAction = new QAction(QIcon(":/images/open.png"), "Open", this);
 	this->openAction->setStatusTip(tr("Open File"));
@@ -40,6 +40,7 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	QObject::connect(this->showPreferencesAction, SIGNAL(triggered()), this, SLOT(showPreferences()));
 
 	this->toolbar = addToolBar("Editing Actions");
+	this->videobar = addToolBar("Video Controls");
 
 	this->grayscaleAction = new QAction("Grayscale", this);
 	QObject::connect(this->grayscaleAction, SIGNAL(triggered()), this, SLOT(grayscale()));
@@ -104,6 +105,26 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
 	this->toolbar->setFixedHeight(30);
 
+	this->videobar->setFloatable(false);
+	this->videobar->setMovable(false);
+	this->videobar->setAllowedAreas(Qt::BottomToolBarArea);
+	this->videobar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+	this->videobar->setFixedHeight(30);
+	this->addToolBar(Qt::BottomToolBarArea, videobar);
+
+	this->play = new QAction("Play", this);
+	QObject::connect(this->play, SIGNAL(triggered()), this->video_display, SLOT(play()));
+	this->pause = new QAction("Pause", this);
+	QObject::connect(this->pause, SIGNAL(triggered()), this->video_display, SLOT(pause()));
+	this->start = new QAction("Start", this);
+	QObject::connect(this->start, SIGNAL(triggered()), this->video_display, SLOT(videoStart()));
+	this->end = new QAction("End", this);
+	QObject::connect(this->end, SIGNAL(triggered()), this->video_display, SLOT(videoEnd()));
+	this->videobar->addAction(this->play);
+	this->videobar->addAction(this->pause);
+	this->videobar->addAction(this->start);
+	this->videobar->addAction(this->end);
+
 	this->menubar = new QMenuBar();
 	QMenu* fileMenu = menubar->addMenu(tr("&File"));
 	fileMenu->addAction(openAction);
@@ -143,7 +164,7 @@ void MainWindow::grayscale()
 {
 	hasChanged = true;
 	if(this->video)
-		this->video_display->setRightVideo(grayscale_video());
+		this->video_display->setRightVideo(grayscale_video(), this->frames);
 	else
 		this->image_display->setRightImage(grayscale_image());
 }
@@ -164,7 +185,7 @@ void MainWindow::rotate()
 			// rotate image by degree a
 			hasChanged = true;
 			if(this->video)
-				this->video_display->setRightVideo(rotate_video(a));
+				this->video_display->setRightVideo(rotate_video(a), this->frames);
 			else
 				this->image_display->setRightImage(rotate_image(a));
 		}
@@ -222,7 +243,7 @@ void MainWindow::crop()
 			// crop using x1, x2, y1, y2
 			hasChanged = true;
 			if(this->video)
-				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2));
+				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2), this->frames);
 			else
 				this->image_display->setRightImage(crop_image(x1, x2, y1, y2));
 		}
@@ -253,7 +274,7 @@ void MainWindow::scale()
 			// scale image by factor
 			hasChanged = true;
 			if(this->video)
-				this->video_display->setRightVideo(scale_video(factor));
+				this->video_display->setRightVideo(scale_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(scale_image(factor));
 		}
@@ -281,7 +302,7 @@ void MainWindow::brighten()
 			// brighten image by factor
 			hasChanged = true;
 			if(this->video)
-				this->video_display->setRightVideo(brighten_video(factor));
+				this->video_display->setRightVideo(brighten_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(brighten_image(factor));
 		}
@@ -309,7 +330,7 @@ void MainWindow::contrast()
 			// adjust contrast image by factor
 			hasChanged = true;
 			if(this->video)
-				this->video_display->setRightVideo(contrast_video(factor));
+				this->video_display->setRightVideo(contrast_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(contrast_image(factor));
 		}
@@ -337,7 +358,7 @@ void MainWindow::saturate()
 			// saturate image by factor
 			hasChanged = true;
 			if(this->video)
-				this->video_display->setRightVideo(saturate_video(factor));
+				this->video_display->setRightVideo(saturate_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(saturate_image(factor));
 		}
@@ -357,7 +378,7 @@ void MainWindow::blur()
 {
 	hasChanged = true;
 	if(this->video)
-		this->video_display->setRightVideo(blur_video());
+		this->video_display->setRightVideo(blur_video(), this->frames);
 	else
 		this->image_display->setRightImage(blur_image());
 }
@@ -366,7 +387,7 @@ void MainWindow::edgeDetection()
 {
 	hasChanged = true;
 	if(this->video)
-		this->video_display->setRightVideo(edge_detect_video());
+		this->video_display->setRightVideo(edge_detect_video(), this->frames);
 	else
 	{
 		this->image_display->setRightImage(edge_detect());
@@ -383,7 +404,7 @@ void MainWindow::compress()
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
 			if(this->video)
-				this->video_display->setRightVideo(compress_video(factor));
+				this->video_display->setRightVideo(compress_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(compress_image(factor));
 			hasChanged = true;
@@ -438,13 +459,13 @@ void MainWindow::openFile()
 		{
 			if(this->video)
 			{
-				this->image_display = new ImageDisplay(this);
+				this->video_display = new VideoDisplay(this->frames, this);
 				this->setCentralWidget(this->video_display);
-				this->video_display->setLeftAndRightVideos(this->file);
+				this->video_display->setLeftAndRightVideos(this->file, 0);
 			}
 			else
 			{
-				this->video_display = new VideoDisplay(this);
+				this->image_display = new ImageDisplay(this);
 				this->setCentralWidget(this->image_display);
 				this->image_display->setLeftAndRightImages(this->file[0]);
 
@@ -642,6 +663,10 @@ void MainWindow::toggleActions(bool b)
 	this->zoomInAction->setEnabled(b);
 	this->zoomOutAction->setEnabled(b);
 	this->resetAction->setEnabled(b);
+	this->play->setEnabled(b && this->video);
+	this->pause->setEnabled(b && this->video);
+	this->start->setEnabled(b && this->video);
+	this->end->setEnabled(b && this->video);
 }
 
 void MainWindow::zoomIn()
@@ -696,8 +721,8 @@ void MainWindow::reset()
 {
 	if(this->video)
 	{
-		this->video_display->setLeftVideo(this->video_display->getLeftVideo(), true);
-		this->video_display->setRightVideo(this->video_display->getLeftVideo(), true);
+		this->video_display->setLeftVideo(this->video_display->getLeftVideo(), 0, true);
+		this->video_display->setRightVideo(this->video_display->getLeftVideo(), 0, true);
 	}
 	else
 	{
