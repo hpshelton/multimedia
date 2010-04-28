@@ -4,29 +4,31 @@
 TARGET = multimedia
 TEMPLATE = app
 HEADERS += mainwindow.h \
-    defines.h \
-    utility.h \
-    documentdisplay.h \
-    encoder.h \
-    decoder.h
+	defines.h \
+	utility.h \
+	imagedisplay.h \
+	encoder.h \
+	decoder.h \
+	videodisplay.h
 SOURCES += main.cpp \
-    mainwindow.cpp \
-    documentdisplay.cpp \
-    brighten.cpp \
-    encoder.cpp \
-    edgeDetect.cpp \
-    huffman.cpp \
-    decoder.cpp \
-    grayscale.cpp \
-    contrast.cpp \
-    saturation.cpp \
-    blur.cpp \
-    crop.cpp \
-    scale.cpp \
-    rotate.cpp \
-    runlength.cpp \
-    arithmetic.cpp \
-    compress.cpp
+	mainwindow.cpp \
+	imagedisplay.cpp \
+	brighten.cpp \
+	encoder.cpp \
+	edgeDetect.cpp \
+	huffman.cpp \
+	decoder.cpp \
+	grayscale.cpp \
+	contrast.cpp \
+	saturation.cpp \
+	blur.cpp \
+	crop.cpp \
+	scale.cpp \
+	rotate.cpp \
+	runlength.cpp \
+	arithmetic.cpp \
+	compress.cpp \
+	videodisplay.cpp
 OBJECTS_DIR = ./obj
 MOC_DIR = ./obj
 RCC_DIR = ./obj
