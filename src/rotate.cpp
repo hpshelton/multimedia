@@ -2,7 +2,7 @@
 
 QImage* MainWindow::rotate_image(float a)
 {
-	QImage* img = this->display->getRightImage();
+	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 	int newHeight = 0;
@@ -53,7 +53,7 @@ QImage* MainWindow::rotate_image(float a)
 	return newImg;
 }
 
-QImage* MainWindow::rotate_video(float a)
+QImage** MainWindow::rotate_video(float a)
 {
 
 }

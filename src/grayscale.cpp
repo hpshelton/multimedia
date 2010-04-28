@@ -2,7 +2,7 @@
 
 QImage* MainWindow::grayscale_image()
 {
-	QImage* img = this->display->getRightImage();
+	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 
@@ -42,7 +42,7 @@ QImage* MainWindow::grayscale_image()
 	}
 }
 
-QImage* MainWindow::grayscale_video()
+QImage** MainWindow::grayscale_video()
 {
 	return NULL;
 }

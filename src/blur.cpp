@@ -2,7 +2,7 @@
 
 QImage* MainWindow::blur_image()
 {
-	QImage* img = this->display->getRightImage();
+	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 
@@ -177,7 +177,7 @@ QImage* MainWindow::blur_image()
 	}
 }
 
-QImage* MainWindow::blur_video()
+QImage** MainWindow::blur_video()
 {
 	return NULL;
 }

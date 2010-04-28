@@ -2,7 +2,7 @@
 
 QImage* MainWindow::crop_image(int x1, int x2, int y1, int y2)
 {
-	QImage* img = this->display->getRightImage();
+	QImage* img = this->image_display->getRightImage();
 
 	//Validate input
 	if(x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0)
@@ -65,7 +65,7 @@ QImage* MainWindow::crop_image(int x1, int x2, int y1, int y2)
 	return newImg;
 }
 
-QImage* MainWindow::crop_video(int x1, int x2, int y1, int y2)
+QImage** MainWindow::crop_video(int x1, int x2, int y1, int y2)
 {
 	return NULL;
 }

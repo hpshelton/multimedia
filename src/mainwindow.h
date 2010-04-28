@@ -20,7 +20,8 @@
 #include <QImage>
 
 #include "utility.h"
-#include "documentdisplay.h"
+#include "imagedisplay.h"
+#include "videodisplay.h"
 #include "defines.h"
 #include "encoder.h"
 #include "decoder.h"
@@ -53,6 +54,7 @@ private:
 
 	QMenuBar* menubar;
 	QToolBar* toolbar;
+	QToolBar* videobar;
 
 	/* Menu actions */
 	QAction* openAction;
@@ -76,46 +78,55 @@ private:
 	QAction* zoomInAction;
 	QAction* zoomOutAction;
 
+	QAction* resetAction;
+
+	/* Video control actions */
+	QAction* play;
+	QAction* pause;
+	QAction* start;
+	QAction* end;
+
 	bool video;
 	int frames;
 	QImage** file;
 	bool hasChanged;
 
-	DocumentDisplay* display;
+	ImageDisplay* image_display;
+	VideoDisplay* video_display;
 
 	bool displaySavePrompt();
 	void toggleActions(bool);
 	void closeEvent(QCloseEvent *);
 
 	QImage* crop_image(int x1, int x2, int y1, int y2);
-	QImage* crop_video(int x1, int x2, int y1, int y2);
+	QImage** crop_video(int x1, int x2, int y1, int y2);
 
 	QImage* grayscale_image();
-	QImage* grayscale_video();
+	QImage** grayscale_video();
 
 	QImage* scale_image(float factor);
-	QImage* scale_video(float factor);
+	QImage** scale_video(float factor);
 
 	QImage* brighten_image(float factor);
-	QImage* brighten_video(float factor);
+	QImage** brighten_video(float factor);
 
 	QImage* contrast_image(float factor);
-	QImage* contrast_video(float factor);
+	QImage** contrast_video(float factor);
 
 	QImage* saturate_image(float factor);
-	QImage* saturate_video(float factor);
+	QImage** saturate_video(float factor);
 
 	QImage* edge_detect();
-	QImage* edge_detect_video();
+	QImage** edge_detect_video();
 
 	QImage* blur_image();
-	QImage* blur_video();
+	QImage** blur_video();
 
 	QImage* rotate_image(float angle);
-	QImage* rotate_video(float angle);
+	QImage** rotate_video(float angle);
 
 	QImage* compress_image(float factor);
-	QImage* compress_video(float factor);
+	QImage** compress_video(float factor);
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);
@@ -139,6 +150,7 @@ public slots:
 	void showPreferences();
 	void enableCUDA(bool b);
 	void compress();
+	void reset();
 };
 
 #endif // MAINWINDOW_H

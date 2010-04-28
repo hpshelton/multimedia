@@ -2,7 +2,7 @@
 
 QImage* MainWindow::compress_image(float factor)
 {
-	 QImage* img = this->display->getRightImage();
+	 QImage* img = this->image_display->getRightImage();
 	 int width = img->width();
 	 int height = img->height();
 
@@ -78,18 +78,12 @@ QImage* MainWindow::compress_image(float factor)
 	 }
 }
 
-QImage* MainWindow::compress_video(float factor)
+QImage** MainWindow::compress_video(float factor)
 {
-	 QImage* img = this->display->getRightImage();
-	 int width = img->width();
-	 int height = img->height();
-
 	 if(CUDA_CAPABLE && CUDA_ENABLED)
 	 {
-		return img;
 	 }
 	 else
 	 {
-		return img;
 	 }
 }
