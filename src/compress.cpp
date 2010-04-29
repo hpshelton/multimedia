@@ -2,6 +2,16 @@
 
 QImage* MainWindow::compress_image(float factor)
 {
+    ;
+}
+
+QImage* MainWindow::decompress_image()
+{
+    ;
+}
+
+QImage* MainWindow::compress_preview(float factor)
+{
 	 QImage* img = this->image_display->getRightImage();
 	 int width = img->width();
 	 int height = img->height();
@@ -38,19 +48,19 @@ QImage* MainWindow::compress_image(float factor)
 //		CUquantize(CUtransformed, factor, 255, width*height*4);
 
 
-/*		DEBUG TO SEE THE COEFF.
+//		DEBUG TO SEE THE COEFF.
 		float* transformed = (float*)malloc(sizeof(float)*width*height*4);
 		cutilSafeCall(cudaMemcpy(transformed, CUtransformed, sizeof(float)*width*height*4, cudaMemcpyDeviceToHost));
 		FILE* trans = fopen("transformed.csv", "w");
 		int i;
 		for(i=0; i < width*height*4; i++){
-			fprintf(trans, "%f\t",transformed[i]);
+                        fprintf(trans, "%10.6f\t",transformed[i]);
 			if(!(i%4))
 				fprintf(trans, "\n");
 		}
 		fclose(trans);
 		free(transformed);
-*/
+
 //		DEBUG TO SEE PCT ZEROS
 		float* transformed = (float*)malloc(sizeof(float)*width*height*4);
 		cutilSafeCall(cudaMemcpy(transformed, CUtransformed, sizeof(float)*width*height*4, cudaMemcpyDeviceToHost));

@@ -406,7 +406,7 @@ void MainWindow::compress()
 			if(this->video)
 				this->video_display->setRightVideo(compress_video(factor), this->frames);
 			else
-				this->image_display->setRightImage(compress_image(factor));
+                                this->image_display->setRightImage(compress_preview(factor));
 			hasChanged = true;
 		}
 		else
