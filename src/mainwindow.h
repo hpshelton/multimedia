@@ -85,6 +85,8 @@ private:
 	QAction* pause;
 	QAction* start;
 	QAction* end;
+	QAction* next;
+	QAction* previous;
 
 	bool video;
 	int frames;
@@ -125,10 +127,10 @@ private:
 	QImage* rotate_image(float angle);
 	QImage** rotate_video(float angle);
 
-        QImage* compress_image(float factor);
-        QImage* decompress_image();
-        QImage* compress_preview(float factor);
-        QImage** compress_video(float factor);
+	QImage* compress_image(float factor);
+	QImage* decompress_image();
+	QImage* compress_preview(float factor);
+	QImage** compress_video(float factor);
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);

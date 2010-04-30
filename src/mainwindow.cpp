@@ -116,10 +116,14 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->pause = new QAction("Pause", this);
 	this->start = new QAction("Start", this);
 	this->end = new QAction("End", this);
+	this->next = new QAction("Next", this);
+	this->previous = new QAction("Previous", this);
 
+	this->videobar->addAction(this->start);
+	this->videobar->addAction(this->previous);
 	this->videobar->addAction(this->play);
 	this->videobar->addAction(this->pause);
-	this->videobar->addAction(this->start);
+	this->videobar->addAction(this->next);
 	this->videobar->addAction(this->end);
 
 	this->menubar = new QMenuBar();
@@ -464,6 +468,8 @@ void MainWindow::openFile()
 				QObject::connect(this->pause, SIGNAL(triggered()), this->video_display, SLOT(pause()));
 				QObject::connect(this->start, SIGNAL(triggered()), this->video_display, SLOT(videoStart()));
 				QObject::connect(this->end, SIGNAL(triggered()), this->video_display, SLOT(videoEnd()));
+				QObject::connect(this->next, SIGNAL(triggered()), this->video_display, SLOT(next()));
+				QObject::connect(this->previous, SIGNAL(triggered()), this->video_display, SLOT(previous()));
 			}
 			else
 			{
@@ -669,6 +675,8 @@ void MainWindow::toggleActions(bool b)
 	this->pause->setEnabled(b && this->video);
 	this->start->setEnabled(b && this->video);
 	this->end->setEnabled(b && this->video);
+	this->next->setEnabled(b && this->video);
+	this->previous->setEnabled(b && this->video);
 }
 
 void MainWindow::zoomIn()

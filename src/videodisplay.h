@@ -42,14 +42,11 @@ public:
 	void closeEvent(QCloseEvent* e);
 	void scaleVideo(float factor);
 
-	int getNumFrames()
-	{
-		return numFrames;
-	}
-
 public slots:
 	void play();
 	void pause();
+	void next();
+	void previous();
 	void videoStart();
 	void videoEnd();
 };

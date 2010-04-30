@@ -169,3 +169,15 @@ void VideoDisplay::pause()
 {
 
 }
+
+void VideoDisplay::next()
+{
+	this->frameNum = (this->frameNum <  numFrames-1) ? this->frameNum + 1 : this->numFrames - 1;
+	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+}
+
+void VideoDisplay::previous()
+{
+	this->frameNum = (this->frameNum > 0) ? this->frameNum - 1 : 0;
+	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+}
