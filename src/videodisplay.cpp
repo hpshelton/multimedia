@@ -50,7 +50,7 @@ void VideoDisplay::init(int num_frames)
 	this->leftScaleFactor = 1.0;
 	this->rightScaleFactor = 1.0;
 
-	videoThread = new VideoThread(this);
+	videoThread = new VideoThread(this, true);
 }
 
 void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
@@ -166,7 +166,23 @@ void VideoDisplay::videoEnd()
 
 void VideoDisplay::play()
 {
-	this->videoThread->run();
+	this->videoThread->quit();
+	this->videoThread = new VideoThread(this, true);
+	this->videoThread->run(50); // ms per frame
+}
+
+void VideoDisplay::fastForward()
+{
+	this->videoThread->quit();
+	this->videoThread = new VideoThread(this, true);
+	this->videoThread->run(25);
+}
+
+void VideoDisplay::rewind()
+{
+	this->videoThread->quit();
+	this->videoThread = new VideoThread(this, false);
+	this->videoThread->run(25);
 }
 
 void VideoDisplay::pause()
@@ -187,6 +203,11 @@ void VideoDisplay::next()
 
 void VideoDisplay::previous()
 {
-	this->frameNum = (this->frameNum > 0) ? this->frameNum - 1 : 0;
-	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+	if(this->frameNum > 0)
+	{
+		this->frameNum--;
+		this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+	}
+	else
+		this->videoThread->quit();
 }

@@ -55,6 +55,8 @@ public slots:
 	void previous();
 	void videoStart();
 	void videoEnd();
+	void fastForward();
+	void rewind();
 };
 
 class VideoThread: public QThread
@@ -64,11 +66,11 @@ private:
 	QTimer* timer;
 
 public:
-	VideoThread(VideoDisplay* v)
+	VideoThread(VideoDisplay* v, bool forward)
 	{
 		video = v;
 		timer = new QTimer(this);
-		connect(timer, SIGNAL(timeout()), video, SLOT(next()));
+		connect(timer, SIGNAL(timeout()), video, forward ? SLOT(next()) : SLOT(previous()));
 	};
 
 	~VideoThread()
@@ -76,9 +78,9 @@ public:
 		delete timer;
 	}
 
-	void run()
+	void run(int speed)
 	{
-		timer->start(50);
+		timer->start(speed);
 	}
 
 	void quit()

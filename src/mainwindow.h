@@ -87,6 +87,8 @@ private:
 	QAction* end;
 	QAction* next;
 	QAction* previous;
+	QAction* fastForward;
+	QAction* rewind;
 
 	bool video;
 	int frames;

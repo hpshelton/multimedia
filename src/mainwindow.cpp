@@ -118,12 +118,16 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->end = new QAction("End", this);
 	this->next = new QAction("Next", this);
 	this->previous = new QAction("Previous", this);
+	this->rewind = new QAction("Rewind", this);
+	this->fastForward = new QAction("Fast Forward", this);
 
 	this->videobar->addAction(this->start);
+	this->videobar->addAction(this->rewind);
 	this->videobar->addAction(this->previous);
 	this->videobar->addAction(this->play);
 	this->videobar->addAction(this->pause);
 	this->videobar->addAction(this->next);
+	this->videobar->addAction(this->fastForward);
 	this->videobar->addAction(this->end);
 
 	this->menubar = new QMenuBar();
@@ -470,6 +474,8 @@ void MainWindow::openFile()
 				QObject::connect(this->end, SIGNAL(triggered()), this->video_display, SLOT(videoEnd()));
 				QObject::connect(this->next, SIGNAL(triggered()), this->video_display, SLOT(next()));
 				QObject::connect(this->previous, SIGNAL(triggered()), this->video_display, SLOT(previous()));
+				QObject::connect(this->fastForward, SIGNAL(triggered()), this->video_display, SLOT(fastForward()));
+				QObject::connect(this->rewind, SIGNAL(triggered()), this->video_display, SLOT(rewind()));
 			}
 			else
 			{
@@ -677,6 +683,8 @@ void MainWindow::toggleActions(bool b)
 	this->end->setEnabled(b && this->video);
 	this->next->setEnabled(b && this->video);
 	this->previous->setEnabled(b && this->video);
+	this->fastForward->setEnabled(b && this->video);
+	this->rewind->setEnabled(b && this->video);
 }
 
 void MainWindow::zoomIn()
