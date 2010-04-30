@@ -2,12 +2,12 @@
 
 QImage* MainWindow::compress_image(float factor)
 {
-    ;
+	;
 }
 
 QImage* MainWindow::decompress_image()
 {
-    ;
+	;
 }
 
 QImage* MainWindow::compress_preview(float factor)
@@ -49,29 +49,29 @@ QImage* MainWindow::compress_preview(float factor)
 
 
 //		DEBUG TO SEE THE COEFF.
-		float* transformed = (float*)malloc(sizeof(float)*width*height*4);
-		cutilSafeCall(cudaMemcpy(transformed, CUtransformed, sizeof(float)*width*height*4, cudaMemcpyDeviceToHost));
-		FILE* trans = fopen("transformed.csv", "w");
-		int i;
-		for(i=0; i < width*height*4; i++){
-                        fprintf(trans, "%10.6f\t",transformed[i]);
-			if(!(i%4))
-				fprintf(trans, "\n");
-		}
-		fclose(trans);
-		free(transformed);
+//		float* transformed = (float*)malloc(sizeof(float)*width*height*4);
+//		cutilSafeCall(cudaMemcpy(transformed, CUtransformed, sizeof(float)*width*height*4, cudaMemcpyDeviceToHost));
+//		FILE* trans = fopen("transformed.csv", "w");
+//		int i;
+//		for(i=0; i < width*height*4; i++){
+//                        fprintf(trans, "%10.6f\t",transformed[i]);
+//			if(!(i%4))
+//				fprintf(trans, "\n");
+//		}
+//		fclose(trans);
+//		free(transformed);
 
 //		DEBUG TO SEE PCT ZEROS
-		float* transformed = (float*)malloc(sizeof(float)*width*height*4);
-		cutilSafeCall(cudaMemcpy(transformed, CUtransformed, sizeof(float)*width*height*4, cudaMemcpyDeviceToHost));
-		int i, zeroCoeff=0;
-		for(i=0; i < width*height*4; i++){
-			if(transformed[i]==0)
-				zeroCoeff++;
-		}
-		printf("%f\t%f\t%f\n", 100*(zeroCoeff)/(float)(width*height*4),factor, threshold);
-		fflush(stdout);
-		free(transformed);
+//		float* transformed = (float*)malloc(sizeof(float)*width*height*4);
+//		cutilSafeCall(cudaMemcpy(transformed, CUtransformed, sizeof(float)*width*height*4, cudaMemcpyDeviceToHost));
+//		int i, zeroCoeff=0;
+//		for(i=0; i < width*height*4; i++){
+//			if(transformed[i]==0)
+//				zeroCoeff++;
+//		}
+//		printf("%f\t%f\t%f\n", 100*(zeroCoeff)/(float)(width*height*4),factor, threshold);
+//		fflush(stdout);
+//		free(transformed);
 
 		CUiwt97_2D_rgba(CUoutput, CUtransformed, height, width);
 		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));

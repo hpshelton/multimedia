@@ -32,15 +32,20 @@ public:
 	VideoDisplay(int numFrames, QWidget* parent = 0);
 	VideoDisplay(QImage** video, int numFrames, QWidget* parent = 0);
 
-	void setLeftVideo(QImage** video, int numFrames, bool rescale = false);
-	void setRightVideo(QImage** video, int numFrames, bool rescale = false);
-	void setLeftAndRightVideos(QImage** video, int numFrames = -1);
+	void setLeftVideo(QImage** video, int frames, bool rescale = false);
+	void setRightVideo(QImage** video, int frames, bool rescale = false);
+	void setLeftAndRightVideos(QImage** video, int frames = -1);
 
 	float getScaleFactor();
 	QImage** getLeftVideo();
 	QImage** getRightVideo();
 	void closeEvent(QCloseEvent* e);
 	void scaleVideo(float factor);
+
+	int getNumFrames()
+	{
+		return numFrames;
+	}
 
 public slots:
 	void play();

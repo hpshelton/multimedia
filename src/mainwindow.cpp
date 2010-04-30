@@ -113,13 +113,10 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->addToolBar(Qt::BottomToolBarArea, videobar);
 
 	this->play = new QAction("Play", this);
-	QObject::connect(this->play, SIGNAL(triggered()), this->video_display, SLOT(play()));
 	this->pause = new QAction("Pause", this);
-	QObject::connect(this->pause, SIGNAL(triggered()), this->video_display, SLOT(pause()));
 	this->start = new QAction("Start", this);
-	QObject::connect(this->start, SIGNAL(triggered()), this->video_display, SLOT(videoStart()));
 	this->end = new QAction("End", this);
-	QObject::connect(this->end, SIGNAL(triggered()), this->video_display, SLOT(videoEnd()));
+
 	this->videobar->addAction(this->play);
 	this->videobar->addAction(this->pause);
 	this->videobar->addAction(this->start);
@@ -406,7 +403,7 @@ void MainWindow::compress()
 			if(this->video)
 				this->video_display->setRightVideo(compress_video(factor), this->frames);
 			else
-                                this->image_display->setRightImage(compress_preview(factor));
+								this->image_display->setRightImage(compress_preview(factor));
 			hasChanged = true;
 		}
 		else
@@ -462,6 +459,11 @@ void MainWindow::openFile()
 				this->video_display = new VideoDisplay(this->frames, this);
 				this->setCentralWidget(this->video_display);
 				this->video_display->setLeftAndRightVideos(this->file, 0);
+
+				QObject::connect(this->play, SIGNAL(triggered()), this->video_display, SLOT(play()));
+				QObject::connect(this->pause, SIGNAL(triggered()), this->video_display, SLOT(pause()));
+				QObject::connect(this->start, SIGNAL(triggered()), this->video_display, SLOT(videoStart()));
+				QObject::connect(this->end, SIGNAL(triggered()), this->video_display, SLOT(videoEnd()));
 			}
 			else
 			{
