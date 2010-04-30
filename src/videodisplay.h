@@ -68,6 +68,7 @@ public:
 	{
 		video = v;
 		timer = new QTimer(this);
+		connect(timer, SIGNAL(timeout()), video, SLOT(next()));
 	};
 
 	~VideoThread()
@@ -77,13 +78,12 @@ public:
 
 	void run()
 	{
-		connect(timer, SIGNAL(timeout()), video, SLOT(next()));
 		timer->start(50);
 	}
 
 	void quit()
 	{
-		disconnect(timer, SIGNAL(timeout()), video, SLOT(next()));
+		this->timer->stop();
 	}
 };
 #endif // VIDEODISPLAY_H

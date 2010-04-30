@@ -152,12 +152,14 @@ QImage** VideoDisplay::getRightVideo()
 
 void VideoDisplay::videoStart()
 {
+	this->videoThread->quit();
 	this->frameNum = 0;
 	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
 }
 
 void VideoDisplay::videoEnd()
 {
+	this->videoThread->quit();
 	this->frameNum = this->numFrames - 1;
 	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
 }
@@ -174,8 +176,13 @@ void VideoDisplay::pause()
 
 void VideoDisplay::next()
 {
-	this->frameNum = (this->frameNum <  numFrames-1) ? this->frameNum + 1 : this->numFrames - 1;
-	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+	if(this->frameNum <  numFrames-1)
+	{
+		this->frameNum++;
+		this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+	}
+	else
+		this->videoThread->quit();
 }
 
 void VideoDisplay::previous()
