@@ -36,7 +36,7 @@ void VideoDisplay::init(int num_frames)
 	this->leftPanel->hide();
 
 	this->rightPanel = new QScrollArea(this);
-	this->rightPanel->setBackgroundRole(QPalette::Light);
+	this->rightPanel->setBackgroundRole(QPalette::Dark);
 	this->rightPanel->setWidget(this->rightFrame);
 	this->rightPanel->setAlignment(Qt::AlignCenter);
 	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
@@ -51,6 +51,14 @@ void VideoDisplay::init(int num_frames)
 	this->rightScaleFactor = 1.0;
 
 	videoThread = new VideoThread(this, true);
+}
+
+void VideoDisplay::reset()
+{
+	this->frameNum = 0;
+	this->videoThread->quit();
+	setLeftVideo(this->leftVideo, 0, true);
+	setRightVideo(this->leftVideo, 0, true);
 }
 
 void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)

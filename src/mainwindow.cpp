@@ -738,10 +738,7 @@ void MainWindow::enableCUDA(bool b)
 void MainWindow::reset()
 {
 	if(this->video)
-	{
-		this->video_display->setLeftVideo(this->video_display->getLeftVideo(), 0, true);
-		this->video_display->setRightVideo(this->video_display->getLeftVideo(), 0, true);
-	}
+		this->video_display->reset();
 	else
 	{
 		this->image_display->setLeftImage(this->image_display->getLeftImage(), true);

@@ -47,6 +47,7 @@ public:
 	QImage** getRightVideo();
 	void closeEvent(QCloseEvent* e);
 	void scaleVideo(float factor);
+	void reset();
 
 public slots:
 	void play();
