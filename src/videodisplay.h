@@ -8,10 +8,15 @@
 #include <QHBoxLayout>
 #include <QCloseEvent>
 #include <QScrollBar>
+#include <QThread>
+#include <QTimer>
+
+class VideoThread;
 
 class VideoDisplay : public QWidget
 {
 	Q_OBJECT
+	friend class VideoThread;
 
 private:
 	QImage** leftVideo;
@@ -24,6 +29,7 @@ private:
 	int numFrames;
 	float leftScaleFactor;
 	float rightScaleFactor;
+	VideoThread* videoThread;
 
 	void init(int numFrames);
 	void adjustScrollBar(QScrollBar* scrollbar, float factor);
@@ -49,6 +55,36 @@ public slots:
 	void previous();
 	void videoStart();
 	void videoEnd();
+};
+
+class VideoThread: public QThread
+{
+private:
+	VideoDisplay* video;
+	QTimer* timer;
+
+public:
+	VideoThread(VideoDisplay* v)
+	{
+		video = v;
+		timer = new QTimer(this);
+	};
+
+	~VideoThread()
+	{
+		delete timer;
+	}
+
+	void run()
+	{
+		connect(timer, SIGNAL(timeout()), video, SLOT(next()));
+		timer->start(50);
+	}
+
+	void quit()
+	{
+		disconnect(timer, SIGNAL(timeout()), video, SLOT(next()));
+	}
 };
 #endif // VIDEODISPLAY_H
 

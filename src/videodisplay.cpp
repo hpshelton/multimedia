@@ -49,6 +49,8 @@ void VideoDisplay::init(int num_frames)
 
 	this->leftScaleFactor = 1.0;
 	this->rightScaleFactor = 1.0;
+
+	videoThread = new VideoThread(this);
 }
 
 void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
@@ -162,12 +164,12 @@ void VideoDisplay::videoEnd()
 
 void VideoDisplay::play()
 {
-
+	this->videoThread->run();
 }
 
 void VideoDisplay::pause()
 {
-
+	this->videoThread->quit();
 }
 
 void VideoDisplay::next()
