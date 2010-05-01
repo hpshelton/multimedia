@@ -99,6 +99,11 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	QObject::connect(this->resetAction, SIGNAL(triggered()), this, SLOT(reset()));
 	this->toolbar->addAction(resetAction);
 
+	this->toolbar->addSeparator();
+	this->timerText = new QAction("Elapsed Time: 00ms", this);
+	this->timerText->setDisabled(true);
+	this->toolbar->addAction(this->timerText);
+
 	this->toolbar->setFloatable(false);
 	this->toolbar->setMovable(false);
 	this->toolbar->setAllowedAreas(Qt::TopToolBarArea);
@@ -168,10 +173,12 @@ MainWindow::~MainWindow()
 void MainWindow::grayscale()
 {
 	hasChanged = true;
+	timer.restart();
 	if(this->video)
 		this->video_display->setRightVideo(grayscale_video(), this->frames);
 	else
 		this->image_display->setRightImage(grayscale_image());
+	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 }
 
 void MainWindow::rotate()
@@ -189,10 +196,12 @@ void MainWindow::rotate()
 				a -= 360;
 			// rotate image by degree a
 			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(rotate_video(a), this->frames);
 			else
 				this->image_display->setRightImage(rotate_image(a));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -247,10 +256,12 @@ void MainWindow::crop()
 		{
 			// crop using x1, x2, y1, y2
 			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2), this->frames);
 			else
 				this->image_display->setRightImage(crop_image(x1, x2, y1, y2));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -278,10 +289,12 @@ void MainWindow::scale()
 		{
 			// scale image by factor
 			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(scale_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(scale_image(factor));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -306,10 +319,12 @@ void MainWindow::brighten()
 		{
 			// brighten image by factor
 			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(brighten_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(brighten_image(factor));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -334,10 +349,12 @@ void MainWindow::contrast()
 		{
 			// adjust contrast image by factor
 			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(contrast_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(contrast_image(factor));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -362,10 +379,12 @@ void MainWindow::saturate()
 		{
 			// saturate image by factor
 			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(saturate_video(factor), this->frames);
 			else
 				this->image_display->setRightImage(saturate_image(factor));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -382,21 +401,23 @@ void MainWindow::saturate()
 void MainWindow::blur()
 {
 	hasChanged = true;
+	timer.restart();
 	if(this->video)
 		this->video_display->setRightVideo(blur_video(), this->frames);
 	else
 		this->image_display->setRightImage(blur_image());
+	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 }
 
 void MainWindow::edgeDetection()
 {
 	hasChanged = true;
+	timer.restart();
 	if(this->video)
 		this->video_display->setRightVideo(edge_detect_video(), this->frames);
 	else
-	{
 		this->image_display->setRightImage(edge_detect());
-	}
+	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 }
 
 void MainWindow::compress()
@@ -408,11 +429,13 @@ void MainWindow::compress()
 		float factor = i.toFloat(&accepted);
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
+			hasChanged = true;
+			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(compress_video(factor), this->frames);
 			else
-								this->image_display->setRightImage(compress_preview(factor));
-			hasChanged = true;
+				this->image_display->setRightImage(compress_preview(factor));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -435,13 +458,17 @@ void MainWindow::openFile()
 		if(fileName.endsWith(".qcif"))
 		{
 			this->video = true;
+			timer.restart();
 			this->file = Decoder::read_qcif(fileName, &(this->frames));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 			printf("QCIF Video Decoder Finished\n");
 		}
 		else if(fileName.endsWith(".cif"))
 		{
 			this->video = true;
+			timer.restart();
 			this->file = Decoder::read_cif(fileName, &(this->frames));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 			printf("CIF Video Decoder Finished\n");
 		}
 		else
@@ -450,13 +477,17 @@ void MainWindow::openFile()
 			this->frames = 1;
 			if(fileName.endsWith(".ppc"))
 			{
+				timer.restart();
 				this->file[0] = Decoder::read_ppc(fileName);
+				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 				if(this->file[0] != NULL)
 					this->file[0] = new QImage(this->file[0]->convertToFormat(QImage::Format_RGB32));
 			}
 			else
 			{
+				timer.restart();
 				QImage img(fileName);
+				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 				this->file[0] = new QImage(img.convertToFormat(QImage::Format_RGB32));
 			}
 		}
@@ -580,26 +611,40 @@ bool MainWindow::saveFile()
 				}
 				if(compression > 0)
 					compress_video(compression);
+
+				timer.restart();
 				// write video
+				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 			}
 			else
 			{
 				if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
 					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
-					{
+				{
 					QImage* img = this->image_display->getRightImage();
+					timer.restart();
 					img->save(fileName, 0, 100-compression);
+					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 					hasChanged = false;
 				}
 				else
 				{
-					// Save picture in ppc format
-					if(compression > 0)
-						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
-					else
-						Encoder::write_ppc(this->image_display->getRightImage(), fileName, huffman, arithmetic, runlength);
 					if(!fileName.endsWith(".ppc"))
 						fileName += ".ppc";
+
+					// Save picture in ppc format
+					if(compression > 0)
+					{
+						timer.restart();
+						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
+						this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+					}
+					else
+					{
+						timer.restart();
+						Encoder::write_ppc(this->image_display->getRightImage(), fileName, huffman, arithmetic, runlength);
+						this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+					}
 					hasChanged = false;
 				}
 			}

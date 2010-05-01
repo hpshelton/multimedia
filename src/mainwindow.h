@@ -18,6 +18,7 @@
 #include <QCheckBox>
 #include <QSpinBox>
 #include <QImage>
+#include <QTime>
 
 #include "utility.h"
 #include "imagedisplay.h"
@@ -80,6 +81,8 @@ private:
 
 	QAction* resetAction;
 
+	QAction* timerText;
+
 	/* Video control actions */
 	QAction* play;
 	QAction* pause;
@@ -94,6 +97,7 @@ private:
 	int frames;
 	QImage** file;
 	bool hasChanged;
+	QTime timer;
 
 	ImageDisplay* image_display;
 	VideoDisplay* video_display;
