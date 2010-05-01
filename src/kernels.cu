@@ -2,7 +2,15 @@
 
 __global__ void setToVal(unsigned char* x, int len, int val)
 {
-    int index = blockDim.x * blockIdx.x + threadIdx.x;
+	int index = blockDim.x * blockIdx.x + threadIdx.x;
+
+	if(index < len)
+		x[index] = val;
+}
+
+__global__ void setToVal(float* x, int len, int val)
+{
+	int index = blockDim.x * blockIdx.x + threadIdx.x;
 
 	if(index < len)
 		x[index] = val;

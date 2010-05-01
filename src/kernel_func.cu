@@ -135,11 +135,22 @@ void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col)
 	float* tempbank;
 	float* outputT;
 	cutilSafeCall(cudaMalloc((void**)&tempbank, sizeof(float) * row*col*4));
-	cutilSafeCall(cudaMalloc((void**)&outputT, sizeof(float)*row*col*4));
+	cutilSafeCall(cudaMalloc((void**)&outputT,  sizeof(float) * row*col*4));
 
 	int threads = 512;
 	int blocks = (row*col*4 + threads - 1) / threads;
 	shuffle<<<blocks,threads>>>(outputT, input, col, row);
+
+
+//	setToVal<<<blocks, threads>>>(output, row*col*4, 255);
+//	setToVal<<<blocks, threads>>>(outputT, row*col*4, 100);
+//	cudaError_t err;
+//	err = cudaMemcpy(output, outputT, sizeof(float)*row*col*4, cudaMemcpyDeviceToDevice);
+//	printf("%d\n",err);
+//	fflush(stdout);
+//	cutilSafeCall(cudaMemcpy(output, outputR, sizeof(float)*row*col*4, cudaMemcpyDeviceToDevice));
+
+
 
 	// execute the kernel
 	fwt2D_row(outputT, tempbank, row*col*4, col, dim, numBlocks, threadsPerBlock, col,row);
