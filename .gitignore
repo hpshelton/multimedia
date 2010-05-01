@@ -1,8 +1,7 @@
 bin/
 lib/
 src/obj/*
-src/multimedia.pro.user
-src/multimedia_osx.pro.user
+*.user
 multimedia.app
 Makefile
 .DS_Store
@@ -13,3 +12,4 @@ src/CUDA/obj
 src/CUDA/lib
 src/CUDA/i386
 *.o
+src/includes
