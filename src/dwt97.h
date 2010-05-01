@@ -1,6 +1,8 @@
 #ifndef DWT97
 #define DWT97
 
+#include "defines.h"
+
 void shuffleCPU(unsigned char* input, float* output, int height, int width)
 {
 	for(int i=0; i < height*width*4; i++)

@@ -30,7 +30,7 @@
 #include "cutil_inline.h"
 
 extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
-extern "C" void CUzeroOut(float* x, float threshold, int len);
+extern "C" void CUzeroOut(int* x, float threshold, int len);
 extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
 extern "C" void CUsetToVal(unsigned char* x, int len, int val);
 extern "C" void CUedgeDetect(unsigned char* input, unsigned char* output, int row, int col);
@@ -38,10 +38,8 @@ extern "C" void CUblur(unsigned char* output, unsigned char* input, int row, int
 extern "C" void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col);
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
-extern "C" void CUfwt97_2D(float* output, unsigned char* input, int row, int col);
-extern "C" void CUiwt97_2D(unsigned char* output, float* input, int row, int col);
-extern "C" void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col);
-extern "C" void CUiwt97_2D_rgba(unsigned char* output, float* input, int row, int col);
+extern "C" void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col);
+extern "C" void CUiwt97_2D_rgba(unsigned char* output, int* input, int row, int col);
 
 class MainWindow : public QMainWindow
 {
@@ -133,8 +131,8 @@ private:
 	QImage* rotate_image(QImage* img, float angle);
 	QImage** rotate_video(float angle);
 
-	QImage* compress_image(float factor);
-	QImage* decompress_image();
+	int* compress_image(QImage* img, float factor);
+	void decompress_image(QImage* img, int* compressed);
 	QImage* compress_preview(QImage* img, float factor);
 	QImage** compress_video(float factor);
 

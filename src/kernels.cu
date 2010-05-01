@@ -59,7 +59,7 @@ __global__ void UNshuffle(unsigned char* output, float* input, int width, int he
 #define ABS(a) (a<0?-a:a)
 
 
-__global__ void zeroOut(float* x, float threshold, int n)
+__global__ void zeroOut(int* x, float threshold, int n)
 {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
 	if(i<n){
@@ -211,6 +211,20 @@ __global__ void readOut(float* input, float* tempbank, int n, int len, int dim)
 
 	if ((i)<n)
 		input[i]=tempbank[i];
+}
+
+__global__ void roundArray(int* output, float* input, int width, int height)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if(i<width*height*4)
+		output[i] = (int)(input[i]+0.5);
+}
+
+__global__ void intToFloat(float* output, int* input, int width, int height)
+{
+	int i = blockDim.x * blockIdx.x + threadIdx.x;
+	if(i<width*height*4)
+		output[i] = input[i];
 }
 
 #define BLOCK_DIM 16

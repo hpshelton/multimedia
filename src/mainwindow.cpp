@@ -636,7 +636,7 @@ bool MainWindow::saveFile()
 					if(compression > 0)
 					{
 						timer.restart();
-						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
+//						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
 						this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 					}
 					else

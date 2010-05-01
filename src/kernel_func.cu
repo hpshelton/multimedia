@@ -4,7 +4,7 @@
 #include "kernels.cu"
 
 extern "C" void CUquantize(float* x, int Qlevel, int maxval, int len);
-extern "C" void CUzeroOut(float* x, float threshold, int len);
+extern "C" void CUzeroOut(int* x, float threshold, int len);
 extern "C" void CUtranspose(float* d_odata, float* d_idata, int col, int row);
 extern "C" void CUsetToVal(unsigned char* x, int len, int val);
 extern "C" void CUedgeDetect(unsigned char* input, unsigned char* output, int row, int col);
@@ -12,10 +12,8 @@ extern "C" void CUblur(unsigned char* output, unsigned char* input, int row, int
 extern "C" void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col);
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
-extern "C" void CUfwt97_2D(float* output, unsigned char* input, int row, int col);
-extern "C" void CUiwt97_2D(unsigned char* output, float* input, int row, int col);
-extern "C" void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col);
-extern "C" void CUiwt97_2D_rgba(unsigned char* output, float* input, int row, int col);
+extern "C" void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col);
+extern "C" void CUiwt97_2D_rgba(unsigned char* output, int* input, int row, int col);
 
 void CUquantize(float* x, int Qlevel, int maxval, int len)
 {
@@ -24,7 +22,7 @@ void CUquantize(float* x, int Qlevel, int maxval, int len)
 	quantize<<<blocksPerGrid, threadsPerBlock>>>(x, Qlevel, maxval, len);
 }
 
-void CUzeroOut(float* x, float threshold, int len)
+void CUzeroOut(int* x, float threshold, int len)
 {
 	int threadsPerBlock = 512;
 	int blocksPerGrid = (len + threadsPerBlock - 1) / threadsPerBlock;
@@ -121,7 +119,7 @@ void iwt2D_row(float* input, float* tempbank, int n, int len, int dim, dim3 numB
 	predict<<<numBlocks, threadsPerBlock>>>(input, n, len, dim,  1.586134342f, col, row);
 }
 
-void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col)
+void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 {
 	if(row%2)
 		row++;
@@ -134,8 +132,10 @@ void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col)
 
 	float* tempbank;
 	float* outputT;
+	float* output;
 	cutilSafeCall(cudaMalloc((void**)&tempbank, sizeof(float) * row*col*4));
 	cutilSafeCall(cudaMalloc((void**)&outputT,  sizeof(float) * row*col*4));
+	cutilSafeCall(cudaMalloc((void**)&output,   sizeof(float) * row*col*4));
 
 	int threads = 512;
 	int blocks = (row*col*4 + threads - 1) / threads;
@@ -150,8 +150,6 @@ void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col)
 //	fflush(stdout);
 //	cutilSafeCall(cudaMemcpy(output, outputR, sizeof(float)*row*col*4, cudaMemcpyDeviceToDevice));
 
-
-
 	// execute the kernel
 	fwt2D_row(outputT, tempbank, row*col*4, col, dim, numBlocks, threadsPerBlock, col,row);
 
@@ -162,11 +160,14 @@ void CUfwt97_2D_rgba(float* output, unsigned char* input, int row, int col)
 
 	fwt2D_row(output, tempbank, row*col*4, row, dim, numBlocks, threadsPerBlock, col,row);
 
+	roundArray<<<blocks,threads>>>(outputInt, output, col, row);
+
 	cutilSafeCall(cudaFree(tempbank));
 	cutilSafeCall(cudaFree(outputT));
+	cutilSafeCall(cudaFree(output));
 }
 
-void CUiwt97_2D_rgba(unsigned char* output, float* input, int row, int col)
+void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 {
 	if(row%2)
 		row++;
@@ -178,9 +179,15 @@ void CUiwt97_2D_rgba(unsigned char* output, float* input, int row, int col)
 	int dim = row;
 
 	float* tempbank;
+	float* input;
 	float* inputT;
 	cutilSafeCall(cudaMalloc((void**)&tempbank, sizeof(float) * row*col*4));
+	cutilSafeCall(cudaMalloc((void**)&input, sizeof(float)*row*col*4));
 	cutilSafeCall(cudaMalloc((void**)&inputT, sizeof(float)*row*col*4));
+
+	int threads = 512;
+	int blocks = (row*col*4 + threads - 1) / threads;
+	intToFloat<<<blocks,threads>>>(input, inputInt, row,col);
 
 	// execute the kernel
 	iwt2D_row(input, tempbank, row*col*4,row,dim,numBlocks, threadsPerBlock, col,row);
@@ -192,10 +199,9 @@ void CUiwt97_2D_rgba(unsigned char* output, float* input, int row, int col)
 
 	iwt2D_row(inputT, tempbank,row*col*4,col,dim,numBlocks, threadsPerBlock, col,row);
 
-	int threads = 512;
-	int blocks = (row*col*4 + threads - 1) / threads;
 	UNshuffle<<<blocks,threads>>>(output, inputT, col, row);
 
+	cutilSafeCall(cudaFree(input));
 	cutilSafeCall(cudaFree(inputT));
 	cutilSafeCall(cudaFree(tempbank));
 }
