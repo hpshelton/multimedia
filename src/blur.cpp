@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::blur_image()
+QImage* MainWindow::blur_image(QImage* img)
 {
-	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 
@@ -179,6 +178,10 @@ QImage* MainWindow::blur_image()
 
 QImage** MainWindow::blur_video()
 {
-	return NULL;
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = blur_image(new QImage(*original[f]));
+	return modified;
 }
 

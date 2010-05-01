@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::brighten_image(float factor)
+QImage* MainWindow::brighten_image(QImage* img, float factor)
 {
-	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 
@@ -47,5 +46,10 @@ QImage* MainWindow::brighten_image(float factor)
 
 QImage** MainWindow::brighten_video(float factor)
 {
-	return NULL;
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = brighten_image(new QImage(*original[f]), factor);
+	return modified;
 }
+

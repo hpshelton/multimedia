@@ -10,9 +10,8 @@ QImage* MainWindow::decompress_image()
 	;
 }
 
-QImage* MainWindow::compress_preview(float factor)
+QImage* MainWindow::compress_preview(QImage* img, float factor)
 {
-	 QImage* img = this->image_display->getRightImage();
 	 int width = img->width();
 	 int height = img->height();
 
@@ -95,5 +94,12 @@ QImage** MainWindow::compress_video(float factor)
 	 }
 	 else
 	 {
+		 QImage** original = this->video_display->getRightVideo();
+		 QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+		 for(int f = 0; f < this->frames; f++)
+			  modified[f] = compress_preview(new QImage(*original[f]), factor);
+		 return modified;
 	 }
+
+
 }

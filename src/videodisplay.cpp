@@ -67,7 +67,7 @@ void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
 	{
 		this->leftVideo = video;
 		this->leftPanel->show();
-		this->leftFrame->setPixmap(QPixmap::fromImage(*video[frame]));
+		this->leftFrame->setPixmap(QPixmap::fromImage(*video[(frame < 0) ? this->frameNum : frame]));
 		float scale = (rescale) ? (this->leftScaleFactor = 1.0) : this->leftScaleFactor;
 		if(scale != 1.0)
 		{
@@ -80,13 +80,13 @@ void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
 	}
 }
 
-void VideoDisplay::setRightVideo(QImage**video, int frame, bool rescale)
+void VideoDisplay::setRightVideo(QImage** video, int frame, bool rescale)
 {
 	if(video != NULL)
 	{
 		this->rightVideo = video;
 		this->rightPanel->show();
-		this->rightFrame->setPixmap(QPixmap::fromImage(*video[frame]));
+		this->rightFrame->setPixmap(QPixmap::fromImage(*video[(frame < 0) ? this->frameNum : frame]));
 		float scale = (rescale) ? (this->rightScaleFactor = 1.0) : this->rightScaleFactor;
 		if(scale != 1.0)
 		{
@@ -162,14 +162,16 @@ void VideoDisplay::videoStart()
 {
 	this->videoThread->quit();
 	this->frameNum = 0;
-	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+	this->setLeftVideo(this->leftVideo, this->frameNum);
+	this->setRightVideo(this->rightVideo, this->frameNum);
 }
 
 void VideoDisplay::videoEnd()
 {
 	this->videoThread->quit();
 	this->frameNum = this->numFrames - 1;
-	this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+	this->setLeftVideo(this->leftVideo, this->frameNum);
+	this->setRightVideo(this->rightVideo, this->frameNum);
 }
 
 void VideoDisplay::play()
@@ -203,7 +205,8 @@ void VideoDisplay::next()
 	if(this->frameNum <  numFrames-1)
 	{
 		this->frameNum++;
-		this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+		this->setLeftVideo(this->leftVideo, this->frameNum);
+		this->setRightVideo(this->rightVideo, this->frameNum);
 	}
 	else
 		this->videoThread->quit();
@@ -214,7 +217,8 @@ void VideoDisplay::previous()
 	if(this->frameNum > 0)
 	{
 		this->frameNum--;
-		this->setLeftAndRightVideos(this->leftVideo, this->frameNum);
+		this->setLeftVideo(this->leftVideo, this->frameNum);
+		this->setRightVideo(this->rightVideo, this->frameNum);
 	}
 	else
 		this->videoThread->quit();

@@ -1,9 +1,7 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::crop_image(int x1, int x2, int y1, int y2)
+QImage* MainWindow::crop_image(QImage* img, int x1, int x2, int y1, int y2)
 {
-	QImage* img = this->image_display->getRightImage();
-
 	//Validate input
 	if(x1 < 0 || x2 < 0 || y1 < 0 || y2 < 0)
 	{
@@ -67,5 +65,10 @@ QImage* MainWindow::crop_image(int x1, int x2, int y1, int y2)
 
 QImage** MainWindow::crop_video(int x1, int x2, int y1, int y2)
 {
-	return NULL;
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = crop_image(new QImage(*original[f]), x1, x2, y1, y2);
+	return modified;
 }
+

@@ -106,36 +106,36 @@ private:
 	void toggleActions(bool);
 	void closeEvent(QCloseEvent *);
 
-	QImage* crop_image(int x1, int x2, int y1, int y2);
+	QImage* crop_image(QImage* img, int x1, int x2, int y1, int y2);
 	QImage** crop_video(int x1, int x2, int y1, int y2);
 
-	QImage* grayscale_image();
+	QImage* grayscale_image(QImage* img);
 	QImage** grayscale_video();
 
-	QImage* scale_image(float factor);
+	QImage* scale_image(QImage* img, float factor);
 	QImage** scale_video(float factor);
 
-	QImage* brighten_image(float factor);
+	QImage* brighten_image(QImage* img, float factor);
 	QImage** brighten_video(float factor);
 
-	QImage* contrast_image(float factor);
+	QImage* contrast_image(QImage* img, float factor);
 	QImage** contrast_video(float factor);
 
-	QImage* saturate_image(float factor);
+	QImage* saturate_image(QImage* img, float factor);
 	QImage** saturate_video(float factor);
 
-	QImage* edge_detect();
+	QImage* edge_detect(QImage* img);
 	QImage** edge_detect_video();
 
-	QImage* blur_image();
+	QImage* blur_image(QImage* img);
 	QImage** blur_video();
 
-	QImage* rotate_image(float angle);
+	QImage* rotate_image(QImage* img, float angle);
 	QImage** rotate_video(float angle);
 
 	QImage* compress_image(float factor);
 	QImage* decompress_image();
-	QImage* compress_preview(float factor);
+	QImage* compress_preview(QImage* img, float factor);
 	QImage** compress_video(float factor);
 
 public:

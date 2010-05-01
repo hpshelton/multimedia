@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::saturate_image(float factor)
+QImage* MainWindow::saturate_image(QImage* img, float factor)
 {
-	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 
@@ -55,6 +54,11 @@ QImage* MainWindow::saturate_image(float factor)
 
 QImage** MainWindow::saturate_video(float factor)
 {
-	return NULL;
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = saturate_image(new QImage(*original[f]), factor);
+	return modified;
 }
+
 

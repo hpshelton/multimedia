@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::rotate_image(float a)
+QImage* MainWindow::rotate_image(QImage* img, float a)
 {
-	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 	int newHeight = 0;
@@ -55,5 +54,10 @@ QImage* MainWindow::rotate_image(float a)
 
 QImage** MainWindow::rotate_video(float a)
 {
-
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = rotate_image(new QImage(*original[f]), a);
+	return modified;
 }
+

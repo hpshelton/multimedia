@@ -1,8 +1,7 @@
 #include "mainwindow.h"
 
-QImage* MainWindow::scale_image(float factor)
+QImage* MainWindow::scale_image(QImage* img, float factor)
 {
-	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 	int newWidth = width * factor;
@@ -26,5 +25,9 @@ QImage* MainWindow::scale_image(float factor)
 
 QImage** MainWindow::scale_video(float factor)
 {
-
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = scale_image(new QImage(*original[f]), factor);
+	return modified;
 }

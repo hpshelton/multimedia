@@ -2,9 +2,8 @@
 
 /* cuda method is RGBA because RGB32 stores data as 0xffRRGGBB anyway
   */
-QImage* MainWindow::edge_detect()
+QImage* MainWindow::edge_detect(QImage* img)
 {
-	QImage* img = this->image_display->getRightImage();
 	int width = img->width();
 	int height = img->height();
 
@@ -181,5 +180,10 @@ QImage* MainWindow::edge_detect()
 
 QImage** MainWindow::edge_detect_video()
 {
-	return NULL;
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		 modified[f] = edge_detect(new QImage(*original[f]));
+	return modified;
 }
+

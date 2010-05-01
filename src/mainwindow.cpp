@@ -175,9 +175,9 @@ void MainWindow::grayscale()
 	hasChanged = true;
 	timer.restart();
 	if(this->video)
-		this->video_display->setRightVideo(grayscale_video(), this->frames);
+		this->video_display->setRightVideo(grayscale_video(), -1, false);
 	else
-		this->image_display->setRightImage(grayscale_image());
+		this->image_display->setRightImage(grayscale_image(this->image_display->getRightImage()));
 	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 }
 
@@ -198,9 +198,9 @@ void MainWindow::rotate()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(rotate_video(a), this->frames);
+				this->video_display->setRightVideo(rotate_video(a), -1, false);
 			else
-				this->image_display->setRightImage(rotate_image(a));
+				this->image_display->setRightImage(rotate_image(this->image_display->getRightImage(), a));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -258,9 +258,9 @@ void MainWindow::crop()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2), this->frames);
+				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2), -1, false);
 			else
-				this->image_display->setRightImage(crop_image(x1, x2, y1, y2));
+				this->image_display->setRightImage(crop_image(this->image_display->getRightImage(), x1, x2, y1, y2));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -291,9 +291,9 @@ void MainWindow::scale()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(scale_video(factor), this->frames);
+				this->video_display->setRightVideo(scale_video(factor), -1, false);
 			else
-				this->image_display->setRightImage(scale_image(factor));
+				this->image_display->setRightImage(scale_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -321,9 +321,9 @@ void MainWindow::brighten()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(brighten_video(factor), this->frames);
+				this->video_display->setRightVideo(brighten_video(factor), -1, false);
 			else
-				this->image_display->setRightImage(brighten_image(factor));
+				this->image_display->setRightImage(brighten_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -351,9 +351,9 @@ void MainWindow::contrast()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(contrast_video(factor), this->frames);
+				this->video_display->setRightVideo(contrast_video(factor), -1, false);
 			else
-				this->image_display->setRightImage(contrast_image(factor));
+				this->image_display->setRightImage(contrast_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -381,9 +381,9 @@ void MainWindow::saturate()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(saturate_video(factor), this->frames);
+				this->video_display->setRightVideo(saturate_video(factor), -1, false);
 			else
-				this->image_display->setRightImage(saturate_image(factor));
+				this->image_display->setRightImage(saturate_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -403,9 +403,9 @@ void MainWindow::blur()
 	hasChanged = true;
 	timer.restart();
 	if(this->video)
-		this->video_display->setRightVideo(blur_video(), this->frames);
+		this->video_display->setRightVideo(blur_video(), -1, false);
 	else
-		this->image_display->setRightImage(blur_image());
+		this->image_display->setRightImage(blur_image(this->image_display->getRightImage()));
 	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 }
 
@@ -414,9 +414,9 @@ void MainWindow::edgeDetection()
 	hasChanged = true;
 	timer.restart();
 	if(this->video)
-		this->video_display->setRightVideo(edge_detect_video(), this->frames);
+		this->video_display->setRightVideo(edge_detect_video(), -1, false);
 	else
-		this->image_display->setRightImage(edge_detect());
+		this->image_display->setRightImage(edge_detect(this->image_display->getRightImage()));
 	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 }
 
@@ -432,9 +432,9 @@ void MainWindow::compress()
 			hasChanged = true;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(compress_video(factor), this->frames);
+				this->video_display->setRightVideo(compress_video(factor), -1, false);
 			else
-				this->image_display->setRightImage(compress_preview(factor));
+				this->image_display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
