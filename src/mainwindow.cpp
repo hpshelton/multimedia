@@ -7,6 +7,7 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	this->CUDA_ENABLED = c;
 	this->file = (QImage**) malloc(sizeof(QImage*));
 	this->frames = 0;
+	this->compression = 0;
 
 	QDesktopWidget qdw;
 	int screenCenterX = qdw.width() / 2;
@@ -430,6 +431,7 @@ void MainWindow::compress()
 		if(accepted && factor >= 0.0 && factor <= 100)
 		{
 			hasChanged = true;
+			this->compression = factor;
 			timer.restart();
 			if(this->video)
 				this->video_display->setRightVideo(compress_video(factor), -1, false);
@@ -520,7 +522,8 @@ void MainWindow::openFile()
 			this->hasChanged = false;
 			toggleActions(true);
 			//	Encoder::test(this->file[0]);
-		}
+		}		
+		this->compression = 0;
 	}
 }
 
@@ -546,7 +549,7 @@ bool MainWindow::saveFile()
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
 		compressionBox->setMaximum(100);
-		compressionBox->setValue(0);
+		compressionBox->setValue(this->compression);
 		vbox->addWidget(radio1);
 		vbox->addWidget(radio2);
 		vbox->addWidget(radio3);

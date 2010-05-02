@@ -93,6 +93,7 @@ private:
 
 	bool video;
 	int frames;
+	int compression;
 	QImage** file;
 	bool hasChanged;
 	QTime timer;

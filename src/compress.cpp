@@ -163,18 +163,9 @@ QImage* MainWindow::compress_preview(QImage* img, float factor)
 
 QImage** MainWindow::compress_video(float factor)
 {
-	 if(CUDA_CAPABLE && CUDA_ENABLED)
-	 {
-		return this->video_display->getRightVideo();
-	 }
-	 else
-	 {
-		QImage** original = this->video_display->getRightVideo();
-		QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
-		for(int f = 0; f < this->frames; f++)
-			 modified[f] = compress_preview(new QImage(*original[f]), factor);
-		return modified;
-	 }
-
-
+	QImage** original = this->video_display->getRightVideo();
+	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++)
+		modified[f] = compress_preview(new QImage(*original[f]), factor);
+	return modified;
 }
