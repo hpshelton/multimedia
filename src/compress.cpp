@@ -161,20 +161,97 @@ QImage* MainWindow::compress_preview(QImage* img, float factor)
 	return img;
 }
 
-QImage** MainWindow::compress_video(float factor)
+#define CEIL(a) ( (a - (int)a)==0 ? (int)a : (int)a+1 )
+
+/** prevImg - the bits (img->bits()) of the previous frame
+ *  currImg - the bits (img->bits()) of the current frame
+ *  diffImg - the bits (img->bits()) of the difference of the frames
+ *  xOffset - the x index of the top-left pixel in the block. Should be 0,8,...width-8
+ *  yOffset - the y index of the top-left pixel in the block. Should be 0,8,...height-8
+ *  height - the height of prevImg, currImg, and diffImg
+ *  width - the width of prevImg, currImg, and diffImg
+ */
+int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock, int xOffset, int yOffset, int height, int width)
+{
+	int i, j, k, l, xIndex, yIndex, diff, minDiff= INT_MAX;
+	int* vec = (int*)malloc(sizeof(int)*2);
+	for(i=-7; i < 8; i++){
+		for(j=-7; j < 8; j++){
+			diff=0;
+			for(k=0; k < 8; k++){
+				for(l=0; l < 8; l++){
+					xIndex = xOffset + i + k;
+					yIndex = yOffset + j + l;
+					if(xIndex < 0 || xIndex > width || yIndex < 0 || yIndex > height)
+						diff += currImg[xIndex + yIndex * width];
+					else
+						diff += abs(currImg[xIndex + yIndex * width] - prevImg[xOffset+k + (yOffset+l)*width]);
+				}
+			}
+			if(diff < minDiff){
+				minDiff = diff;
+				vec[0] = i;
+				vec[1] = j;
+			}
+		}
+	}
+	for(i=0; i < 8; i++){
+		for(j=0; j < 8; j++){
+			diffBlock[xOffset+i + (yOffset+j)*width] = currImg[xOffset + vec[0] + i + (yOffset + vec[1] + j)*width] - prevImg[xOffset+i + (yOffset+j)*width];
+		}
+	}
+	return vec;
+}
+
+/** Compresses the video by exhaustively finding motion estimation vectors
+  * These vectors are returned in vecArr (allocated in the method)
+  * even indices in vecArr are x components
+  * odd indices in vecArr are y components
+  * vector pairs correspond to 8x8 blocks, 1st frame, 1st row, 1st block then 1st frame, 1st row, 2nd block, etc
+  * the method returns the residual frame difference, in int** form (allocated in the method)
+  */
+int** MainWindow::compress_video(int* vecArr)
 {
 	 if(CUDA_CAPABLE && CUDA_ENABLED)
 	 {
-		return this->video_display->getRightVideo();
+		 int** null = 0;
+		 return null;
+//		return this->video_display->getRightVideo();
 	 }
 	 else
 	 {
 		QImage** original = this->video_display->getRightVideo();
+		int height = original[0]->height();
+		int width = original[0]->width();
+
+		int index=0;
+		int* vec;
+		vecArr = (int*)malloc(sizeof(int) * this->frames * CEIL(height/8.0f) * CEIL(width/8.0f) * 2);
+
+		int** diff = (int**)malloc(sizeof(int*)*this->frames);
+		for(int i=0; i < frames; i++)
+			diff[i] = (int*)malloc(sizeof(int)*width*height);
+
+		for(int i=0; i < height*width; i++)
+			diff[0][i] = original[0]->bits()[i];
+
+		for(int frame=1; frame < this->frames; frames++){
+			for(int j=0; j < height; j+=8){
+				for(int i=0; i < width; i+=8){
+					vec = motionVec8x8(original[frame]->bits(), original[frame-1]->bits(), diff[frame], i, j, height, width);
+					vecArr[index++] = vec[0];
+					vecArr[index++] = vec[1];
+					free(vec);
+				}
+			}
+		}
+		return diff;
+/*
 		QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
 		for(int f = 0; f < this->frames; f++)
-			 modified[f] = compress_preview(new QImage(*original[f]), factor);
+			 modified[f] = compress_image(new QImage(*original[f]), factor);
 		return modified;
-	 }
+*/	 }
 
 
 }

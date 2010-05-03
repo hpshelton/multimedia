@@ -134,7 +134,7 @@ private:
 	int* compress_image(QImage* img, float factor);
 	void decompress_image(QImage* img, int* compressed);
 	QImage* compress_preview(QImage* img, float factor);
-	QImage** compress_video(float factor);
+	int** compress_video(int* vecArr);
 
 public:
 	MainWindow(bool c, QWidget *parent = 0);
@@ -161,4 +161,4 @@ public slots:
 	void reset();
 };
 
-#endif // MAINWINDOW_H
+#endif
