@@ -173,31 +173,40 @@ QImage* MainWindow::compress_preview(QImage* img, float factor)
  */
 int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock, int xOffset, int yOffset, int height, int width)
 {
-	int i, j, k, l, xIndex, yIndex, diff, minDiff= INT_MAX;
+	xOffset = xOffset*4; // for rgba
+	int i, j, k, l, m, xIndex, yIndex, diff, minDiff= INT_MAX;
 	int* vec = (int*)malloc(sizeof(int)*2);
 	for(i=-7; i < 8; i++){
+		i*=4;
 		for(j=-7; j < 8; j++){
 			diff=0;
 			for(k=0; k < 8; k++){
 				for(l=0; l < 8; l++){
-					xIndex = xOffset + i + k;
-					yIndex = yOffset + j + l;
-					if(xIndex < 0 || xIndex > width || yIndex < 0 || yIndex > height)
-						diff += currImg[xIndex + yIndex * width];
-					else
-						diff += abs(currImg[xIndex + yIndex * width] - prevImg[xOffset+k + (yOffset+l)*width]);
+					for(m = 0; m < 4; m++){
+						xIndex = xOffset + i + k + m;
+						yIndex = yOffset + j + l;
+						if(xIndex < 0 || xIndex > width || yIndex < 0 || yIndex > height)
+							diff += currImg[xIndex + yIndex * width];
+						else
+							diff += abs(currImg[xIndex+m + yIndex * width] - prevImg[xOffset+k + m + (yOffset+l)*width]);
+					}
 				}
 			}
 			if(diff < minDiff){
+				i/=4;
 				minDiff = diff;
 				vec[0] = i;
 				vec[1] = j;
+				i*=4;
 			}
 		}
+		i/=4;
 	}
 	for(i=0; i < 8; i++){
 		for(j=0; j < 8; j++){
-			diffBlock[xOffset+i + (yOffset+j)*width] = currImg[xOffset + vec[0] + i + (yOffset + vec[1] + j)*width] - prevImg[xOffset+i + (yOffset+j)*width];
+			for(k=0; k < 4; k++){
+				diffBlock[xOffset+i+k + (yOffset+j)*width] = currImg[xOffset + vec[0] + i + k + (yOffset + vec[1] + j)*width] - prevImg[xOffset+i + k + (yOffset+j)*width];
+			}
 		}
 	}
 	return vec;
@@ -230,9 +239,9 @@ int** MainWindow::compress_video(int* vecArr)
 
 		int** diff = (int**)malloc(sizeof(int*)*this->frames);
 		for(int i=0; i < frames; i++)
-			diff[i] = (int*)malloc(sizeof(int)*width*height);
+			diff[i] = (int*)malloc(sizeof(int)*width*height*4);
 
-		for(int i=0; i < height*width; i++)
+		for(int i=0; i < height*width*4; i++)
 			diff[0][i] = original[0]->bits()[i];
 
 		for(int frame=1; frame < this->frames; frames++){
