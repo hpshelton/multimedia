@@ -434,7 +434,7 @@ void MainWindow::compress()
 			this->compression = factor;
 			timer.restart();
 			if(this->video)
-				this->video_display->setRightVideo(compress_video(factor), -1, false);
+;//				this->video_display->setRightVideo(compress_video(factor), -1, false);
 			else
 				this->image_display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
@@ -613,7 +613,7 @@ bool MainWindow::saveFile()
 					delete error;
 				}
 				if(compression > 0)
-					compress_video(compression);
+{;}//					compress_video(compression);
 
 				timer.restart();
 				// write video
