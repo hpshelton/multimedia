@@ -431,8 +431,10 @@ void MainWindow::compress()
 		{
 			hasChanged = true;
 			timer.restart();
-			if(this->video)
-;//				this->video_display->setRightVideo(compress_video(factor), -1, false);
+			if(this->video){
+				factor = -5.12*factor+512;
+				this->video_display->setRightVideo(compress_video_preview(factor), -1, false);
+			}
 			else
 				this->image_display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
