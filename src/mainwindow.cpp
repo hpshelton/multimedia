@@ -430,15 +430,72 @@ void MainWindow::compress()
 		float factor = i.toFloat(&accepted);
 		if(accepted /**&& factor >= 0.0 && factor <= 100*/)
 		{
-			hasChanged = true;
 			this->compression = factor;
-			timer.restart();
-			if(this->video){
+			QMainWindow* preview = new QMainWindow(this, Qt::Dialog);
+			QToolBar* toolbar = preview->addToolBar("Editing Actions");
+			QToolBar* videobar = preview->addToolBar("Video Controls");
+			toolbar->setFloatable(false);
+			toolbar->setMovable(false);
+			toolbar->setAllowedAreas(Qt::TopToolBarArea);
+			toolbar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+			toolbar->setFixedHeight(30);
+			videobar->setFloatable(false);
+			videobar->setMovable(false);
+			videobar->setAllowedAreas(Qt::BottomToolBarArea);
+			videobar->setToolButtonStyle(Qt::ToolButtonTextOnly);
+			videobar->setFixedHeight(30);
+			preview->addToolBar(Qt::BottomToolBarArea, videobar);
+			QAction* play = new QAction("Play", this);
+			QAction* pause = new QAction("Pause", this);
+			QAction* start = new QAction("Start", this);
+			QAction* end = new QAction("End", this);
+			QAction* next = new QAction("Next", this);
+			QAction* previous = new QAction("Previous", this);
+			QAction* rewind = new QAction("Rewind", this);
+			QAction* fastForward = new QAction("Fast Forward", this);
+			videobar->addAction(start);
+			videobar->addAction(rewind);
+			videobar->addAction(previous);
+			videobar->addAction(play);
+			videobar->addAction(pause);
+			videobar->addAction(next);
+			videobar->addAction(fastForward);
+			videobar->addAction(end);
+			play->setEnabled(this->video);
+			pause->setEnabled(this->video);
+			start->setEnabled(this->video);
+			end->setEnabled(this->video);
+			next->setEnabled(this->video);
+			previous->setEnabled(this->video);
+			fastForward->setEnabled(this->video);
+			rewind->setEnabled(this->video);
+
+			if(this->video)
+			{
+				VideoDisplay* video_display = new VideoDisplay(this->video_display->getLeftVideo(), this->frames, preview);
+				preview->setCentralWidget(video_display);
+				QObject::connect(play, SIGNAL(triggered()), video_display, SLOT(play()));
+				QObject::connect(pause, SIGNAL(triggered()), video_display, SLOT(pause()));
+				QObject::connect(start, SIGNAL(triggered()), video_display, SLOT(videoStart()));
+				QObject::connect(end, SIGNAL(triggered()), video_display, SLOT(videoEnd()));
+				QObject::connect(next, SIGNAL(triggered()), video_display, SLOT(next()));
+				QObject::connect(previous, SIGNAL(triggered()), video_display, SLOT(previous()));
+				QObject::connect(fastForward, SIGNAL(triggered()), video_display, SLOT(fastForward()));
+				QObject::connect(rewind, SIGNAL(triggered()), video_display, SLOT(rewind()));
+
 				factor = -5.12*factor+512;
+				timer.restart();
 				this->video_display->setRightVideo(compress_video_preview(factor), -1, false);
+				preview->show();
 			}
 			else
-				this->image_display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
+			{
+				ImageDisplay* display = new ImageDisplay(this->image_display->getLeftImage(), preview);
+				preview->setCentralWidget(display);
+				timer.restart();
+				display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
+				preview->show();
+			}
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else

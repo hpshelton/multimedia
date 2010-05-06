@@ -259,8 +259,6 @@ QImage* MainWindow::compress_preview(QImage* img, float factor)
 	return img;
 }
 
-#define CEIL(a) ( (a - (int)a)==0 ? (int)a : (int)a+1 )
-
 /** prevImg - the bits (img->bits()) of the previous frame
  *  currImg - the bits (img->bits()) of the current frame
  *  diffImg - the bits (img->bits()) of the difference of the frames
