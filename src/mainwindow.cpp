@@ -427,7 +427,7 @@ void MainWindow::compress()
 	if(accepted)
 	{
 		float factor = i.toFloat(&accepted);
-		if(accepted && factor >= 0.0 && factor <= 100)
+		if(accepted /**&& factor >= 0.0 && factor <= 100*/)
 		{
 			hasChanged = true;
 			timer.restart();

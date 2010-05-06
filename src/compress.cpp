@@ -17,6 +17,8 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
+#define E 2.71828183
+
 int* MainWindow::compress_image(QImage* img, float factor)
 {
 	int width = img->width();
@@ -24,7 +26,27 @@ int* MainWindow::compress_image(QImage* img, float factor)
 	int* compressed = (int*)malloc(sizeof(int)*height*width*4);
 
 	float threshold;
-	if(factor < 19.4963201)
+	if(factor < 50)
+		threshold = 0;
+	else if(factor < 77.703568)
+		threshold = 0.000116*pow(factor,3) - 0.019118*pow(factor,2) + 1.108995*factor - 21.184998;
+	else if(factor < 91.641708)
+		/*PROBLEM*/
+		threshold = 0.000046386058562*pow(factor,6)-0.023471363133066*pow(factor,5)+4.94695855894703*pow(factor,4)-555.891027747718*pow(factor,3)+35124.430525745*pow(factor,2)-1183223.56408731*factor+16601453.5673362;
+	else if(factor < 92.569443)
+		threshold = 0.873366*factor + 12.532677;
+	else if(factor < 94.001099)
+		threshold = 153.426432*pow(factor,4) - 57142.000968*pow(factor,3) + 7980724.953524*pow(factor,2) - 495389786.739970*factor + 11531433455.627500;
+	else if(factor < 98.455238)
+		threshold = 0.0000000000320307431396312 * pow(E,0.315611691031623*factor);
+	else
+		threshold = 1.053774*factor - 3.773881;
+
+	printf("%f\t",threshold);
+
+
+
+/*	if(factor < 19.4963201)
 		threshold = 0;
 	else if(factor <=52.7)
 		threshold = factor*0.045110 - 0.879479;
@@ -36,7 +58,7 @@ int* MainWindow::compress_image(QImage* img, float factor)
 		threshold = 4E-13 * pow(factor,7.5976);
 	else
 		threshold = 24.860132*factor- 1956.0132;
-
+*/
 	if(CUDA_CAPABLE && CUDA_ENABLED)
 	{
 		unsigned char* CUinput;
@@ -87,20 +109,37 @@ int* MainWindow::compress_image(QImage* img, float factor)
 			fwt97(&inputB[i*height], tempbank, height);
 			fwt97(&inputA[i*height], tempbank, height);
 		}
+
+		transposeInPlace(inputR, width, height);
+		transposeInPlace(inputG, width, height);
+		transposeInPlace(inputB, width, height);
+		transposeInPlace(inputA, width, height);
+
+		for(i =0; i < height; i++){
+			fwt97(&inputR[i*width], tempbank, width);
+			fwt97(&inputG[i*width], tempbank, width);
+			fwt97(&inputB[i*width], tempbank, width);
+			fwt97(&inputA[i*width], tempbank, width);
+		}
+
+		transposeInPlace(inputR, height, width);
+		transposeInPlace(inputG, height, width);
+		transposeInPlace(inputB, height, width);
+		transposeInPlace(inputA, height, width);
+
+		for(i =0; i < width; i++){
+			fwt97(&inputR[i*height], tempbank, height);
+			fwt97(&inputG[i*height], tempbank, height);
+			fwt97(&inputB[i*height], tempbank, height);
+			fwt97(&inputA[i*height], tempbank, height);
+		}
+
 		zeroOut(input, threshold, height, width);
 		RoundArray(compressed, input, width*height*4);
 
 		free(tempbank);
 		free(input);
 	}
-
-	int i, zeroCoeff=0;
-	for(i=0; i < width*height*4; i++){
-		if(compressed[i]==0)
-			zeroCoeff++;
-	}
-	printf("%f\t%f\t", 100*(zeroCoeff)/(float)(width*height*4),factor);
-	fflush(stdout);
 
 	return compressed;
 }
@@ -156,6 +195,30 @@ void MainWindow::decompress_image(QImage* img, int* compressed)
 			iwt97(&outputA[i*width], tempbank, width);
 		}
 
+		transposeInPlace(outputR, height, width);
+		transposeInPlace(outputG, height, width);
+		transposeInPlace(outputB, height, width);
+		transposeInPlace(outputA, height, width);
+
+		for(i =0; i < width; i++){
+			iwt97(&outputR[i*height], tempbank, height);
+			iwt97(&outputG[i*height], tempbank, height);
+			iwt97(&outputB[i*height], tempbank, height);
+			iwt97(&outputA[i*height], tempbank, height);
+		}
+
+		transposeInPlace(outputR, width, height);
+		transposeInPlace(outputG, width, height);
+		transposeInPlace(outputB, width, height);
+		transposeInPlace(outputA, width, height);
+
+		for(i =0; i < height; i++){
+			iwt97(&outputR[i*width], tempbank, width);
+			iwt97(&outputG[i*width], tempbank, width);
+			iwt97(&outputB[i*width], tempbank, width);
+			iwt97(&outputA[i*width], tempbank, width);
+		}
+
 		unshuffleCPU(output, img->bits(), height, width);
 
 		free(output);
@@ -177,12 +240,20 @@ double psnr(unsigned char* A, unsigned char* B, int len)
 QImage* MainWindow::compress_preview(QImage* img, float factor)
 {
 	int* compressed = compress_image(img, factor);
+
+	int i, zeroCoeff=0;
+	for(i=0; i < img->width()*img->height()*4; i++){
+		if(compressed[i]==0)
+			zeroCoeff++;
+	}
+	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
+
 	decompress_image(img, compressed);
 	free(compressed);
 
 	double PSNR = psnr(img->bits(), this->image_display->getLeftImage()->bits(), img->byteCount());
 
-	printf("%2.6f\n",PSNR);
+	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, PSNR);
 	fflush(stdout);
 
 	return img;
