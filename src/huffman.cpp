@@ -7,7 +7,7 @@ typedef struct tree_node
 	int sym;
 	char* code;
 	struct tree_node *right, *left;
-};
+} tree_node;
 
 tree_node* initTree(tree_node* a, tree_node* b)
 {
