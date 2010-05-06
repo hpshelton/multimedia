@@ -17,6 +17,8 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
+#define E 2.71828183
+
 int* MainWindow::compress_image(QImage* img, float factor)
 {
 	int width = img->width();
@@ -24,7 +26,27 @@ int* MainWindow::compress_image(QImage* img, float factor)
 	int* compressed = (int*)malloc(sizeof(int)*height*width*4);
 
 	float threshold;
-	if(factor < 19.4963201)
+	if(factor < 50)
+		threshold = 0;
+	else if(factor < 77.703568)
+		threshold = 0.000116*pow(factor,3) - 0.019118*pow(factor,2) + 1.108995*factor - 21.184998;
+	else if(factor < 91.641708)
+		/*PROBLEM*/
+		threshold = 0.000046386058562*pow(factor,6)-0.023471363133066*pow(factor,5)+4.94695855894703*pow(factor,4)-555.891027747718*pow(factor,3)+35124.430525745*pow(factor,2)-1183223.56408731*factor+16601453.5673362;
+	else if(factor < 92.569443)
+		threshold = 0.873366*factor + 12.532677;
+	else if(factor < 94.001099)
+		threshold = 153.426432*pow(factor,4) - 57142.000968*pow(factor,3) + 7980724.953524*pow(factor,2) - 495389786.739970*factor + 11531433455.627500;
+	else if(factor < 98.455238)
+		threshold = 0.0000000000320307431396312 * pow(E,0.315611691031623*factor);
+	else
+		threshold = 1.053774*factor - 3.773881;
+
+	printf("%f\t",threshold);
+
+
+
+/*	if(factor < 19.4963201)
 		threshold = 0;
 	else if(factor <=52.7)
 		threshold = factor*0.045110 - 0.879479;
@@ -36,7 +58,7 @@ int* MainWindow::compress_image(QImage* img, float factor)
 		threshold = 4E-13 * pow(factor,7.5976);
 	else
 		threshold = 24.860132*factor- 1956.0132;
-
+*/
 	if(CUDA_CAPABLE && CUDA_ENABLED)
 	{
 		unsigned char* CUinput;
@@ -87,11 +109,38 @@ int* MainWindow::compress_image(QImage* img, float factor)
 			fwt97(&inputB[i*height], tempbank, height);
 			fwt97(&inputA[i*height], tempbank, height);
 		}
+
+		transposeInPlace(inputR, width, height);
+		transposeInPlace(inputG, width, height);
+		transposeInPlace(inputB, width, height);
+		transposeInPlace(inputA, width, height);
+
+		for(i =0; i < height; i++){
+			fwt97(&inputR[i*width], tempbank, width);
+			fwt97(&inputG[i*width], tempbank, width);
+			fwt97(&inputB[i*width], tempbank, width);
+			fwt97(&inputA[i*width], tempbank, width);
+		}
+
+		transposeInPlace(inputR, height, width);
+		transposeInPlace(inputG, height, width);
+		transposeInPlace(inputB, height, width);
+		transposeInPlace(inputA, height, width);
+
+		for(i =0; i < width; i++){
+			fwt97(&inputR[i*height], tempbank, height);
+			fwt97(&inputG[i*height], tempbank, height);
+			fwt97(&inputB[i*height], tempbank, height);
+			fwt97(&inputA[i*height], tempbank, height);
+		}
+
 		zeroOut(input, threshold, height, width);
 		RoundArray(compressed, input, width*height*4);
+
 		free(tempbank);
 		free(input);
 	}
+
 	return compressed;
 }
 
@@ -146,6 +195,30 @@ void MainWindow::decompress_image(QImage* img, int* compressed)
 			iwt97(&outputA[i*width], tempbank, width);
 		}
 
+		transposeInPlace(outputR, height, width);
+		transposeInPlace(outputG, height, width);
+		transposeInPlace(outputB, height, width);
+		transposeInPlace(outputA, height, width);
+
+		for(i =0; i < width; i++){
+			iwt97(&outputR[i*height], tempbank, height);
+			iwt97(&outputG[i*height], tempbank, height);
+			iwt97(&outputB[i*height], tempbank, height);
+			iwt97(&outputA[i*height], tempbank, height);
+		}
+
+		transposeInPlace(outputR, width, height);
+		transposeInPlace(outputG, width, height);
+		transposeInPlace(outputB, width, height);
+		transposeInPlace(outputA, width, height);
+
+		for(i =0; i < height; i++){
+			iwt97(&outputR[i*width], tempbank, width);
+			iwt97(&outputG[i*width], tempbank, width);
+			iwt97(&outputB[i*width], tempbank, width);
+			iwt97(&outputA[i*width], tempbank, width);
+		}
+
 		unshuffleCPU(output, img->bits(), height, width);
 
 		free(output);
@@ -153,11 +226,36 @@ void MainWindow::decompress_image(QImage* img, int* compressed)
 	}
 }
 
+double psnr(unsigned char* A, unsigned char* B, int len)
+{
+	double MSE = 0;
+
+	for(int i=0; i < len; i++)
+		MSE += (A[i]-B[i])*(A[i]-B[i]);
+	MSE /=len;
+
+	return 10 * log(255*255/MSE)/log(10);
+}
+
 QImage* MainWindow::compress_preview(QImage* img, float factor)
 {
 	int* compressed = compress_image(img, factor);
+
+	int i, zeroCoeff=0;
+	for(i=0; i < img->width()*img->height()*4; i++){
+		if(compressed[i]==0)
+			zeroCoeff++;
+	}
+	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
+
 	decompress_image(img, compressed);
 	free(compressed);
+
+	double PSNR = psnr(img->bits(), this->image_display->getLeftImage()->bits(), img->byteCount());
+
+	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, PSNR);
+	fflush(stdout);
+
 	return img;
 }
 
@@ -212,54 +310,103 @@ int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock
 	return vec;
 }
 
-/** Compresses the video by exhaustively finding motion estimation vectors
-  * These vectors are returned in vecArr (allocated in the method)
-  * even indices in vecArr are x components
-  * odd indices in vecArr are y components
-  * vector pairs correspond to 8x8 blocks, 1st frame, 1st row, 1st block then 1st frame, 1st row, 2nd block, etc
-  * the method returns the residual frame difference, in int** form (allocated in the method)
-  */
-int** MainWindow::compress_video(int* vecArr)
+#define NUM_SYMBOLS 512 // -256 -> 255
+
+int** MainWindow::compress_video(QImage** original, int* vecArr, int Qlevel)
 {
-//	 if(CUDA_CAPABLE && CUDA_ENABLED)
-//	 {
-//		 int** null = 0;
-//		 return null;
-//		return this->video_display->getRightVideo();
-//	 }
-//	 else
-//	 {
-		QImage** original = this->video_display->getRightVideo();
-		int height = original[0]->height();
-		int width = original[0]->width();
+	int height = original[0]->height();
+	int width = original[0]->width();
+	int frames = this->frames;
 
-		int index=0;
-		int* vec;
-		vecArr = (int*)malloc(sizeof(int) * this->frames * CEIL(height/8.0f) * CEIL(width/8.0f) * 2);
+	int** diff = (int**)malloc(sizeof(int*)*frames);
+	for(int f = 0; f < this->frames; f++)
+		diff[f] = (int*)malloc(sizeof(int)*width*height*4);
 
-		int** diff = (int**)malloc(sizeof(int*)*this->frames);
-		for(int i=0; i < frames; i++)
-			diff[i] = (int*)malloc(sizeof(int)*width*height*4);
+	short int* d = (short int*)malloc(sizeof(short int)*width*height*4);
+	short int* dHat = (short int*)malloc(sizeof(short int)*width*height*4);
+	short int* xHatPrev = (short int*)malloc(sizeof(short int)*width*height*4);
 
-		for(int i=0; i < height*width*4; i++)
-			diff[0][i] = original[0]->bits()[i];
+	for(int j=0; j < height; j++){
+		for (int k=0; k < width*4; k++){
+			xHatPrev[j+k*height]=0;
+		}
+	}
 
-		for(int frame=1; frame < this->frames; frames++){
-			for(int j=0; j < height; j+=8){
-				for(int i=0; i < width; i+=8){
-					vec = motionVec8x8(original[frame]->bits(), original[frame-1]->bits(), diff[frame], i, j, height, width);
-					vecArr[index++] = vec[0];
-					vecArr[index++] = vec[1];
-					free(vec);
-				}
+	for(int i=0; i < frames; i++){
+		for(int j=0; j < height; j++){
+			for (int k=0; k < width*4; k++){
+				d       [j + k*height] = original[i]->bits()[j + k*height] - xHatPrev[j + k*height];
+				dHat    [j + k*height] = round( floor((d[j + k*height]/(float)NUM_SYMBOLS)*Qlevel) * (NUM_SYMBOLS/(float)Qlevel));
+				xHatPrev[j + k*height] = dHat[j + k*height] + xHatPrev[j + k*height];
+				diff [i][j + k*height] = floor((d[j + k*height]/(float)NUM_SYMBOLS)*Qlevel);
 			}
 		}
-		return diff;
-/*
-		QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
-		for(int f = 0; f < this->frames; f++)
-			 modified[f] = compress_image(new QImage(*original[f]), factor);
-		return modified;
-	 }
-*/
+	}
+
+	free(d);
+	free(dHat);
+	free(xHatPrev);
+
+	return diff;
+}
+
+QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int height, int width)
+{
+	QImage** output = (QImage**) malloc(this->frames * sizeof(QImage*));
+	for(int f = 0; f < this->frames; f++){
+		output[f] = new QImage(width, height, QImage::Format_ARGB32);
+	}
+
+	unsigned char* prevFrame = (unsigned char*)malloc(sizeof(unsigned char)*height*width*4);
+
+	for(int i=0; i < width*height*4; i++){
+		prevFrame[i]=0;
+	}
+
+	for(int i=0; i < frames; i++){
+		for(int j=0; j < height; j++){
+			for (int k=0; k < width*4; k++){
+				prevFrame[j+k*height] = CLAMP(prevFrame[j+k*height] + round((diff[i][j+k*height] / (float)Qlevel) *NUM_SYMBOLS));
+			}
+		}
+		memcpy(output[i]->bits(), prevFrame, output[i]->byteCount());
+	}
+
+	free(prevFrame);
+	return output;
+}
+
+double psnr_video(QImage** A, QImage** B, int frames)
+{
+	double MSE = 0;
+
+	int len = A[0]->height() * A[0]->width()*4;
+
+	for(int f=0; f < frames; f++)
+		for(int i=0; i < len; i++){
+			MSE += (A[f]->bits()[i]-B[f]->bits()[i])*(A[f]->bits()[i]-B[f]->bits()[i]);
+		}
+	MSE /=(len*frames);
+
+	return 10 * log(255*255/MSE)/log(10);
+}
+
+QImage** MainWindow::compress_video_preview(int Qlevel)
+{
+	QImage** original = this->video_display->getRightVideo();
+	int* vec;
+
+	int** comp = compress_video(original, vec, Qlevel);
+	QImage** output = decompress_video(comp, vec, Qlevel, original[0]->height(), original[0]->width());
+
+	for(int f = 0; f < this->frames; f++){
+		free(comp[f]);
+	}
+	free(comp);
+
+	double psnr = psnr_video(original, output, this->frames);
+	printf("%d\t%7.4f\n",Qlevel,psnr);
+	fflush(stdout);
+
+	return output;
 }

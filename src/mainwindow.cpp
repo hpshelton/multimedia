@@ -428,13 +428,15 @@ void MainWindow::compress()
 	if(accepted)
 	{
 		float factor = i.toFloat(&accepted);
-		if(accepted && factor >= 0.0 && factor <= 100)
+		if(accepted /**&& factor >= 0.0 && factor <= 100*/)
 		{
 			hasChanged = true;
 			this->compression = factor;
 			timer.restart();
-			if(this->video)
-;//				this->video_display->setRightVideo(compress_video(factor), -1, false);
+			if(this->video){
+				factor = -5.12*factor+512;
+				this->video_display->setRightVideo(compress_video_preview(factor), -1, false);
+			}
 			else
 				this->image_display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
