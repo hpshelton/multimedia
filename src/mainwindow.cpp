@@ -495,7 +495,7 @@ void MainWindow::compress()
 				double psnr = 0.0;
 				int time = 0;
 				timer.restart();
-				this->video_display->setRightVideo(Encoder::compress_video_preview(this->video_display->getRightVideo(), this->frames, factor, &psnr), -1, false);
+				video_display->setRightVideo(Encoder::compress_video_preview(this->video_display->getRightVideo(), this->frames, factor, &psnr), -1, false);
 				time = timer.elapsed();
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
