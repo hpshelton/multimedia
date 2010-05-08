@@ -20,44 +20,80 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 	mode /= 2;
 	bool runlength = (mode % 2 == 1);
 
-	printf("%d\n", compression);
+//	if(compression == 0)
+//	{
+//		unsigned char* byte_stream;
+//		double* double_stream;
+//		if(!arithmetic)
+//		{
+//			byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
+//			fread(byte_stream, sizeof(unsigned char), numBytes, input);
+//		}
+//		else
+//		{
+//			double_stream = (double*) malloc(numBytes * sizeof(double));
+//			fread(double_stream, sizeof(double), numBytes, input);
+//			byte_stream = arithmetic_decode(double_stream, &numBytes);
+//		}
+//		fclose(input);
+//
+//		if(huffman)
+//			byte_stream = huffman_decode(byte_stream, &numBytes);
+//		if(runlength)
+//			byte_stream = runlength_decode(byte_stream, &numBytes);
+//
+//		return new QImage(byte_stream, width, height, QImage::Format_RGB32);
+//	}
+//	else
+//	{
+//		int* byte_stream;
+//		if(!arithmetic)
+//		{
+//			byte_stream = (int*) malloc(numBytes * sizeof(int));
+//			fread(byte_stream, sizeof(int), numBytes, input);
+//		}
+//		else
+//		{
+//			double* double_stream = (double*) malloc(numBytes * sizeof(double));
+//			fread(double_stream, sizeof(double), numBytes, input);
+//			byte_stream = arithmetic_decode_int(double_stream, &numBytes);
+//		}
+//		fclose(input);
+//
+////		if(runlength)
+////			byte_stream = runlength_decode_int(byte_stream, &numBytes);
+//
+//		QImage* img = new QImage(width, height, QImage::Format_RGB32);
+//		Decoder::decompress_image(img, byte_stream, CUDA);
+//		return img;
+//	}
 
-	if(compression == 0)
+	unsigned char* byte_stream;
+	if(!arithmetic)
 	{
-		unsigned char* byte_stream;
-		double* double_stream;
-		if(!arithmetic)
-		{
-			byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
-			fread(byte_stream, sizeof(unsigned char), numBytes, input);
-		}
-		else
-		{
-			double_stream = (double*) malloc(numBytes * sizeof(double));
-			fread(double_stream, sizeof(double), numBytes, input);
-			byte_stream = arithmetic_decode(double_stream, &numBytes);
-		}
-		fclose(input);
-
-		if(huffman)
-			byte_stream = huffman_decode(byte_stream, &numBytes);
-		if(runlength)
-			byte_stream = runlength_decode(byte_stream, &numBytes);
-
-		return new QImage(byte_stream, width, height, QImage::Format_RGB32);
+		byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
+		fread(byte_stream, sizeof(unsigned char), numBytes, input);
 	}
 	else
 	{
-		int* byte_stream = (int*) malloc(numBytes * sizeof(int));
-		fread(byte_stream, sizeof(int), numBytes, input);
-
-		if(runlength)
-			byte_stream = runlength_decode_int(byte_stream, &numBytes);
-
-		QImage* img = new QImage(width, height, QImage::Format_RGB32);
-		Decoder::decompress_image(img, byte_stream, CUDA);
-		return img;
+		double* double_stream = (double*) malloc(numBytes * sizeof(double));
+		fread(double_stream, sizeof(double), numBytes, input);
+		byte_stream = arithmetic_decode(double_stream, &numBytes, ARITH_BREAK);
 	}
+	fclose(input);
+
+	if(huffman)
+		byte_stream = huffman_decode(byte_stream, &numBytes);
+	if(runlength)
+		byte_stream = runlength_decode(byte_stream, &numBytes);
+
+	int* int_stream = (int*) malloc(numBytes/2 * sizeof(int));
+	for(unsigned int i = 0; i < numBytes; i+=2)
+		int_stream[i/2] = Utility::doubleCharToInt(byte_stream[i], byte_stream[i+1]);
+
+	QImage* img = new QImage(width, height, QImage::Format_RGB32);
+	Decoder::decompress_image(img, int_stream, CUDA);
+	return img;
 }
 
 QImage** Decoder::read_qcif(QString filename, int* frame_num)

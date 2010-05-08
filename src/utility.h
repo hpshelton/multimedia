@@ -51,17 +51,6 @@ public:
 		return p;
 	}
 
-	static unsigned char** img_to_lum(QImage* image)
-	{
-		unsigned char** lum = allocate_uchar(image->width(), image->height());
-		for(int r=0; r < image->height(); r++){
-			for(int c=0; c < image->width(); c++){
-				lum[c][r] = CLAMP(0.3*qRed(image->pixel(c,r)) + 0.59*qGreen(image->pixel(c,r)) + 0.11*qBlue(image->pixel(c,r)));
-			}
-		}
-		return lum;
-	}
-
 	static char* getBinVal(int num, long int len)
 	{
 		int total = 0, p = 0;
@@ -113,6 +102,53 @@ public:
 		while ((c = binVal[i++]) != '\0')
 			;
 		return i-1;
+	}
+
+	// Converts 0 <= num <= 65,535
+	static unsigned char* intToChars(int num)
+	{
+		int total = 0, p = 0, index = 0, char_count = 0, len = 16;
+		unsigned char* chars = (unsigned char*) malloc(len * sizeof(unsigned char));
+		char buffer[8];
+		for(int i = 0; i < len; i++)
+		{
+			p = pow(2, (len-1-i));
+			if(total + p <= num)
+			{
+				buffer[index++] = '1';
+				total += p;
+			}
+			else
+				buffer[index++] = '0';
+			if(index == 8)
+			{
+				index = 0;
+				chars[char_count++] = Utility::BintoChar(buffer);
+			}
+		}
+		return chars;
+	}
+
+	static int doubleCharToInt(unsigned char byte1, unsigned char byte2)
+	{
+		char* first = charToBin(byte1);
+		char* second = charToBin(byte2);
+		return  (first[0]-48)*32768 +
+				(first[1]-48)*16384 +
+				(first[2]-48)*8192 +
+				(first[3]-48)*4096 +
+				(first[4]-48)*2048 +
+				(first[5]-48)*1024 +
+				(first[6]-48)*512 +
+				(first[7]-48)*256 +
+				(second[0]-48)*128 +
+				(second[1]-48)*64 +
+				(second[2]-48)*32 +
+				(second[3]-48)*16 +
+				(second[4]-48)*8 +
+				(second[5]-48)*4 +
+				(second[6]-48)*2 +
+				(second[7]-48)*1;
 	}
 
 	static QRgb GaussianSample(QImage* image, float x, float y, float variance, float radius)

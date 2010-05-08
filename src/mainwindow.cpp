@@ -560,8 +560,6 @@ void MainWindow::openFile()
 				timer.restart();
 				this->file[0] = Decoder::read_ppc(fileName, CUDA_ENABLED && CUDA_CAPABLE);
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
-				if(this->file[0] != NULL)
-					this->file[0] = new QImage(this->file[0]->convertToFormat(QImage::Format_RGB32));
 			}
 			else
 			{
@@ -599,7 +597,7 @@ void MainWindow::openFile()
 			this->closeAction->setEnabled(true);
 			this->hasChanged = false;
 			toggleActions(true);
-		//	Encoder::test(this->file[0]);
+//			this->image_display->setRightImage(Encoder::test(this->file[0]), false);
 		}
 		this->compression = 0;
 	}
@@ -623,6 +621,8 @@ bool MainWindow::saveFile()
 		QCheckBox* radio1 = new QCheckBox("Huffman Coding");
 		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
 		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
+
+		radio3->setEnabled(false);
 
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);

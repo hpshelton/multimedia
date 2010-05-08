@@ -256,7 +256,7 @@ unsigned char* Decoder::huffman_decode(unsigned char* bitstream, unsigned long* 
 
 //	printf("%d / %lu ", bitstreamIndex, *numBytes);
 	// Read in the symbols
-	unsigned char* image = (unsigned char*) malloc(ceil(*numBytes * 2) * sizeof(unsigned char));
+	unsigned char* image = (unsigned char*) malloc(*numBytes * 5 * sizeof(unsigned char));
 	int image_index = 0;
 	std::string* code = new std::string();
 	while(bitstreamIndex < *numBytes)
