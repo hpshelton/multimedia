@@ -558,7 +558,7 @@ void MainWindow::openFile()
 			if(fileName.endsWith(".ppc"))
 			{
 				timer.restart();
-				this->file[0] = Decoder::read_ppc(fileName);
+				this->file[0] = Decoder::read_ppc(fileName, CUDA_ENABLED && CUDA_CAPABLE);
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 				if(this->file[0] != NULL)
 					this->file[0] = new QImage(this->file[0]->convertToFormat(QImage::Format_RGB32));
@@ -627,7 +627,7 @@ bool MainWindow::saveFile()
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
 		compressionBox->setMaximum(100);
-		compressionBox->setValue(this->compression);
+		compressionBox->setValue(this->compression); // TODO - Only works if compression <= 100
 		vbox->addWidget(radio1);
 		vbox->addWidget(radio2);
 		vbox->addWidget(radio3);

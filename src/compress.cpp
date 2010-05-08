@@ -40,7 +40,7 @@ int* Encoder::compress_image(QImage* img, float factor, bool CUDA)
 	else
 		threshold = 1.053774*factor - 3.773881;
 
-	printf("%f\t",threshold);
+//	printf("%f\t",threshold);
 
 
 
@@ -142,7 +142,7 @@ int* Encoder::compress_image(QImage* img, float factor, bool CUDA)
 	return compressed;
 }
 
-void Encoder::decompress_image(QImage* img, int* compressed, bool CUDA)
+void Decoder::decompress_image(QImage* img, int* compressed, bool CUDA)
 {
 	int width = img->width();
 	int height = img->height();
@@ -236,7 +236,7 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
 //	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
 
 	QImage* decompressed = new QImage(img->width(), img->height(), QImage::Format_RGB32);
-	decompress_image(decompressed, compressed, CUDA);
+	Decoder::decompress_image(decompressed, compressed, CUDA);
 	free(compressed);
 
 	*psnr = Utility::psnr(img->bits(), decompressed->bits(), img->byteCount());
@@ -335,7 +335,7 @@ int** Encoder::compress_video(QImage** original, int frames, int* vecArr, int Ql
 	return diff;
 }
 
-QImage** Encoder::decompress_video(int** diff, int frames, int* vecArr, int Qlevel, int height, int width)
+QImage** Decoder::decompress_video(int** diff, int frames, int* vecArr, int Qlevel, int height, int width)
 {
 	QImage** output = (QImage**) malloc(frames * sizeof(QImage*));
 	for(int f = 0; f < frames; f++){
@@ -366,7 +366,7 @@ QImage** Encoder::compress_video_preview(QImage** original, int frames, int Qlev
 	int* vec;
 
 	int** comp = compress_video(original, frames, vec, Qlevel);
-	QImage** output = decompress_video(comp, frames, vec, Qlevel, original[0]->height(), original[0]->width());
+	QImage** output = Decoder::decompress_video(comp, frames, vec, Qlevel, original[0]->height(), original[0]->width());
 
 	for(int f = 0; f < frames; f++){
 		free(comp[f]);

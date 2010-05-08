@@ -3,6 +3,7 @@
 
 QImage* Encoder::test(QImage* img)
 {
+/*
 	unsigned char* original;
 	unsigned long numBytes;
 	unsigned char* decoded, *coded;
@@ -126,7 +127,26 @@ QImage* Encoder::test(QImage* img)
 	failed = false;
 
 	return new QImage(decoded, img->width(), img->height(), QImage::Format_RGB32);
+*/
 
+	bool failed = false;
+
+	printf("Run Length: ");
+	QImage* img2 = new QImage(img->width(), img->height(), QImage::Format_RGB32);
+	Decoder::decompress_image(img2, Encoder::compress_image(img, 0, false), false);
+	for(int i = 0; i < img->byteCount(); i++)
+	{
+		if(img->bits()[i] != img2->bits()[i])
+		{
+			printf("Failed: %d %d\n", i, img->byteCount());
+			failed = true;
+		}
+	}
+	if(!failed)
+		printf("Passed!\n");
+	failed = false;
+
+	return img2;
 }
 
 void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength, int compression, bool CUDA)
@@ -134,16 +154,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	int width = img->width();
 	int height = img->height();
 	int mode = 4*runlength + 2*huffman + arithmetic;
-	unsigned long numBytes = img->byteCount();
-	unsigned char* byte_stream = img->bits();
 	double* arithmetic_stream = NULL;
-
-	if(runlength)
-		byte_stream = runlength_encode(byte_stream, &numBytes);
-	if(huffman)
-		byte_stream = huffman_encode(byte_stream, &numBytes);
-	if(arithmetic)
-		arithmetic_stream = arithmetic_encode(byte_stream, &numBytes);
 
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
@@ -151,10 +162,43 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		std::cerr << "Failed to open " << filename.toStdString() << " for writing\n";
 		return;
 	}
-	fprintf(output, "%d %d %d %lu", mode, width, height, numBytes);
-	if(!arithmetic)
-		fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
+
+	if(compression == 0)
+	{
+		unsigned long numBytes = img->byteCount();
+		unsigned char* byte_stream = img->bits();
+
+		if(runlength)
+			byte_stream = runlength_encode(byte_stream, &numBytes);
+		if(huffman)
+			byte_stream = huffman_encode(byte_stream, &numBytes);
+		if(arithmetic)
+			arithmetic_stream = arithmetic_encode(byte_stream, &numBytes);
+
+		fprintf(output, "%d %d %d %lu %d", mode, width, height, numBytes, compression);
+		if(arithmetic)
+			fwrite(arithmetic_stream, sizeof(double), numBytes, output);
+		else
+			fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
+		fclose(output);
+	}
 	else
-		fwrite(arithmetic_stream, sizeof(double), numBytes, output);
-	fclose(output);
+	{
+		unsigned long numBytes = img->byteCount();
+		int* byte_stream = Encoder::compress_image(img, compression, CUDA); // TODO - Change 0 <= compression <= 100 into QLevel value?
+
+		if(runlength)
+			byte_stream = runlength_encode_int(byte_stream, &numBytes);
+//		if(huffman)
+//			byte_stream = huffman_encode(byte_stream, &numBytes);
+//		if(arithmetic)
+//			arithmetic_stream = arithmetic_encode(byte_stream, &numBytes);
+
+		fprintf(output, "%d %d %d %lu %d", mode, width, height, numBytes, compression);
+//		if(arithmetic)
+//			fwrite(arithmetic_stream, sizeof(double), numBytes, output);
+//		else
+			fwrite(byte_stream, sizeof(int), numBytes, output);
+		fclose(output);
+	}
 }

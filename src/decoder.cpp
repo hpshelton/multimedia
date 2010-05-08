@@ -1,10 +1,10 @@
 #include "decoder.h"
 #include <iostream>
 
-QImage* Decoder::read_ppc(QString filename)
+QImage* Decoder::read_ppc(QString filename, bool CUDA)
 {
 	FILE* input;
-	int width, height, mode = 0;
+	int width, height, mode, compression = 0;
 	unsigned long numBytes;
 
 	if(!(input = fopen(filename.toStdString().c_str(), "r")))
@@ -12,7 +12,7 @@ QImage* Decoder::read_ppc(QString filename)
 		std::cerr << "Failed to open " << filename.toStdString() << " for reading\n";
 		return NULL;
 	}
-	fscanf(input, "%d %d %d %lu", &mode, &width, &height, &numBytes);
+	fscanf(input, "%d %d %d %lu %d", &mode, &width, &height, &numBytes, &compression);
 
 	bool arithmetic = (mode % 2 == 1);
 	mode /= 2;
@@ -20,27 +20,40 @@ QImage* Decoder::read_ppc(QString filename)
 	mode /= 2;
 	bool runlength = (mode % 2 == 1);
 
-	unsigned char* byte_stream;
-	double* double_stream;
-	if(!arithmetic)
+	printf("%d\n", compression);
+
+	if(compression == 0)
 	{
-		byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
-		fread(byte_stream, sizeof(unsigned char), numBytes, input);
+		unsigned char* byte_stream;
+		double* double_stream;
+		if(!arithmetic)
+		{
+			byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
+			fread(byte_stream, sizeof(unsigned char), numBytes, input);
+		}
+		else
+		{
+			double_stream = (double*) malloc(numBytes * sizeof(double));
+			fread(double_stream, sizeof(double), numBytes, input);
+			byte_stream = arithmetic_decode(double_stream, &numBytes);
+		}
+		fclose(input);
+
+		if(huffman)
+			byte_stream = huffman_decode(byte_stream, &numBytes);
+		if(runlength)
+			byte_stream = runlength_decode(byte_stream, &numBytes);
+
+		return new QImage(byte_stream, width, height, QImage::Format_RGB32);
 	}
 	else
 	{
-		double_stream = (double*) malloc(numBytes * sizeof(double));
-		fread(double_stream, sizeof(double), numBytes, input);
-		byte_stream = arithmetic_decode(double_stream, &numBytes);
+		int* byte_stream = (int*) malloc(numBytes * sizeof(int));
+		fread(byte_stream, sizeof(int), numBytes, input);
+		QImage* img = new QImage(width, height, QImage::Format_RGB32);
+		Decoder::decompress_image(img, byte_stream, CUDA);
+		return img;
 	}
-	fclose(input);
-
-	if(huffman)
-		byte_stream = huffman_decode(byte_stream, &numBytes);
-	if(runlength)
-		byte_stream = runlength_decode(byte_stream, &numBytes);
-
-	return new QImage(byte_stream, width, height, QImage::Format_RGB32);
 }
 
 QImage** Decoder::read_qcif(QString filename, int* frame_num)
