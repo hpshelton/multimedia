@@ -109,7 +109,7 @@ int* Encoder::compress_image(QImage* img, float factor, bool CUDA, unsigned long
 			fwt97(&inputB[i*height], tempbank, height);
 			fwt97(&inputA[i*height], tempbank, height);
 		}
-
+#ifdef TWODFWT
 		transposeInPlace(inputR, width, height);
 		transposeInPlace(inputG, width, height);
 		transposeInPlace(inputB, width, height);
@@ -133,7 +133,7 @@ int* Encoder::compress_image(QImage* img, float factor, bool CUDA, unsigned long
 			fwt97(&inputB[i*height], tempbank, height);
 			fwt97(&inputA[i*height], tempbank, height);
 		}
-
+#endif
 		zeroOut(input, threshold, height, width);
 		RoundArray(compressed, input, width*height*4);
 
@@ -194,7 +194,7 @@ void Decoder::decompress_image(QImage* img, int* compressed, bool CUDA)
 			iwt97(&outputB[i*width], tempbank, width);
 			iwt97(&outputA[i*width], tempbank, width);
 		}
-
+#ifdef TWODFWT
 		transposeInPlace(outputR, height, width);
 		transposeInPlace(outputG, height, width);
 		transposeInPlace(outputB, height, width);
@@ -218,7 +218,7 @@ void Decoder::decompress_image(QImage* img, int* compressed, bool CUDA)
 			iwt97(&outputB[i*width], tempbank, width);
 			iwt97(&outputA[i*width], tempbank, width);
 		}
-
+#endif
 		unshuffleCPU(output, img->bits(), height, width);
 
 		free(output);

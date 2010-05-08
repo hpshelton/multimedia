@@ -156,11 +156,14 @@ __global__ void update(float* input, int n, int len, int dim, float a, int width
 	if (xIndex < width && yIndex < height && i+color < n)
 	{
 		if(i%2==0){
-			if((i%len)!=0){
+			if((i%len)!=0 && (i%len)!=len-1){
 				input[color+i]+=a*(input[color+i-1]+input[color+i+1]);
 			}
-			else{
+			else if(i%len==0){
 				input[color+i]+=2*a*input[color+i+1];
+			}
+			else{
+				input[color+i]+=2*a*input[color+i-1];
 			}
 		}
 	}
