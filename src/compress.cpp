@@ -17,8 +17,6 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
-#define E 2.71828183
-
 int* MainWindow::compress_image(QImage* img, float factor)
 {
 	int width = img->width();
@@ -267,11 +265,11 @@ QImage* MainWindow::compress_preview(QImage* img, float factor)
  *  height - the height of prevImg, currImg, and diffImg
  *  width - the width of prevImg, currImg, and diffImg
  */
-int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock, int xOffset, int yOffset, int height, int width)
+mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int yOffset, int height, int width)
 {
 	xOffset = xOffset*4; // for rgba
 	int i, j, k, l, m, xIndex, yIndex, diff, minDiff= INT_MAX;
-	int* vec = (int*)malloc(sizeof(int)*2);
+	mvec vec;
 	for(i=-7; i < 8; i++){
 		i*=4;
 		for(j=-7; j < 8; j++){
@@ -281,8 +279,8 @@ int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock
 					for(m = 0; m < 4; m++){
 						xIndex = xOffset + i + k + m;
 						yIndex = yOffset + j + l;
-						if(xIndex < 0 || xIndex > width || yIndex < 0 || yIndex > height)
-							diff += currImg[xIndex + yIndex * width];
+						if(xIndex < 0 || xIndex >= width || yIndex < 0 || yIndex >= height)
+/**invalid read*/			diff += currImg[xIndex+m + yIndex * width];
 						else
 							diff += abs(currImg[xIndex+m + yIndex * width] - prevImg[xOffset+k + m + (yOffset+l)*width]);
 					}
@@ -291,30 +289,40 @@ int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock
 			if(diff < minDiff){
 				i/=4;
 				minDiff = diff;
-				vec[0] = i;
-				vec[1] = j;
+				vec.x = i;
+				vec.y = j;
 				i*=4;
 			}
 		}
 		i/=4;
 	}
-	for(i=0; i < 8; i++){
-		for(j=0; j < 8; j++){
-			for(k=0; k < 4; k++){
-				diffBlock[xOffset+i+k + (yOffset+j)*width] = currImg[xOffset + vec[0] + i + k + (yOffset + vec[1] + j)*width] - prevImg[xOffset+i + k + (yOffset+j)*width];
-			}
+	return vec;
+}
+
+mvec* motVecFrame(short int* prevImg, unsigned char* currImg, int height, int width)
+{
+	int blockDimX = CEIL(width/8.0f);
+	int blockDimY = CEIL(height/8.0f);
+	mvec* vecs = (mvec*)malloc(sizeof(mvec) * blockDimX * blockDimY );
+
+	for(int i=0; i < blockDimY; i++){
+		for(int j=0; j< blockDimX; j++){
+			vecs[j + i*blockDimX] = motionVec8x8(prevImg, currImg, 8*j, 8*i, height, width);
 		}
 	}
-	return vec;
+	return vecs;
 }
 
 #define NUM_SYMBOLS 512 // -256 -> 255
 
-int** MainWindow::compress_video(QImage** original, int* vecArr, int Qlevel)
+int** MainWindow::compress_video(QImage** original, mvec*** vecArrP, int Qlevel)
 {
 	int height = original[0]->height();
 	int width = original[0]->width();
 	int frames = this->frames;
+
+	*vecArrP = (mvec**)malloc(sizeof(mvec*)*frames);
+	mvec** vecArr = *vecArrP;
 
 	int** diff = (int**)malloc(sizeof(int*)*frames);
 	for(int f = 0; f < this->frames; f++)
@@ -330,13 +338,21 @@ int** MainWindow::compress_video(QImage** original, int* vecArr, int Qlevel)
 		}
 	}
 
+	int xVec;
+	int yVec;
 	for(int i=0; i < frames; i++){
+		vecArr[i] = motVecFrame(xHatPrev, original[i]->bits(), height, width);
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
-				d       [j + k*height] = original[i]->bits()[j + k*height] - xHatPrev[j + k*height];
-				dHat    [j + k*height] = round( floor((d[j + k*height]/(float)NUM_SYMBOLS)*Qlevel) * (NUM_SYMBOLS/(float)Qlevel));
-				xHatPrev[j + k*height] = dHat[j + k*height] + xHatPrev[j + k*height];
-				diff [i][j + k*height] = floor((d[j + k*height]/(float)NUM_SYMBOLS)*Qlevel);
+				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
+				yVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].y;
+				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec*4) < 0 ||(k+xVec*4)/4 >=width)
+					diff [i][k + j*width*4] = floor(((original[i]->bits()[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+				else
+					diff [i][k + j*width*4] = floor(((original[i]->bits()[k + j*width*4] - xHatPrev[(k+xVec*4) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+				d       [k + j*width*4] = original[i]->bits()[k + j*width*4] - xHatPrev[k + j*width*4];
+				dHat    [k + j*width*4] = round( floor((d[k + j*width*4]/(float)NUM_SYMBOLS)*Qlevel) * (NUM_SYMBOLS/(float)Qlevel));
+				xHatPrev[k + j*width*4] = dHat[k + j*width*4] + xHatPrev[k + j*width*4];
 			}
 		}
 	}
@@ -348,7 +364,7 @@ int** MainWindow::compress_video(QImage** original, int* vecArr, int Qlevel)
 	return diff;
 }
 
-QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int height, int width)
+QImage** MainWindow::decompress_video(int** diff, mvec** vecArr, int Qlevel, int height, int width)
 {
 	QImage** output = (QImage**) malloc(this->frames * sizeof(QImage*));
 	for(int f = 0; f < this->frames; f++){
@@ -357,6 +373,9 @@ QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int h
 
 	unsigned char* prevFrame = (unsigned char*)malloc(sizeof(unsigned char)*height*width*4);
 
+	int xVec;
+	int yVec;
+
 	for(int i=0; i < width*height*4; i++){
 		prevFrame[i]=0;
 	}
@@ -364,7 +383,14 @@ QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int h
 	for(int i=0; i < frames; i++){
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
-				prevFrame[j+k*height] = CLAMP(prevFrame[j+k*height] + round((diff[i][j+k*height] / (float)Qlevel) *NUM_SYMBOLS));
+				xVec = vecArr[i][((int)j/8 + (int)k/32 * CEIL(height/8))].x;
+				yVec = vecArr[i][((int)j/8 + (int)k/32 * CEIL(height/8))].y;
+
+
+				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec*4) < 0 ||(k+xVec*4)/4 >=width)
+					prevFrame[k + j*width*4] = CLAMP(round((diff[i][k + j*width*4] / (float)Qlevel) *NUM_SYMBOLS));
+				else
+					prevFrame[k + j*width*4] = CLAMP(prevFrame[(k+xVec*4) + (j+yVec)*width*4] + round((diff[i][k + j*width*4] / (float)Qlevel) *NUM_SYMBOLS));
 			}
 		}
 		memcpy(output[i]->bits(), prevFrame, output[i]->byteCount());
@@ -389,22 +415,40 @@ double psnr_video(QImage** A, QImage** B, int frames)
 	return 10 * log(255*255/MSE)/log(10);
 }
 
+double pct_zeros(int** A, int frames, int len)
+{
+	int zeros=0;
+
+	for(int f=0; f < frames; f++){
+		for(int i=0; i < len; i++){
+			if(A[f][i] ==0){
+				zeros++;
+			}
+		}
+	}
+	return 100*(zeros / (double)(len*frames));
+}
+
 QImage** MainWindow::compress_video_preview(int Qlevel)
 {
 	QImage** original = this->video_display->getRightVideo();
-	int* vec;
+	mvec** vec;
 
-	int** comp = compress_video(original, vec, Qlevel);
+	int** comp = compress_video(original, &vec, Qlevel);
 	QImage** output = decompress_video(comp, vec, Qlevel, original[0]->height(), original[0]->width());
+
+	double psnr = psnr_video(original, output, this->frames);
+	double pctZeros = pct_zeros(comp, this->frames, original[0]->height()*original[0]->width()*4);
+	printf("Qlevel: %d\nPSNR: %7.4f\nPCT_ZEROS: %7.4f\n",Qlevel,psnr, pctZeros);
+	fflush(stdout);
 
 	for(int f = 0; f < this->frames; f++){
 		free(comp[f]);
 	}
 	free(comp);
-
-	double psnr = psnr_video(original, output, this->frames);
-	printf("%d\t%7.4f\n",Qlevel,psnr);
-	fflush(stdout);
+	for(int i=0; i < this->frames; i++)
+		free(vec[i]);
+	free(vec);
 
 	return output;
 }

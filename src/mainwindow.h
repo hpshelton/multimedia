@@ -41,6 +41,11 @@ extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row,
 extern "C" void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col);
 extern "C" void CUiwt97_2D_rgba(unsigned char* output, int* input, int row, int col);
 
+typedef struct mvec{
+	int x;
+	int y;
+} mvec ;
+
 class MainWindow : public QMainWindow
 {
 	Q_OBJECT
@@ -135,8 +140,8 @@ private:
 	int* compress_image(QImage* img, float factor);
 	void decompress_image(QImage* img, int* compressed);
 	QImage* compress_preview(QImage* img, float factor);
-	int** compress_video(QImage** video, int* vecArr, int Qlevel);
-	QImage** decompress_video(int** diff, int* vecArr, int Qlevel, int height, int width);
+	int** compress_video(QImage** video, mvec*** vecArr, int Qlevel);
+	QImage** decompress_video(int** diff, mvec** vecArr, int Qlevel, int height, int width);
 	QImage** compress_video_preview(int Qlevel);
 
 public:
