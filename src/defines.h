@@ -18,7 +18,7 @@
 
 #define CLAMP(a) ( ((a) > 255) ? 255 : (((a) < 0) ? 0 : (int)(a)) )
 #define MIN(a,b) ((a < b) ? a : b)
-#define CEIL(a) ( (a - (int)a)==0 ? (int)a : (int)a+1 )
+#define CEIL(a) ( ((a) - (int)(a))==0 ? (int)(a) : (int)((a)+1) )
 
 #define PI 3.14159265358979
 #define E 2.71828183

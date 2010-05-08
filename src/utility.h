@@ -5,6 +5,11 @@
 #include <QImage>
 #include "defines.h"
 
+typedef struct mvec{
+	int x;
+	int y;
+} mvec;
+
 class Utility
 {
 public:
@@ -177,6 +182,20 @@ public:
 		MSE /=(len*frames);
 
 		return 10 * log(255*255/MSE)/log(10);
+	}
+
+	static double pct_zeros(int** A, int frames, int len)
+	{
+		int zeros=0;
+
+		for(int f=0; f < frames; f++){
+			for(int i=0; i < len; i++){
+				if(A[f][i] ==0){
+					zeros++;
+				}
+			}
+		}
+		return 100*(zeros / (double)(len*frames));
 	}
 };
 

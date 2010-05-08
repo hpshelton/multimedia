@@ -22,7 +22,7 @@ public:
 	static unsigned char* arithmetic_decode(double* bitstream, unsigned long* numBytes);
 
 	static void decompress_image(QImage* img, int* compressed, bool CUDA);
-	static QImage** decompress_video(int** diff, int frames, int* vecArr, int Qlevel, int height, int width);
+	static QImage** decompress_video(int** diff, int frames, mvec** vecArr, int Qlevel, int height, int width);
 };
 
 #endif // DECODER_H
