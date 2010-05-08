@@ -13,3 +13,4 @@ src/CUDA/lib
 src/CUDA/i386
 *.o
 src/includes
+docs/Paper\ Template/
