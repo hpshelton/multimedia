@@ -17,7 +17,7 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
-int* MainWindow::compress_image(QImage* img, float factor)
+int* Encoder::compress_image(QImage* img, float factor, bool CUDA)
 {
 	int width = img->width();
 	int height = img->height();
@@ -57,7 +57,7 @@ int* MainWindow::compress_image(QImage* img, float factor)
 	else
 		threshold = 24.860132*factor- 1956.0132;
 */
-	if(CUDA_CAPABLE && CUDA_ENABLED)
+	if(CUDA)
 	{
 		unsigned char* CUinput;
 		int* CUtransformed;
@@ -142,12 +142,12 @@ int* MainWindow::compress_image(QImage* img, float factor)
 	return compressed;
 }
 
-void MainWindow::decompress_image(QImage* img, int* compressed)
+void Encoder::decompress_image(QImage* img, int* compressed, bool CUDA)
 {
 	int width = img->width();
 	int height = img->height();
 
-	if(CUDA_CAPABLE && CUDA_ENABLED)
+	if(CUDA)
 	{
 		int* CUtransformed;
 		unsigned char* CUoutput;
@@ -224,26 +224,27 @@ void MainWindow::decompress_image(QImage* img, int* compressed)
 	}
 }
 
-QImage* MainWindow::compress_preview(QImage* img, float factor, double* psnr)
+QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr, bool CUDA)
 {
-	int* compressed = compress_image(img, factor);
+	int* compressed = compress_image(img, factor, CUDA);
 
 	int i, zeroCoeff=0;
 	for(i=0; i < img->width()*img->height()*4; i++){
 		if(compressed[i]==0)
 			zeroCoeff++;
 	}
-	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
+//	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
 
-	decompress_image(img, compressed);
+	QImage* decompressed = new QImage(img->width(), img->height(), QImage::Format_RGB32);
+	decompress_image(decompressed, compressed, CUDA);
 	free(compressed);
 
-	*psnr = Utility::psnr(img->bits(), this->image_display->getLeftImage()->bits(), img->byteCount());
+	*psnr = Utility::psnr(img->bits(), decompressed->bits(), img->byteCount());
 
 //	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, *psnr);
 //	fflush(stdout);
 
-	return img;
+	return decompressed;
 }
 
 /** prevImg - the bits (img->bits()) of the previous frame
@@ -297,14 +298,13 @@ int* motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int* diffBlock
 
 #define NUM_SYMBOLS 512 // -256 -> 255
 
-int** MainWindow::compress_video(QImage** original, int* vecArr, int Qlevel)
+int** Encoder::compress_video(QImage** original, int frames, int* vecArr, int Qlevel)
 {
 	int height = original[0]->height();
 	int width = original[0]->width();
-	int frames = this->frames;
 
 	int** diff = (int**)malloc(sizeof(int*)*frames);
-	for(int f = 0; f < this->frames; f++)
+	for(int f = 0; f < frames; f++)
 		diff[f] = (int*)malloc(sizeof(int)*width*height*4);
 
 	short int* d = (short int*)malloc(sizeof(short int)*width*height*4);
@@ -335,10 +335,10 @@ int** MainWindow::compress_video(QImage** original, int* vecArr, int Qlevel)
 	return diff;
 }
 
-QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int height, int width)
+QImage** Encoder::decompress_video(int** diff, int frames, int* vecArr, int Qlevel, int height, int width)
 {
-	QImage** output = (QImage**) malloc(this->frames * sizeof(QImage*));
-	for(int f = 0; f < this->frames; f++){
+	QImage** output = (QImage**) malloc(frames * sizeof(QImage*));
+	for(int f = 0; f < frames; f++){
 		output[f] = new QImage(width, height, QImage::Format_ARGB32);
 	}
 
@@ -361,20 +361,20 @@ QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int h
 	return output;
 }
 
-QImage** MainWindow::compress_video_preview(int Qlevel, double* psnr)
+QImage** Encoder::compress_video_preview(QImage** original, int frames, int Qlevel, double* psnr)
 {
-	QImage** original = this->video_display->getRightVideo();
 	int* vec;
 
-	int** comp = compress_video(original, vec, Qlevel);
-	QImage** output = decompress_video(comp, vec, Qlevel, original[0]->height(), original[0]->width());
+	int** comp = compress_video(original, frames, vec, Qlevel);
+	QImage** output = decompress_video(comp, frames, vec, Qlevel, original[0]->height(), original[0]->width());
 
-	for(int f = 0; f < this->frames; f++){
+	for(int f = 0; f < frames; f++){
 		free(comp[f]);
 	}
 	free(comp);
+	free(vec);
 
-	*psnr = Utility::psnr_video(original, output, this->frames);
+	*psnr = Utility::psnr_video(original, output, frames);
 //	printf("%d\t%7.4f\n",Qlevel, *psnr);
 //	fflush(stdout);
 

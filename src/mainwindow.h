@@ -132,14 +132,6 @@ private:
 	QImage* rotate_image(QImage* img, float angle);
 	QImage** rotate_video(float angle);
 
-	int* compress_image(QImage* img, float factor);
-	void decompress_image(QImage* img, int* compressed);
-	QImage* compress_preview(QImage* img, float factor, double *psnr);
-
-	int** compress_video(QImage** video, int* vecArr, int Qlevel);
-	QImage** decompress_video(int** diff, int* vecArr, int Qlevel, int height, int width);
-	QImage** compress_video_preview(int Qlevel, double *psnr);
-
 public:
 	MainWindow(bool c, QWidget *parent = 0);
 	~MainWindow();
