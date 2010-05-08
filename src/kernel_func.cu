@@ -121,11 +121,11 @@ void iwt2D_row(float* input, float* tempbank, int n, int len, int dim, dim3 numB
 
 void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 {
-	if(row%2)
+/*	if(row%2)
 		row++;
 	if(col%2)
 		col++;
-
+*/
 	dim3 numBlocks(row/8+1,col/8+1,1);
 	dim3 threadsPerBlock(8,8,4);
 	int dim = row;
@@ -159,7 +159,7 @@ void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 	CUtranspose(&output[row*col*3], &outputT[row*col*3], col,row);
 
 	fwt2D_row(output, tempbank, row*col*4, row, dim, numBlocks, threadsPerBlock, col,row);
-
+#ifdef TWODFWT
 	CUtranspose(&outputT[0],         &output[0], row,col);
 	CUtranspose(&outputT[row*col*1], &output[row*col*1], row,col);
 	CUtranspose(&outputT[row*col*2], &output[row*col*2], row,col);
@@ -173,7 +173,7 @@ void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 	CUtranspose(&output[row*col*3], &outputT[row*col*3], col,row);
 
 	fwt2D_row(output, tempbank, row*col*4, row, dim, numBlocks, threadsPerBlock, col,row);
-
+#endif
 	roundArray<<<blocks,threads>>>(outputInt, output, col, row);
 
 	cutilSafeCall(cudaFree(tempbank));
@@ -183,11 +183,11 @@ void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 
 void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 {
-	if(row%2)
+/*	if(row%2)
 		row++;
 	if(col%2)
 		col++;
-
+*/
 	dim3 numBlocks(row/8+1,col/8+1,1);
 	dim3 threadsPerBlock(8,8,4);
 	int dim = row;
@@ -212,7 +212,7 @@ void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 	CUtranspose(&inputT[row*col*3], &input[row*col*3], row,col);
 
 	iwt2D_row(inputT, tempbank,row*col*4,col,dim,numBlocks, threadsPerBlock, col,row);
-
+#ifdef TWODFWT
 	CUtranspose(&input[0]        , &inputT[0], col,row);
 	CUtranspose(&input[row*col*1], &inputT[row*col*1], col,row);
 	CUtranspose(&input[row*col*2], &inputT[row*col*2], col,row);
@@ -226,7 +226,7 @@ void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 	CUtranspose(&inputT[row*col*3], &input[row*col*3], row,col);
 
 	iwt2D_row(inputT, tempbank,row*col*4,col,dim,numBlocks, threadsPerBlock, col,row);
-
+#endif
 	UNshuffle<<<blocks,threads>>>(output, inputT, col, row);
 
 	cutilSafeCall(cudaFree(input));
