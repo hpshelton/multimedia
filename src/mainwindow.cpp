@@ -428,7 +428,7 @@ void MainWindow::compress()
 	if(accepted)
 	{
 		float factor = i.toFloat(&accepted);
-		if(accepted /**&& factor >= 0.0 && factor <= 100*/)
+		if(accepted && factor >= 0.0 && factor <= 100)
 		{
 			this->compression = factor;
 			QMainWindow* preview = new QMainWindow(this, Qt::Dialog);
@@ -627,7 +627,7 @@ bool MainWindow::saveFile()
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
 		compressionBox->setMaximum(100);
-		compressionBox->setValue(this->compression); // TODO - Only works if compression <= 100
+		compressionBox->setValue(this->compression);
 		vbox->addWidget(radio1);
 		vbox->addWidget(radio2);
 		vbox->addWidget(radio3);
