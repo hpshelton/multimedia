@@ -495,7 +495,7 @@ void MainWindow::compress()
 				double psnr = 0.0;
 				int time = 0;
 				timer.restart();
-				this->video_display->setRightVideo(compress_video_preview(factor, &psnr), -1, false);
+				this->video_display->setRightVideo(Encoder::compress_video_preview(this->video_display->getRightVideo(), this->frames, factor, &psnr), -1, false);
 				time = timer.elapsed();
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
@@ -509,7 +509,7 @@ void MainWindow::compress()
 				double psnr = 0.0;
 				int time = 0;
 				timer.restart();
-				display->setRightImage(compress_preview(this->image_display->getRightImage(), factor, &psnr));
+				display->setRightImage(Encoder::compress_image_preview(this->image_display->getRightImage(), factor, &psnr, CUDA_CAPABLE && CUDA_ENABLED));
 				time = timer.elapsed();
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
@@ -599,7 +599,7 @@ void MainWindow::openFile()
 			this->closeAction->setEnabled(true);
 			this->hasChanged = false;
 			toggleActions(true);
-			//	Encoder::test(this->file[0]);
+			Encoder::test(this->file[0]);
 		}
 		this->compression = 0;
 	}
@@ -649,10 +649,10 @@ bool MainWindow::saveFile()
 
 		QSpinBox* frame_start = new QSpinBox(dialog);
 		frame_start->setMinimum(0);
-		frame_start->setMaximum(100); // INSERT ACTUAL VIDEO LEGNTH
+		frame_start->setMaximum(this->frames);
 		QSpinBox* frame_end = new QSpinBox(dialog);
 		frame_end->setMinimum(0);
-		frame_end->setMaximum(100); // INSERT ACTUAL VIDEO LEGNTH
+		frame_end->setMaximum(this->frames);
 		vboxRight->addWidget(new QLabel("Start: ", dialog));
 		vboxRight->addWidget(frame_start);
 		vboxRight->addWidget(new QLabel("End: ", dialog));
@@ -690,9 +690,6 @@ bool MainWindow::saveFile()
 					error->exec();
 					delete error;
 				}
-				if(compression > 0)
-				{;}//					compress_video(compression);
-
 				timer.restart();
 				// write video
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
@@ -701,7 +698,7 @@ bool MainWindow::saveFile()
 			{
 				if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
 					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
-					{
+				{
 					QImage* img = this->image_display->getRightImage();
 					timer.restart();
 					img->save(fileName, 0, 100-compression);
@@ -714,18 +711,9 @@ bool MainWindow::saveFile()
 						fileName += ".ppc";
 
 					// Save picture in ppc format
-					if(compression > 0)
-					{
-						timer.restart();
-						//						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
-						this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
-					}
-					else
-					{
-						timer.restart();
-						Encoder::write_ppc(this->image_display->getRightImage(), fileName, huffman, arithmetic, runlength);
-						this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
-					}
+					timer.restart();
+					Encoder::write_ppc(this->image_display->getRightImage(), fileName, huffman, arithmetic, runlength, compression, CUDA_ENABLED && CUDA_CAPABLE);
+					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 					hasChanged = false;
 				}
 			}

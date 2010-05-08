@@ -126,9 +126,10 @@ QImage* Encoder::test(QImage* img)
 	failed = false;
 
 	return new QImage(decoded, img->width(), img->height(), QImage::Format_RGB32);
+
 }
 
-void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength)
+void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithmetic, bool runlength, int compression, bool CUDA)
 {
 	int width = img->width();
 	int height = img->height();

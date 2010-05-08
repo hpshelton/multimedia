@@ -140,6 +140,7 @@ private:
 	int* compress_image(QImage* img, float factor);
 	void decompress_image(QImage* img, int* compressed);
 	QImage* compress_preview(QImage* img, float factor, double *psnr);
+
 	int** compress_video(QImage** video, mvec*** vecArr, int Qlevel);
 	QImage** decompress_video(int** diff, mvec** vecArr, int Qlevel, int height, int width);
 	QImage** compress_video_preview(int Qlevel, double *psnr);
