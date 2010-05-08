@@ -130,10 +130,11 @@ QImage* Encoder::test(QImage* img)
 */
 
 	bool failed = false;
+	unsigned long numBytes;
 
 	printf("Run Length: ");
 	QImage* img2 = new QImage(img->width(), img->height(), QImage::Format_RGB32);
-	Decoder::decompress_image(img2, Encoder::compress_image(img, 0, false), false);
+	Decoder::decompress_image(img2, Encoder::compress_image(img, 0, false, &numBytes), false);
 	for(int i = 0; i < img->byteCount(); i++)
 	{
 		if(img->bits()[i] != img2->bits()[i])
@@ -184,8 +185,8 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	}
 	else
 	{
-		unsigned long numBytes = img->byteCount();
-		int* byte_stream = Encoder::compress_image(img, compression, CUDA); // TODO - Change 0 <= compression <= 100 into QLevel value?
+		unsigned long numBytes;
+		int* byte_stream = Encoder::compress_image(img, compression, CUDA, &numBytes); // TODO - Change 0 <= compression <= 100 into QLevel value?
 
 		if(runlength)
 			byte_stream = runlength_encode_int(byte_stream, &numBytes);

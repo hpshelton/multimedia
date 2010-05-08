@@ -18,11 +18,12 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
-int* Encoder::compress_image(QImage* img, float factor, bool CUDA)
+int* Encoder::compress_image(QImage* img, float factor, bool CUDA, unsigned long* numBytes)
 {
 	int width = img->width();
 	int height = img->height();
-	int* compressed = (int*)malloc(sizeof(int)*height*width*4);
+	*numBytes = height*width*4;
+	int* compressed = (int*)malloc(sizeof(int) * (*numBytes));
 
 	float threshold;
 	if(factor < 50)
@@ -227,7 +228,8 @@ void Decoder::decompress_image(QImage* img, int* compressed, bool CUDA)
 
 QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr, bool CUDA)
 {
-	int* compressed = compress_image(img, factor, CUDA);
+	unsigned long numBytes;
+	int* compressed = compress_image(img, factor, CUDA, &numBytes);
 
 /*	int i, zeroCoeff=0;
 	for(i=0; i < img->width()*img->height()*4; i++){

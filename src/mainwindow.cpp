@@ -599,7 +599,7 @@ void MainWindow::openFile()
 			this->closeAction->setEnabled(true);
 			this->hasChanged = false;
 			toggleActions(true);
-			Encoder::test(this->file[0]);
+		//	Encoder::test(this->file[0]);
 		}
 		this->compression = 0;
 	}

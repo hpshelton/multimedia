@@ -50,6 +50,10 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 	{
 		int* byte_stream = (int*) malloc(numBytes * sizeof(int));
 		fread(byte_stream, sizeof(int), numBytes, input);
+
+		if(runlength)
+			byte_stream = runlength_decode_int(byte_stream, &numBytes);
+
 		QImage* img = new QImage(width, height, QImage::Format_RGB32);
 		Decoder::decompress_image(img, byte_stream, CUDA);
 		return img;
