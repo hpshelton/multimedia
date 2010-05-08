@@ -36,6 +36,7 @@ extern "C" void CUsetToVal(unsigned char* x, int len, int val);
 extern "C" void CUedgeDetect(unsigned char* input, unsigned char* output, int row, int col);
 extern "C" void CUblur(unsigned char* output, unsigned char* input, int row, int col);
 extern "C" void CUbrighten(unsigned char* output, unsigned char* input, int row, int col, float factor);
+extern "C" void CUcontrast(unsigned char* output, unsigned char* input, int row, int col, float factor, float lum);
 extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row, int col);
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col);

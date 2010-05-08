@@ -112,6 +112,20 @@ __global__ void saturate(unsigned char* input, unsigned char* output, int row, i
 	}
 }
 
+__global__ void contrast(unsigned char* input, unsigned char* output, int row, int col, float factor, float lum)
+{
+	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
+	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
+	int index = (4*xIndex + yIndex * row*4);
+
+	if(index < row*col*4){
+		output[index]=CLAMP( (1-factor)*lum + factor*input[index] );
+		output[index+1]=CLAMP( (1-factor)*lum + factor*input[index+1] );
+		output[index+2]=CLAMP( (1-factor)*lum + factor*input[index+2] );
+		output[index+3]=0;
+	}
+}
+
 __global__ void predict(float* input, int n, int len, int dim, float a, int width, int height)
 {
 	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
