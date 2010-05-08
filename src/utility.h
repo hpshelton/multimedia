@@ -152,6 +152,32 @@ public:
 		}
 		return qRgb(r, g, b);
 	}
+
+	static double psnr(unsigned char* A, unsigned char* B, int len)
+	{
+		double MSE = 0;
+
+		for(int i=0; i < len; i++)
+			MSE += (A[i]-B[i])*(A[i]-B[i]);
+		MSE /=len;
+
+		return 10 * log(255*255/MSE)/log(10);
+	}
+
+	static double psnr_video(QImage** A, QImage** B, int frames)
+	{
+		double MSE = 0;
+
+		int len = A[0]->height() * A[0]->width()*4;
+
+		for(int f=0; f < frames; f++)
+			for(int i=0; i < len; i++){
+				MSE += (A[f]->bits()[i]-B[f]->bits()[i])*(A[f]->bits()[i]-B[f]->bits()[i]);
+			}
+		MSE /=(len*frames);
+
+		return 10 * log(255*255/MSE)/log(10);
+	}
 };
 
 #endif // UTILITY_H

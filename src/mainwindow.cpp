@@ -32,7 +32,7 @@ MainWindow::MainWindow(bool c, QWidget *parent)
 	QObject::connect(this->saveAction, SIGNAL(triggered()), this, SLOT(saveFile()));
 
 	this->exitAction = new QAction(tr("Exit"), this);
-	this->exitAction->setStatusTip(tr("Exit E-Level"));
+	this->exitAction->setStatusTip(tr("Exit Multimedia"));
 	this->exitAction->setShortcut(tr("Ctrl+W"));
 	QObject::connect(this->exitAction, SIGNAL(triggered()), this, SLOT(close()));
 
@@ -432,6 +432,7 @@ void MainWindow::compress()
 		{
 			this->compression = factor;
 			QMainWindow* preview = new QMainWindow(this, Qt::Dialog);
+			preview->setWindowTitle("Compression Preview");
 			QToolBar* toolbar = preview->addToolBar("Editing Actions");
 			QToolBar* videobar = preview->addToolBar("Video Controls");
 			toolbar->setFloatable(false);
@@ -469,6 +470,13 @@ void MainWindow::compress()
 			previous->setEnabled(this->video);
 			fastForward->setEnabled(this->video);
 			rewind->setEnabled(this->video);
+			QAction* timerText = new QAction("Elapsed Time: 00ms", this);
+			timerText->setDisabled(true);
+			toolbar->addAction(timerText);
+			toolbar->addSeparator();
+			QAction* psnrText = new QAction("PSNR: 00dB", this);
+			psnrText->setDisabled(true);
+			toolbar->addAction(psnrText);
 
 			if(this->video)
 			{
@@ -484,19 +492,30 @@ void MainWindow::compress()
 				QObject::connect(rewind, SIGNAL(triggered()), video_display, SLOT(rewind()));
 
 				factor = -5.12*factor+512;
+				double psnr = 0.0;
+				int time = 0;
 				timer.restart();
-				this->video_display->setRightVideo(compress_video_preview(factor), -1, false);
+				this->video_display->setRightVideo(compress_video_preview(factor, &psnr), -1, false);
+				time = timer.elapsed();
+				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
+				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
+				psnrText->setText(QString("PSNR: %1dB").arg(psnr));
 				preview->show();
 			}
 			else
 			{
 				ImageDisplay* display = new ImageDisplay(this->image_display->getLeftImage(), preview);
 				preview->setCentralWidget(display);
+				double psnr = 0.0;
+				int time = 0;
 				timer.restart();
-				display->setRightImage(compress_preview(this->image_display->getRightImage(), factor));
+				display->setRightImage(compress_preview(this->image_display->getRightImage(), factor, &psnr));
+				time = timer.elapsed();
+				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
+				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
+				psnrText->setText(QString("PSNR: %1dB").arg(psnr));
 				preview->show();
 			}
-			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -581,7 +600,7 @@ void MainWindow::openFile()
 			this->hasChanged = false;
 			toggleActions(true);
 			//	Encoder::test(this->file[0]);
-		}		
+		}
 		this->compression = 0;
 	}
 }
@@ -672,7 +691,7 @@ bool MainWindow::saveFile()
 					delete error;
 				}
 				if(compression > 0)
-{;}//					compress_video(compression);
+				{;}//					compress_video(compression);
 
 				timer.restart();
 				// write video
@@ -682,7 +701,7 @@ bool MainWindow::saveFile()
 			{
 				if(fileName.endsWith(".jpg") || fileName.endsWith(".jpeg") || fileName.endsWith(".bmp")
 					|| fileName.endsWith(".tif") || fileName.endsWith(".tiff" ))
-				{
+					{
 					QImage* img = this->image_display->getRightImage();
 					timer.restart();
 					img->save(fileName, 0, 100-compression);
@@ -698,7 +717,7 @@ bool MainWindow::saveFile()
 					if(compression > 0)
 					{
 						timer.restart();
-//						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
+						//						Encoder::write_ppc(compress_image(compression), fileName, huffman, arithmetic, runlength);
 						this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 					}
 					else

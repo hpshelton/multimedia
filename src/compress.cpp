@@ -17,8 +17,6 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
-#define E 2.71828183
-
 int* MainWindow::compress_image(QImage* img, float factor)
 {
 	int width = img->width();
@@ -226,18 +224,7 @@ void MainWindow::decompress_image(QImage* img, int* compressed)
 	}
 }
 
-double psnr(unsigned char* A, unsigned char* B, int len)
-{
-	double MSE = 0;
-
-	for(int i=0; i < len; i++)
-		MSE += (A[i]-B[i])*(A[i]-B[i]);
-	MSE /=len;
-
-	return 10 * log(255*255/MSE)/log(10);
-}
-
-QImage* MainWindow::compress_preview(QImage* img, float factor)
+QImage* MainWindow::compress_preview(QImage* img, float factor, double* psnr)
 {
 	int* compressed = compress_image(img, factor);
 
@@ -251,10 +238,10 @@ QImage* MainWindow::compress_preview(QImage* img, float factor)
 	decompress_image(img, compressed);
 	free(compressed);
 
-	double PSNR = psnr(img->bits(), this->image_display->getLeftImage()->bits(), img->byteCount());
+	*psnr = Utility::psnr(img->bits(), this->image_display->getLeftImage()->bits(), img->byteCount());
 
-	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, PSNR);
-	fflush(stdout);
+//	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, *psnr);
+//	fflush(stdout);
 
 	return img;
 }
@@ -374,22 +361,7 @@ QImage** MainWindow::decompress_video(int** diff, int* vecArr, int Qlevel, int h
 	return output;
 }
 
-double psnr_video(QImage** A, QImage** B, int frames)
-{
-	double MSE = 0;
-
-	int len = A[0]->height() * A[0]->width()*4;
-
-	for(int f=0; f < frames; f++)
-		for(int i=0; i < len; i++){
-			MSE += (A[f]->bits()[i]-B[f]->bits()[i])*(A[f]->bits()[i]-B[f]->bits()[i]);
-		}
-	MSE /=(len*frames);
-
-	return 10 * log(255*255/MSE)/log(10);
-}
-
-QImage** MainWindow::compress_video_preview(int Qlevel)
+QImage** MainWindow::compress_video_preview(int Qlevel, double* psnr)
 {
 	QImage** original = this->video_display->getRightVideo();
 	int* vec;
@@ -402,9 +374,9 @@ QImage** MainWindow::compress_video_preview(int Qlevel)
 	}
 	free(comp);
 
-	double psnr = psnr_video(original, output, this->frames);
-	printf("%d\t%7.4f\n",Qlevel,psnr);
-	fflush(stdout);
+	*psnr = Utility::psnr_video(original, output, this->frames);
+//	printf("%d\t%7.4f\n",Qlevel, *psnr);
+//	fflush(stdout);
 
 	return output;
 }
