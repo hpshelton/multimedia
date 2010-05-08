@@ -1,5 +1,6 @@
 #include "encoder.h"
 #include "decoder.h"
+#include "limits.h"
 
 unsigned char* Encoder::runlength_encode(unsigned char* image, unsigned long* numBytes)
 {
@@ -54,9 +55,9 @@ int* Encoder::runlength_encode_int(int* image, unsigned long* numBytes)
 		if(image[i] == previous_symbol)
 		{
 			count++;
-			if(count == 257)
+			if(count == INT_MAX)
 			{
-				byte_stream[index++] = 255;
+				byte_stream[index++] = INT_MAX - 2;
 				count = 0;
 			}
 			else if(count < 3)
@@ -120,7 +121,7 @@ unsigned char* Decoder::runlength_decode(unsigned char* image, unsigned long* nu
 
 int* Decoder::runlength_decode_int(int* image, unsigned long* numBytes)
 {
-	int* byte_stream = (int*) malloc(*numBytes * 260 * sizeof(int));
+	int* byte_stream = (int*) malloc(*numBytes * INT_MAX * sizeof(int));
 	int previous_symbol = image[0];
 	byte_stream[0] = previous_symbol;
 	int index = 1;
