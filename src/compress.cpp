@@ -30,7 +30,7 @@ int* Encoder::compress_image(QImage* img, float compresion, bool CUDA, unsigned 
 	if(compression < 50)
 		threshold = 0;
 	else if(compression < 77.703568)
-		threshold = 0.000116*pow(factor,3) - 0.019118*pow(compression,2) + 1.108995*compression - 21.184998;
+		threshold = 0.000116*pow(compression,3) - 0.019118*pow(compression,2) + 1.108995*compression - 21.184998;
 	else if(compression < 91.641708)
 		/*PROBLEM*/
 		threshold = 0.000046386058562*pow(compression,6)-0.023471363133066*pow(compression,5)+4.94695855894703*pow(compression,4)-555.891027747718*pow(compression,3)+35124.430525745*pow(compression,2)-1183223.56408731*compression+16601453.5673362;
@@ -41,7 +41,7 @@ int* Encoder::compress_image(QImage* img, float compresion, bool CUDA, unsigned 
 	else if(compression < 98.455238)
 		threshold = 0.0000000000320307431396312 * pow(E,0.315611691031623*compression);
 	else
-		threshold = 1.053774*factor - 3.773881;
+		threshold = 1.053774*compression - 3.773881;
 #else
 	if(compresion < 19.4963201)
 		threshold = 0;
