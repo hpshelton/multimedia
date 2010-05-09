@@ -280,14 +280,16 @@ mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int 
 	cutilSafeCall(cudaMemcpy(CUprevImg, prevImg, sizeof(short int)*height*width*4, cudaMemcpyDeviceToHost));
 	cutilSafeCall(cudaMemcpy(CUcurrImg, currImg, sizeof(short int)*height*width*4, cudaMemcpyDeviceToHost));
 
-	mvec* CUallmvecs;
-	cutilSafeCall(cudaMalloc((void**)&CUallmvecs, sizeof(mvec)*blockDimX*blockDimY*484));
+    mvec** CUallmvecs;
+    cutilSafeCall(cudaMalloc((void**)&CUallmvecs, sizeof(mvec*)*blockDimX*blockDimY));
+    for(int i=0; i < blockDimX*blockDimY; i++)
+        cutilSafeCall(cudaMalloc((void**)&CUallmvecs[i], sizeof(mvec)*484));
 
 	dim3 blockSize(blockDimX, blockDimY); // each motion vector gets its own block
 	dim3 threadSize(22,22);				  // each block has enough thread for each vector (8+8+8-2)^2
 
 	// calculate all blockDimX*blockDimY*484 mvecs
-    findAllvecs<<<blockSize,threadSize>>>(CUallmvecs, CUprevImg, CUcurrImg, height, width);
+    findAllvecs<<<blockSize,threadSize>>>(&CUallmvecs, CUprevImg, CUcurrImg, height, width);
 
 	// reduce each block
 
