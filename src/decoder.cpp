@@ -31,6 +31,7 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 		double* double_stream = (double*) malloc(numBytes * sizeof(double));
 		fread(double_stream, sizeof(double), numBytes, input);
 		byte_stream = arithmetic_decode(double_stream, &numBytes);
+		free(double_stream);
 	}
 	fclose(input);
 
@@ -45,6 +46,9 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 
 	QImage* img = new QImage(width, height, QImage::Format_RGB32);
 	Decoder::decompress_image(img, int_stream, CUDA);
+
+	free(byte_stream);
+	free(int_stream);
 	return img;
 }
 

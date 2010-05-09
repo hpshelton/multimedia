@@ -166,8 +166,12 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	if(arithmetic)
 		fwrite(arithmetic_stream, sizeof(double), numBytes, output);
 	else
-		fwrite(byte_stream, sizeof(int), numBytes, output);
+		fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
 	fclose(output);
+
+	free(arithmetic_stream);
+	free(int_stream);
+	free(byte_stream);
 }
 
 void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression)

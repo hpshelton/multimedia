@@ -139,7 +139,6 @@ int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned
 		free(tempbank);
 		free(input);
 	}
-
 	return compressed;
 }
 
