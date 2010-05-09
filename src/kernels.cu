@@ -325,20 +325,30 @@ template <class T> __global__ void reduce3(T *g_idata, T *g_odata, unsigned int 
 	if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
-__global__ void findAllvecs(mvec* vecOut, short int* prevImg, unsigned char* currImg, int height, int width)
+__global__ void findAllvecs(mvec*** vecOutP, short int* prevImg, unsigned char* currImg, int height, int width)
 {
+    int xIndex, yIndex, shiftedXIndex, shiftedYIndex;
     int xOffset = 4*(threadIdx.x-7);
     int yOffset = threadIdx.y-7;
     int xBlock = 8 * blockIdx.x * 4;
     int yBlock = 8 * blockIdx.y;
-/*
-    vecOut[].x = xOffset;
-    vecOut[].y = yOffset;
-    for(int i=0; i < 8; i++){
+
+    int blockIndex = blockIdx.x + blockIdx.y * CEIL(width/8);
+    int threadIndex = threadIdx.x + threadIdx.y * 22;
+
+    (*vecOutP)[blockIndex][threadIndex].x = xOffset;
+    (*vecOutP)[blockIndex][threadIndex].y = yOffset;
+    for(int i=0; i < 32; i++){
         for(int j=0; j < 8; j++){
-            vecOut[].diff += 0;
+            shiftedXIndex = xBlock + i + xOffset;
+            shiftedYIndex = yBlock + j + yOffset;
+            xIndex = xBlock + i;
+            yIndex = yBlock + j;
+
+            if(shiftedXIndex < 0 || shiftedXIndex >= width*4 || shiftedYIndex < 0 || shiftedYIndex >= height)
+                (*vecOutP)[blockIndex][threadIndex].diff +=     currImg[xIndex + yIndex * width*4];
+            else
+                (*vecOutP)[blockIndex][threadIndex].diff += abs(currImg[xIndex + yIndex * width*4] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
         }
     }
-*/
-
 }
