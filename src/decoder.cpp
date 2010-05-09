@@ -20,54 +20,6 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 	mode /= 2;
 	bool runlength = (mode % 2 == 1);
 
-//	if(compression == 0)
-//	{
-//		unsigned char* byte_stream;
-//		double* double_stream;
-//		if(!arithmetic)
-//		{
-//			byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
-//			fread(byte_stream, sizeof(unsigned char), numBytes, input);
-//		}
-//		else
-//		{
-//			double_stream = (double*) malloc(numBytes * sizeof(double));
-//			fread(double_stream, sizeof(double), numBytes, input);
-//			byte_stream = arithmetic_decode(double_stream, &numBytes);
-//		}
-//		fclose(input);
-//
-//		if(huffman)
-//			byte_stream = huffman_decode(byte_stream, &numBytes);
-//		if(runlength)
-//			byte_stream = runlength_decode(byte_stream, &numBytes);
-//
-//		return new QImage(byte_stream, width, height, QImage::Format_RGB32);
-//	}
-//	else
-//	{
-//		int* byte_stream;
-//		if(!arithmetic)
-//		{
-//			byte_stream = (int*) malloc(numBytes * sizeof(int));
-//			fread(byte_stream, sizeof(int), numBytes, input);
-//		}
-//		else
-//		{
-//			double* double_stream = (double*) malloc(numBytes * sizeof(double));
-//			fread(double_stream, sizeof(double), numBytes, input);
-//			byte_stream = arithmetic_decode_int(double_stream, &numBytes);
-//		}
-//		fclose(input);
-//
-////		if(runlength)
-////			byte_stream = runlength_decode_int(byte_stream, &numBytes);
-//
-//		QImage* img = new QImage(width, height, QImage::Format_RGB32);
-//		Decoder::decompress_image(img, byte_stream, CUDA);
-//		return img;
-//	}
-
 	unsigned char* byte_stream;
 	if(!arithmetic)
 	{
@@ -228,5 +180,47 @@ QImage** Decoder::read_cif(QString filename, int* frame_num)
 	}
 	fclose(video);
 	return frames;
+}
+
+QImage** Decoder::read_pvc(QString filename, int* frames)
+{
+	int width = 0, height = 0, compression = 0;
+	FILE* input;
+
+	// Open and read file
+	if(!(input = fopen(filename.toStdString().c_str(), "r")))
+	{
+		std::cerr << "Failed to open " << filename.toStdString() << " for reading\n";
+		return NULL;
+	}
+	fscanf(input, "%d %d %d %d ", &width, &height, frames, &compression);
+
+	short* linearMotionVectors = (short*) malloc(*frames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2); // Assumes < 33,000
+	int** residuals = (int**) malloc(*frames * width * height * 4 * sizeof(int*));
+
+	fread(linearMotionVectors, sizeof(short), *frames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2, input);
+	for(int f = 0; f < *frames; f++)
+	{
+		residuals[f] = (int*) malloc(width*height*4*sizeof(int));
+		fread(residuals[f], sizeof(int), width*height*4, input);
+	}
+	fclose(input);
+
+	//Convert motion vectors to block format
+	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
+	int index = 0;
+	for(int f = 0; f < *frames; f++)
+	{
+		motionVectors[f] = (mvec*)malloc(sizeof(mvec) * CEIL(width/8.0) * CEIL(height/8.0));
+		for(int i = 0; i < CEIL(width/8.0) * CEIL(height/8.0); i++)
+		{
+			mvec v;
+			v.x = linearMotionVectors[index++];
+			v.y = linearMotionVectors[index++];
+			motionVectors[f][i] = v;
+		}
+	}
+
+	return Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width);
 }
 

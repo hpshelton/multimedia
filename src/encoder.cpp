@@ -143,7 +143,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		return;
 	}
 
-	int* int_stream = Encoder::compress_image(img, compression, CUDA, &numBytes); // TODO - Change 0 <= compression <= 100 into QLevel value?
+	int* int_stream = Encoder::compress_image(img, compression, CUDA, &numBytes);
 	unsigned char* byte_stream = (unsigned char*) malloc(numBytes * 2 * sizeof(unsigned char));
 	for(unsigned int i = 0; i < numBytes; i++)
 	{
@@ -165,5 +165,41 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 		fwrite(arithmetic_stream, sizeof(double), numBytes, output);
 	else
 		fwrite(byte_stream, sizeof(int), numBytes, output);
+	fclose(output);
+}
+
+void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression)
+{
+	int width = video[0]->width();
+	int height = video[0]->height();
+	int numFrames = end_frame - start_frame + 1;
+
+	FILE* output;
+	if(!(output = fopen(filename.toStdString().c_str(), "w")))
+	{
+		std::cerr << "Failed to open " << filename.toStdString() << " for writing\n";
+		return;
+	}
+
+	mvec** motionVectors;
+	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression); // Probably needs to be char
+
+	// Linearize motion vectors for write
+	short* linearMotionVectors = (short*) malloc(numFrames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2); // Assumes < 33,000
+	int index = 0;
+	for(int f = 0; f < numFrames; f++)
+	{
+		for(int i = 0; i < CEIL(width/8.0) * CEIL(height/8.0); i++)
+		{
+			mvec v = motionVectors[f][i];
+			linearMotionVectors[index++] = (short)v.x;
+			linearMotionVectors[index++] = (short)v.y;
+		}
+	}
+
+	fprintf(output, "%d %d %d %d ", width, height, numFrames, compression);
+	fwrite(linearMotionVectors, sizeof(short), numFrames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2, output);
+	for(int f = 0; f < numFrames; f++)
+		fwrite(residuals[f], sizeof(int), width*height*4, output);
 	fclose(output);
 }

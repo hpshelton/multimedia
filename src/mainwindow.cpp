@@ -491,11 +491,10 @@ void MainWindow::compress()
 				QObject::connect(fastForward, SIGNAL(triggered()), video_display, SLOT(fastForward()));
 				QObject::connect(rewind, SIGNAL(triggered()), video_display, SLOT(rewind()));
 
-				factor = -5.12*factor+512;
 				double psnr = 0.0;
 				int time = 0;
 				timer.restart();
-				video_display->setRightVideo(Encoder::compress_video_preview(this->video_display->getRightVideo(), this->frames, factor, &psnr), -1, false);
+				video_display->setRightVideo(Encoder::compress_video_preview(this->video_display->getRightVideo(), 0, this->frames-1, factor, &psnr), -1, false);
 				time = timer.elapsed();
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
@@ -532,7 +531,7 @@ void MainWindow::compress()
 void MainWindow::openFile()
 {
 	closeFile();
-	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.jpg *.jpeg *.bmp *.gif *.tif *.tiff *.qcif *.cif *.ppc");
+	QString fileName = QFileDialog::getOpenFileName(this, "Select a file to open", "/", "*.pgm *.jpg *.jpeg *.bmp *.gif *.tif *.tiff *.qcif *.cif *.ppc *.pvc");
 	if(!fileName.isEmpty())
 	{
 		if(fileName.endsWith(".qcif"))
@@ -541,7 +540,6 @@ void MainWindow::openFile()
 			timer.restart();
 			this->file = Decoder::read_qcif(fileName, &(this->frames));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
-			printf("QCIF Video Decoder Finished\n");
 		}
 		else if(fileName.endsWith(".cif"))
 		{
@@ -549,7 +547,13 @@ void MainWindow::openFile()
 			timer.restart();
 			this->file = Decoder::read_cif(fileName, &(this->frames));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
-			printf("CIF Video Decoder Finished\n");
+		}
+		else if(fileName.endsWith(".pvc"))
+		{
+			this->video = true;
+			timer.restart();
+			this->file = Decoder::read_pvc(fileName, &(this->frames));
+			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
 		{
@@ -649,10 +653,11 @@ bool MainWindow::saveFile()
 
 		QSpinBox* frame_start = new QSpinBox(dialog);
 		frame_start->setMinimum(0);
-		frame_start->setMaximum(this->frames);
+		frame_start->setMaximum(this->frames-1);
 		QSpinBox* frame_end = new QSpinBox(dialog);
 		frame_end->setMinimum(0);
-		frame_end->setMaximum(this->frames);
+		frame_end->setMaximum(this->frames-1);
+		frame_end->setValue(this->frames-1);
 		vboxRight->addWidget(new QLabel("Start: ", dialog));
 		vboxRight->addWidget(frame_start);
 		vboxRight->addWidget(new QLabel("End: ", dialog));
@@ -681,7 +686,7 @@ bool MainWindow::saveFile()
 				// Save video
 				int start_frame = frame_start->text().toInt();
 				int end_frame = frame_end->text().toInt();
-				if(end_frame < start_frame || start_frame < 0 || end_frame > this->frames)
+				if(end_frame < start_frame || start_frame < 0 || end_frame > this->frames-1)
 				{
 					QMessageBox* error = new QMessageBox(this);
 					error->setText("Invalid Frame Settings!                         ");
@@ -690,9 +695,15 @@ bool MainWindow::saveFile()
 					error->exec();
 					delete error;
 				}
-				timer.restart();
-				// write video
-				this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+				else
+				{
+					if(!fileName.endsWith(".pvc"))
+						fileName += ".pvc";
+
+					timer.restart();
+					Encoder::write_pvc(this->video_display->getRightVideo(), fileName, start_frame, end_frame, compression/*, CUDA_CAPABLE && CUDA_ENABLED*/);
+					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+				}
 			}
 			else
 			{
