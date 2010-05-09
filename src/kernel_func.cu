@@ -15,6 +15,8 @@ extern "C" void CUgreyscale(unsigned char* output, unsigned char* input, int row
 extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row, int col, float factor);
 extern "C" void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col);
 extern "C" void CUiwt97_2D_rgba(unsigned char* output, int* input, int row, int col);
+extern "C" void CUreduce(int size, mvec *d_idata, mvec *d_odata);
+extern "C" mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int width);
 
 void CUquantize(float* x, int Qlevel, int maxval, int len)
 {
@@ -240,4 +242,58 @@ void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 	cutilSafeCall(cudaFree(input));
 	cutilSafeCall(cudaFree(inputT));
 	cutilSafeCall(cudaFree(tempbank));
+}
+
+unsigned int nextPow2( unsigned int x ) {
+	--x;
+	x |= x >> 1;
+	x |= x >> 2;
+	x |= x >> 4;
+	x |= x >> 8;
+	x |= x >> 16;
+	return ++x;
+}
+
+void CUreduce(int size, mvec *d_idata, mvec *d_odata)
+{
+	int n = size;
+	int maxThreads = 512;
+	int threads = (n < maxThreads*2) ? nextPow2((n + 1)/ 2) : maxThreads;
+	int blocks = (n + (threads * 2 - 1)) / (threads * 2);
+
+	dim3 dimBlock(threads, 1, 1);
+	dim3 dimGrid(blocks, 1, 1);
+	int smemSize = (threads <= 32) ? 2 * threads * sizeof(mvec) : threads * sizeof(mvec);
+	reduce3<mvec><<< dimGrid, dimBlock, smemSize >>>(d_idata, d_odata, size);
+}
+
+mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int width)
+{
+	int blockDimX = CEIL(width/8.0f);
+	int blockDimY = CEIL(height/8.0f);
+	mvec* vecs = (mvec*)malloc(sizeof(mvec) * blockDimX * blockDimY );
+
+	short int* CUprevImg;
+	unsigned char* CUcurrImg;
+	cutilSafeCall(cudaMalloc((void**)&CUprevImg, sizeof(short int)*height*width*4));
+	cutilSafeCall(cudaMalloc((void**)&CUcurrImg, sizeof(short int)*height*width*4));
+	cutilSafeCall(cudaMemcpy(CUprevImg, prevImg, sizeof(short int)*height*width*4, cudaMemcpyDeviceToHost));
+	cutilSafeCall(cudaMemcpy(CUcurrImg, currImg, sizeof(short int)*height*width*4, cudaMemcpyDeviceToHost));
+
+	mvec* CUallmvecs;
+	cutilSafeCall(cudaMalloc((void**)&CUallmvecs, sizeof(mvec)*blockDimX*blockDimY*484));
+
+	dim3 blockSize(blockDimX, blockDimY); // each motion vector gets its own block
+	dim3 threadSize(22,22);				  // each block has enough thread for each vector (8+8+8-2)^2
+
+	// calculate all blockDimX*blockDimY*484 mvecs
+
+	// reduce each block
+
+	// move reduced values to CPU
+
+	cutilSafeCall(cudaFree(CUallmvecs));
+	cutilSafeCall(cudaFree(CUprevImg));
+	cutilSafeCall(cudaFree(CUcurrImg));
+	return vecs;
 }

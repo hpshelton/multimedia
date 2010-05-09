@@ -12,22 +12,25 @@ void RoundArray(int* out, float* in, int len)
 
 void intToFloat(float* out, int* in, int len)
 {
-	for(int i = 0; i < len; i++)
+	int i;
+	for(i=0; i < len; i++){
 		out[i] = in[i];
+	}
 }
 
-int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned long* numBytes)
+int* Encoder::compress_image(QImage* img, float compresion, bool CUDA, unsigned long* numBytes)
 {
 	int width = img->width();
 	int height = img->height();
 	*numBytes = height*width*4;
 	int* compressed = (int*)malloc(sizeof(int) * (*numBytes));
-
 	float threshold;
+
+#ifdef TWODFWT
 	if(compression < 50)
 		threshold = 0;
 	else if(compression < 77.703568)
-		threshold = 0.000116*pow(compression,3) - 0.019118*pow(compression,2) + 1.108995*compression - 21.184998;
+		threshold = 0.000116*pow(factor,3) - 0.019118*pow(compression,2) + 1.108995*compression - 21.184998;
 	else if(compression < 91.641708)
 		/*PROBLEM*/
 		threshold = 0.000046386058562*pow(compression,6)-0.023471363133066*pow(compression,5)+4.94695855894703*pow(compression,4)-555.891027747718*pow(compression,3)+35124.430525745*pow(compression,2)-1183223.56408731*compression+16601453.5673362;
@@ -38,25 +41,22 @@ int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned
 	else if(compression < 98.455238)
 		threshold = 0.0000000000320307431396312 * pow(E,0.315611691031623*compression);
 	else
-		threshold = 1.053774*compression - 3.773881;
-
-//	printf("%f\t",threshold);
-
-
-
-/*	if(factor < 19.4963201)
+		threshold = 1.053774*factor - 3.773881;
+#else
+	if(compresion < 19.4963201)
 		threshold = 0;
-	else if(factor <=52.7)
-		threshold = factor*0.045110 - 0.879479;
-	else if(factor < 68.29137)
-		threshold = 0.000119492*pow(factor,4) - 0.027802576*pow(factor,3) + 2.423869094*pow(factor,2) - 93.736255939*factor + 1357.202193038;
-	else if(factor < 74.8286)
-		threshold = 0.8706*pow(factor,3) - 186.71*pow(factor,2) + 13348*factor - 318066;
-	else if(factor < 90.20755)
-		threshold = 4E-13 * pow(factor,7.5976);
+	else if(compresion <= 52.7)
+		threshold = compresion*0.045110 - 0.879479;
+	else if(compresion < 68.29137)
+		threshold = 0.000119492*pow(compresion,4) - 0.027802576*pow(compresion,3) + 2.423869094*pow(compresion,2) - 93.736255939*compresion + 1357.202193038;
+	else if(compresion < 74.8286)
+		threshold = 0.8706*pow(compresion,3) - 186.71*pow(compresion,2) + 13348*compresion - 318066;
+	else if(compresion < 90.20755)
+		threshold = 4E-13 * pow(compresion,7.5976);
 	else
-		threshold = 24.860132*factor- 1956.0132;
-*/
+		threshold = 24.860132*compresion- 1956.0132;
+#endif
+
 	if(CUDA)
 	{
 		unsigned char* CUinput;
@@ -259,34 +259,42 @@ QImage* Encoder::compress_image_preview(QImage* img, float compression, double* 
 mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int yOffset, int height, int width)
 {
 	xOffset = xOffset*4; // for rgba
-	int i, j, k, l, m, xIndex, yIndex, diff, minDiff= INT_MAX;
+	int i, j, k, l, xIndex, yIndex, diff, minDiff= INT_MAX;
 	mvec vec;
-	for(i=-7; i < 8; i++){
-		i*=4;
+	for(i=-28; i < 32; i+=4){
 		for(j=-7; j < 8; j++){
 			diff=0;
-			for(k=0; k < 8; k++){
+			for(k=0; k < 32; k++){
 				for(l=0; l < 8; l++){
-					for(m = 0; m < 4; m++){
-						xIndex = xOffset + i + k + m;
-						yIndex = yOffset + j + l;
-						if(xIndex < 0 || xIndex >= width || yIndex < 0 || yIndex >= height)
-/**invalid read*/			diff += currImg[xIndex+m + yIndex * width];
-						else
-							diff += abs(currImg[xIndex+m + yIndex * width] - prevImg[xOffset+k + m + (yOffset+l)*width]);
-					}
+					xIndex = xOffset + i + k;
+					yIndex = yOffset + j + l;
+					if(xIndex < 0 || xIndex >= width*4 || yIndex < 0 || yIndex >= height)
+						diff +=     currImg[xOffset+k + (yOffset+l)*width*4];
+					else
+						diff += abs(currImg[xOffset+k + (yOffset+l)*width*4] - prevImg[xIndex + yIndex * width*4]);
 				}
 			}
+
 			if(diff < minDiff){
-				i/=4;
 				minDiff = diff;
 				vec.x = i;
 				vec.y = j;
-				i*=4;
+			}
+			else if(diff == minDiff){
+				if(sqrt(i*i + j*j) < sqrt(vec.x*vec.x + vec.y*vec.y)){
+					vec.x = i;
+					vec.y = j;
+				}
 			}
 		}
-		i/=4;
 	}
+
+//	printf("%d\n",sameDiff);
+//	if(sameDiff>16)
+//		printf("%d\t%d\n",xOffset, yOffset);
+//	printf("mindiff: %d\t%d\t%d\n\n",minDiff, vec.x, vec.y);
+//	vec.x = 0;
+//	vec.y = 0;
 	return vec;
 }
 
@@ -317,7 +325,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	mvec** vecArr = *vecArrP;
 
 	int** diff = (int**)malloc(sizeof(int*)*frames);
-	for(int f = 0; f <= frames; f++)
+	for(int f = 0; f < frames; f++)
 		diff[f] = (int*)malloc(sizeof(int)*width*height*4);
 
 	short int* d = (short int*)malloc(sizeof(short int)*width*height*4);
@@ -332,19 +340,18 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 
 	int xVec;
 	int yVec;
-	for(int i = 0; i < frames; i++)
-	{
-		unsigned char* frame_bits = original[start_frame + i]->bits(); // Offset the encoding to start frame
-		vecArr[i] = motVecFrame(xHatPrev, frame_bits, height, width);
+	for(int i = 0; i < frames; i++){
+		unsigned char* frame_bytes =  original[i + start_frame]->bits();
+		vecArr[i] = motVecFrame(xHatPrev, frame_bytes, height, width);
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
 				yVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].y;
-				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec*4) < 0 ||(k+xVec*4)/4 >=width)
-					diff [i][k + j*width*4] = floor(((frame_bits[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec) < 0 ||(k+xVec)/4 >=width)
+					diff [i][k + j*width*4] = floor(((frame_bytes[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
 				else
-					diff [i][k + j*width*4] = floor(((frame_bits[k + j*width*4] - xHatPrev[(k+xVec*4) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
-				d       [k + j*width*4] = frame_bits[k + j*width*4] - xHatPrev[k + j*width*4];
+					diff [i][k + j*width*4] = floor(((frame_bytes[k + j*width*4] - xHatPrev[(k+xVec) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+				d       [k + j*width*4] = frame_bytes[k + j*width*4] - xHatPrev[k + j*width*4];
 				dHat    [k + j*width*4] = round( floor((d[k + j*width*4]/(float)NUM_SYMBOLS)*Qlevel) * (NUM_SYMBOLS/(float)Qlevel));
 				xHatPrev[k + j*width*4] = dHat[k + j*width*4] + xHatPrev[k + j*width*4];
 			}
@@ -362,9 +369,10 @@ QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float 
 {
 	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
 
+	/* might be leaing memory on output mallocs */
 	QImage** output = (QImage**) malloc(frames * sizeof(QImage*));
 	for(int f = 0; f < frames; f++){
-		output[f] = new QImage(width, height, QImage::Format_RGB32);
+		output[f] = new QImage(width, height, QImage::Format_ARGB32);
 	}
 
 	unsigned char* prevFrame = (unsigned char*)malloc(sizeof(unsigned char)*height*width*4);
@@ -383,10 +391,10 @@ QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float 
 				yVec = vecArr[i][((int)j/8 + (int)k/32 * CEIL(height/8))].y;
 
 
-				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec*4) < 0 ||(k+xVec*4)/4 >=width)
+				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec) < 0 ||(k+xVec)/4 >=width)
 					prevFrame[k + j*width*4] = CLAMP(round((diff[i][k + j*width*4] / (float)Qlevel) *NUM_SYMBOLS));
 				else
-					prevFrame[k + j*width*4] = CLAMP(prevFrame[(k+xVec*4) + (j+yVec)*width*4] + round((diff[i][k + j*width*4] / (float)Qlevel) *NUM_SYMBOLS));
+					prevFrame[k + j*width*4] = CLAMP(prevFrame[(k+xVec) + (j+yVec)*width*4] + round((diff[i][k + j*width*4] / (float)Qlevel) *NUM_SYMBOLS));
 			}
 		}
 		memcpy(output[i]->bits(), prevFrame, output[i]->byteCount());
@@ -404,10 +412,12 @@ QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int
 	int** comp = compress_video(original, start_frame, end_frame, &vec, compression);
 	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width());
 
-	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
-	printf("PCT_ZEROS: %7.4f\n", pctZeros);
+//	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
+//	printf("PCT_ZEROS: %7.4f\n", pctZeros);
+/*    double avgval = Utility::avg_val(comp, frames, original[0]->height()*original[0]->width()*4);
+	printf("AVG_VAL: %f\n",avgval);
 	fflush(stdout);
-
+*/
 	for(int f = 0; f < frames; f++) {
 		free(vec[f]);
 		free(comp[f]);
@@ -416,8 +426,6 @@ QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int
 	free(vec);
 
 	*psnr = Utility::psnr_video(original, output, frames);
-//	printf("%d\t%7.4f\n",Qlevel, *psnr);
-//	fflush(stdout);
 
 	return output;
 }
