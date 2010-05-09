@@ -342,16 +342,17 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	int xVec;
 	int yVec;
 	for(int i=0; i < frames; i++){
-		vecArr[i] = motVecFrame(xHatPrev, original[i]->bits(), height, width);
+		unsigned char* frame_bits = original[i + start_frame]->bits();
+		vecArr[i] = motVecFrame(xHatPrev, frame_bits, height, width);
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
 				yVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].y;
 				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec) < 0 ||(k+xVec)/4 >=width)
-					diff [i][k + j*width*4] = floor(((original[i]->bits()[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+					diff [i][k + j*width*4] = floor(((frame_bits[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
 				else
-					diff [i][k + j*width*4] = floor(((original[i]->bits()[k + j*width*4] - xHatPrev[(k+xVec) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
-				d       [k + j*width*4] = original[i]->bits()[k + j*width*4] - xHatPrev[k + j*width*4];
+					diff [i][k + j*width*4] = floor(((frame_bits[k + j*width*4] - xHatPrev[(k+xVec) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+				d       [k + j*width*4] = frame_bits[k + j*width*4] - xHatPrev[k + j*width*4];
 				dHat    [k + j*width*4] = round( floor((d[k + j*width*4]/(float)NUM_SYMBOLS)*Qlevel) * (NUM_SYMBOLS/(float)Qlevel));
 				xHatPrev[k + j*width*4] = dHat[k + j*width*4] + xHatPrev[k + j*width*4];
 			}
