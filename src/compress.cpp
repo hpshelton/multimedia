@@ -12,10 +12,8 @@ void RoundArray(int* out, float* in, int len)
 
 void intToFloat(float* out, int* in, int len)
 {
-	int i;
-	for(i=0; i < len; i++){
+	for(int i = 0; i < len; i++)
 		out[i] = in[i];
-	}
 }
 
 int* Encoder::compress_image(QImage* img, float factor, bool CUDA, unsigned long* numBytes)

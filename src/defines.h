@@ -22,6 +22,6 @@
 
 #define PI 3.14159265358979
 #define E 2.71828183
-#define ARITH_BREAK 1000
+#define ARITH_BREAK 10000
 
 #endif // DEFINES_H

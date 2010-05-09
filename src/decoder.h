@@ -18,13 +18,8 @@ public:
 	static QImage** read_qcif(QString filename, int* num_frames);
 
 	static unsigned char* huffman_decode(unsigned char* bitstream, unsigned long* numBytes);
-	static int* huffman_decode(int* bitstream, unsigned long* numBytes);
-
 	static unsigned char* runlength_decode(unsigned char* bitstream, unsigned long* numBytes);
-	static int* runlength_decode_int(int* bitstream, unsigned long* numBytes);
-
-	static unsigned char* arithmetic_decode(double* bitstream, unsigned long* numBytes, int breakpoint);
-	static int* arithmetic_decode_int(double* bitstream, unsigned long* numBytes);
+	static unsigned char* arithmetic_decode(double* bitstream, unsigned long* numBytes);
 
 	static void decompress_image(QImage* img, int* compressed, bool CUDA);
 	static QImage** decompress_video(int** diff, int frames, mvec** vecArr, int Qlevel, int height, int width);

@@ -12,7 +12,7 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 		std::cerr << "Failed to open " << filename.toStdString() << " for reading\n";
 		return NULL;
 	}
-	fscanf(input, "%d %d %d %lu %d", &mode, &width, &height, &numBytes, &compression);
+	fscanf(input, "%d %d %d %lu %d ", &mode, &width, &height, &numBytes, &compression);
 
 	bool arithmetic = (mode % 2 == 1);
 	mode /= 2;
@@ -78,7 +78,7 @@ QImage* Decoder::read_ppc(QString filename, bool CUDA)
 	{
 		double* double_stream = (double*) malloc(numBytes * sizeof(double));
 		fread(double_stream, sizeof(double), numBytes, input);
-		byte_stream = arithmetic_decode(double_stream, &numBytes, ARITH_BREAK);
+		byte_stream = arithmetic_decode(double_stream, &numBytes);
 	}
 	fclose(input);
 

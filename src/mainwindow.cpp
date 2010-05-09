@@ -597,7 +597,7 @@ void MainWindow::openFile()
 			this->closeAction->setEnabled(true);
 			this->hasChanged = false;
 			toggleActions(true);
-//			this->image_display->setRightImage(Encoder::test(this->file[0]), false);
+//			Encoder::test(this->file[0]);
 		}
 		this->compression = 0;
 	}
@@ -622,7 +622,7 @@ bool MainWindow::saveFile()
 		QCheckBox* radio2 = new QCheckBox("Run-Length Coding");
 		QCheckBox* radio3 = new QCheckBox("Arithmetic Coding");
 
-		radio3->setEnabled(false);
+	//	radio3->setEnabled(false);
 
 		QSpinBox* compressionBox = new QSpinBox(dialog);
 		compressionBox->setMinimum(0);
