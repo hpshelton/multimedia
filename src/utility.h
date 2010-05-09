@@ -5,10 +5,7 @@
 #include <QImage>
 #include "defines.h"
 
-typedef struct mvec{
-	int x;
-	int y;
-} mvec;
+#include "mvec.h"
 
 class Utility
 {

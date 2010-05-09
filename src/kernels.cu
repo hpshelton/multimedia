@@ -1,4 +1,5 @@
-#define CLAMP(a) ((a>255) ? 255 : ((a<0) ? 0 : (unsigned char)(a)))
+#include "mvec.h"
+#include "defines.h"
 
 __global__ void setToVal(unsigned char* x, int len, int val)
 {
@@ -269,4 +270,57 @@ __global__ void transpose(float *odata, float *idata, int width, int height)
 		unsigned int index_out = yIndex * height + xIndex;
 		odata[index_out] = block[threadIdx.x][threadIdx.y];
 	}
+}
+
+// Utility class used to avoid linker errors with extern
+// unsized shared memory arrays with templated type
+template<class T> struct SharedMemory
+{
+	__device__ inline operator	   T*()
+	{
+		extern __shared__ int __smem[];
+		return (T*)__smem;
+	}
+
+	__device__ inline operator const T*() const
+	{
+		extern __shared__ int __smem[];
+		return (T*)__smem;
+	}
+};
+
+template <class T> __global__ void reduce3(T *g_idata, T *g_odata, unsigned int n)
+{
+	T *sdata = SharedMemory<T>();
+
+	// perform first level of reduction,
+	// reading from global memory, writing to shared memory
+	unsigned int tid = threadIdx.x;
+	unsigned int i = blockIdx.x*(blockDim.x*2) + threadIdx.x;
+
+	if(i < n)
+		sdata[tid] = g_idata[i];
+	else{
+		sdata[tid].x = 0;
+		sdata[tid].y = 0;
+		sdata[tid].diff = INT_MAX;
+	}
+
+	if (i + blockDim.x < n)
+		sdata[tid] += g_idata[i+blockDim.x];
+
+	__syncthreads();
+
+	// do reduction in shared mem
+	for(unsigned int s=blockDim.x/2; s>0; s>>=1)
+	{
+		if (tid < s)
+		{
+			sdata[tid] += sdata[tid + s];
+		}
+		__syncthreads();
+	}
+
+	// write result for this block to global mem
+	if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
