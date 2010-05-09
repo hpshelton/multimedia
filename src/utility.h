@@ -105,7 +105,7 @@ public:
 	static unsigned char* intToChars(int num)
 	{
 		int total = 0, p = 0, index = 0, char_count = 0, len = 16;
-		unsigned char* chars = (unsigned char*) malloc(len * sizeof(unsigned char));
+		unsigned char* chars = (unsigned char*) malloc(2 * sizeof(unsigned char));
 		char buffer[8];
 		for(int i = 0; i < len; i++)
 		{
@@ -124,6 +124,57 @@ public:
 			}
 		}
 		return chars;
+	}
+
+	// Converts -32767 <= num <= 32767 correctly
+	static unsigned char* shortToChars(short num)
+	{
+		unsigned char* chars = (unsigned char*) malloc(2 * sizeof(unsigned char));
+		bool negative = (num < 0);
+		num = abs(num);
+		char buffer[16];
+		for(int i = 15; i >= 0; i--)
+		{
+			buffer[i] = (num % 2 + 48);
+			num = num >> 1;
+		}
+
+		char small_buffer[8];
+		small_buffer[0] = (negative) ? '1' : '0';
+
+		for(int i = 1; i < 8; i++)
+			small_buffer[i] = buffer[i];
+		chars[0] = Utility::BintoChar(small_buffer);
+
+		for(int i = 0; i < 8; i++)
+			small_buffer[i] = buffer[i+8];
+		chars[1] = Utility::BintoChar(small_buffer);
+
+		return chars;
+	}
+
+	// Returns signed short from two byte twos-complement representation
+	static int charsToShort(unsigned char byte1, unsigned char byte2)
+	{
+		char* first = Utility::charToBin(byte1);
+		char* second = Utility::charToBin(byte2);
+		int mult = (first[0]-48) ? -1 : 1;
+		return  mult*(
+				(first[1]-48)*16384 +
+				(first[2]-48)*8192 +
+				(first[3]-48)*4096 +
+				(first[4]-48)*2048 +
+				(first[5]-48)*1024 +
+				(first[6]-48)*512 +
+				(first[7]-48)*256 +
+				(second[0]-48)*128 +
+				(second[1]-48)*64 +
+				(second[2]-48)*32 +
+				(second[3]-48)*16 +
+				(second[4]-48)*8 +
+				(second[5]-48)*4 +
+				(second[6]-48)*2 +
+				(second[7]-48)*1);
 	}
 
 	static int doubleCharToInt(unsigned char byte1, unsigned char byte2)
