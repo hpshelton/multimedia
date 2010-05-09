@@ -12,5 +12,7 @@ src/CUDA/obj
 src/CUDA/lib
 src/CUDA/i386
 *.o
+*.aux
+*.log
 src/includes
 docs/Paper\ Template/
