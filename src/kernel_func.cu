@@ -287,6 +287,7 @@ mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int 
 	dim3 threadSize(22,22);				  // each block has enough thread for each vector (8+8+8-2)^2
 
 	// calculate all blockDimX*blockDimY*484 mvecs
+    findAllvecs<<<blockSize,threadSize>>>(CUallmvecs, CUprevImg, CUcurrImg, height, width);
 
 	// reduce each block
 

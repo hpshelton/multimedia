@@ -18,7 +18,7 @@ void intToFloat(float* out, int* in, int len)
 	}
 }
 
-int* Encoder::compress_image(QImage* img, float compresion, bool CUDA, unsigned long* numBytes)
+int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned long* numBytes)
 {
 	int width = img->width();
 	int height = img->height();
@@ -43,18 +43,18 @@ int* Encoder::compress_image(QImage* img, float compresion, bool CUDA, unsigned 
 	else
 		threshold = 1.053774*compression - 3.773881;
 #else
-	if(compresion < 19.4963201)
+	if(compression < 19.4963201)
 		threshold = 0;
-	else if(compresion <= 52.7)
-		threshold = compresion*0.045110 - 0.879479;
-	else if(compresion < 68.29137)
-		threshold = 0.000119492*pow(compresion,4) - 0.027802576*pow(compresion,3) + 2.423869094*pow(compresion,2) - 93.736255939*compresion + 1357.202193038;
-	else if(compresion < 74.8286)
-		threshold = 0.8706*pow(compresion,3) - 186.71*pow(compresion,2) + 13348*compresion - 318066;
-	else if(compresion < 90.20755)
-		threshold = 4E-13 * pow(compresion,7.5976);
+	else if(compression <= 52.7)
+		threshold = compression*0.045110 - 0.879479;
+	else if(compression < 68.29137)
+		threshold = 0.000119492*pow(compression,4) - 0.027802576*pow(compression,3) + 2.423869094*pow(compression,2) - 93.736255939*compression + 1357.202193038;
+	else if(compression < 74.8286)
+		threshold = 0.8706*pow(compression,3) - 186.71*pow(compression,2) + 13348*compression - 318066;
+	else if(compression < 90.20755)
+		threshold = 4E-13 * pow(compression,7.5976);
 	else
-		threshold = 24.860132*compresion- 1956.0132;
+		threshold = 24.860132*compression- 1956.0132;
 #endif
 
 	if(CUDA)
@@ -107,6 +107,7 @@ int* Encoder::compress_image(QImage* img, float compresion, bool CUDA, unsigned 
 			fwt97(&inputB[i*height], tempbank, height);
 			fwt97(&inputA[i*height], tempbank, height);
 		}
+
 #ifdef TWODFWT
 		transposeInPlace(inputR, width, height);
 		transposeInPlace(inputG, width, height);
@@ -224,18 +225,18 @@ void Decoder::decompress_image(QImage* img, int* compressed, bool CUDA)
 	}
 }
 
-QImage* Encoder::compress_image_preview(QImage* img, float compression, double* psnr, bool CUDA)
+QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr, bool CUDA)
 {
 	unsigned long numBytes;
-	int* compressed = compress_image(img, compression, CUDA, &numBytes);
+	int* compressed = compress_image(img, factor, CUDA, &numBytes);
 
-//	int i, zeroCoeff=0;
-//	for(i=0; i < img->width()*img->height()*4; i++){
-//		if(compressed[i]==0)
-//			zeroCoeff++;
-//	}
-//	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
-
+/*	int i, zeroCoeff=0;
+	for(i=0; i < img->width()*img->height()*4; i++){
+		if(compressed[i]==0)
+			zeroCoeff++;
+	}
+	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
+*/
 	QImage* decompressed = new QImage(img->width(), img->height(), QImage::Format_RGB32);
 	Decoder::decompress_image(decompressed, compressed, CUDA);
 	free(compressed);
@@ -316,10 +317,10 @@ mvec* motVecFrame(short int* prevImg, unsigned char* currImg, int height, int wi
 
 int** Encoder::compress_video(QImage** original, int start_frame, int end_frame, mvec*** vecArrP, float compression)
 {
+	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
 	int height = original[0]->height();
 	int width = original[0]->width();
-	int frames = end_frame - start_frame + 1;
-	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
+	int frames = end_frame-start_frame+1;
 
 	*vecArrP = (mvec**)malloc(sizeof(mvec*)*frames);
 	mvec** vecArr = *vecArrP;
@@ -340,18 +341,17 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 
 	int xVec;
 	int yVec;
-	for(int i = 0; i < frames; i++){
-		unsigned char* frame_bytes =  original[i + start_frame]->bits();
-		vecArr[i] = motVecFrame(xHatPrev, frame_bytes, height, width);
+	for(int i=0; i < frames; i++){
+		vecArr[i] = motVecFrame(xHatPrev, original[i]->bits(), height, width);
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
 				yVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].y;
 				if((j+yVec) < 0 ||(j+yVec) >= height ||(k+xVec) < 0 ||(k+xVec)/4 >=width)
-					diff [i][k + j*width*4] = floor(((frame_bytes[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+					diff [i][k + j*width*4] = floor(((original[i]->bits()[k + j*width*4])/(float)NUM_SYMBOLS)*Qlevel);
 				else
-					diff [i][k + j*width*4] = floor(((frame_bytes[k + j*width*4] - xHatPrev[(k+xVec) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
-				d       [k + j*width*4] = frame_bytes[k + j*width*4] - xHatPrev[k + j*width*4];
+					diff [i][k + j*width*4] = floor(((original[i]->bits()[k + j*width*4] - xHatPrev[(k+xVec) + (j+yVec)*width*4])/(float)NUM_SYMBOLS)*Qlevel);
+				d       [k + j*width*4] = original[i]->bits()[k + j*width*4] - xHatPrev[k + j*width*4];
 				dHat    [k + j*width*4] = round( floor((d[k + j*width*4]/(float)NUM_SYMBOLS)*Qlevel) * (NUM_SYMBOLS/(float)Qlevel));
 				xHatPrev[k + j*width*4] = dHat[k + j*width*4] + xHatPrev[k + j*width*4];
 			}
@@ -368,7 +368,6 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float compression, int height, int width)
 {
 	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
-
 	/* might be leaing memory on output mallocs */
 	QImage** output = (QImage**) malloc(frames * sizeof(QImage*));
 	for(int f = 0; f < frames; f++){
@@ -406,8 +405,8 @@ QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float 
 
 QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int end_frame, float compression, double* psnr)
 {
+	int frames = end_frame - start_frame +1;
 	mvec** vec;
-	int frames = (start_frame - end_frame + 1);
 
 	int** comp = compress_video(original, start_frame, end_frame, &vec, compression);
 	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width());
@@ -418,11 +417,13 @@ QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int
 	printf("AVG_VAL: %f\n",avgval);
 	fflush(stdout);
 */
-	for(int f = 0; f < frames; f++) {
-		free(vec[f]);
+	for(int f = 0; f < frames; f++){
 		free(comp[f]);
 	}
 	free(comp);
+
+	for(int i=0; i < frames; i++)
+		free(vec[i]);
 	free(vec);
 
 	*psnr = Utility::psnr_video(original, output, frames);

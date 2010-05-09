@@ -102,7 +102,6 @@ public:
 	}
 
 	// Converts 0 <= num <= 65,535
-	// TODO - CHANGE TO HANDLE NEGATIVES WITH BINARY SHIFT AND TWOS-COMPLEMENT
 	static unsigned char* intToChars(int num)
 	{
 		int total = 0, p = 0, index = 0, char_count = 0, len = 16;

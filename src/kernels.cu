@@ -324,3 +324,21 @@ template <class T> __global__ void reduce3(T *g_idata, T *g_odata, unsigned int 
 	// write result for this block to global mem
 	if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
+
+__global__ void findAllvecs(mvec* vecOut, short int* prevImg, unsigned char* currImg, int height, int width)
+{
+    int xOffset = 4*(threadIdx.x-7);
+    int yOffset = threadIdx.y-7;
+    int xBlock = 8 * blockIdx.x * 4;
+    int yBlock = 8 * blockIdx.y;
+/*
+    vecOut[].x = xOffset;
+    vecOut[].y = yOffset;
+    for(int i=0; i < 8; i++){
+        for(int j=0; j < 8; j++){
+            vecOut[].diff += 0;
+        }
+    }
+*/
+
+}
