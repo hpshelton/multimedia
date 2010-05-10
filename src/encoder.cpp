@@ -191,11 +191,10 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	mvec** motionVectors;
 	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression);
 
-	// Linearize motion vectors for write
-	unsigned char* linearMotionVectors = (unsigned char*) malloc(numFrames * mvec_size * sizeof(unsigned char) * 2 * 2); // Assumes < 33,000
-	unsigned char* linearResiduals = (unsigned char*) malloc(numFrames * block_size * sizeof(unsigned char) * 2); // Assumes < 33,000
-	int m_index = 0;
-	int r_index = 0;
+	unsigned char* byte_stream = (unsigned char*) malloc((numFrames * mvec_size * 4 + numFrames * block_size * 2) * sizeof(unsigned char));
+	int index = 0;
+
+	// Convert motion vectors to linear format
 	for(int f = 0; f < numFrames; f++)
 	{
 		for(int i = 0; i < mvec_size; i++)
@@ -203,26 +202,29 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 			mvec v = motionVectors[f][i];
 			unsigned char* x = Utility::shortToChars(v.x);
 			unsigned char* y = Utility::shortToChars(v.y);
-			linearMotionVectors[m_index++] = x[0];
-			linearMotionVectors[m_index++] = x[1];
-			linearMotionVectors[m_index++] = y[0];
-			linearMotionVectors[m_index++] = y[1];
+			byte_stream[index++] = x[0];
+			byte_stream[index++] = x[1];
+			byte_stream[index++] = y[0];
+			byte_stream[index++] = y[1];
 		}
+	}
+
+	// Convert residuals to linear format
+	for(int f = 0; f < numFrames; f++)
+	{
 		for(int i = 0; i < block_size; i++)
 		{
 			unsigned char* r = Utility::shortToChars(residuals[f][i]);
-			linearResiduals[r_index++] = r[0];
-			linearResiduals[r_index++] = r[1];
+			byte_stream[index++] = r[0];
+			byte_stream[index++] = r[1];
 		}
 	}
 
 	fprintf(output, "%d %d %d %d ", width, height, numFrames, compression);
-	fwrite(linearMotionVectors, sizeof(unsigned char), numFrames * mvec_size * 2 * 2, output);
-	fwrite(linearResiduals, sizeof(unsigned char), numFrames * block_size * 2, output);
+	fwrite(byte_stream, sizeof(unsigned char), (numFrames * mvec_size * 4 + numFrames * block_size * 2), output);
 	fclose(output);
 
-	free(linearMotionVectors);
-	free(linearResiduals);
+	free(byte_stream);
 	for(int i = 0; i < numFrames; i++)
 	{
 		free(motionVectors[i]);

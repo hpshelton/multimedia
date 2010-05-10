@@ -10,7 +10,8 @@ HEADERS += mainwindow.h \
 	encoder.h \
 	decoder.h \
 	videodisplay.h \
-	dwt97.h
+	dwt97.h \
+	mvec.h
 SOURCES += main.cpp \
 	mainwindow.cpp \
 	imagedisplay.cpp \

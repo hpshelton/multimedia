@@ -202,45 +202,45 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	int block_size = width*height*4;
 	int mvec_size = CEIL(width/8.0)*CEIL(height/8.0);
 
-	unsigned char* linearMotionVectors = (unsigned char*) malloc(*frames * mvec_size * sizeof(unsigned char) * 2 * 2); // Assumes < 33,000
-	unsigned char* linearResiduals = (unsigned char*) malloc(*frames * block_size * sizeof(unsigned char) * 2); // Assumes < 33,000
+	unsigned char* byte_stream = (unsigned char*) malloc((*frames * mvec_size * 4 + *frames * block_size * 2) * sizeof(unsigned char));
 	int** residuals = (int**) malloc(*frames * block_size * sizeof(int*));
 	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
 
-	fread(linearMotionVectors, sizeof(unsigned char), *frames * mvec_size * 2 * 2, input);
-	fread(linearResiduals, sizeof(unsigned char), *frames * block_size * 2, input);
+	fread(byte_stream, sizeof(unsigned char), (*frames * mvec_size * 4 + *frames * block_size * 2) * sizeof(unsigned char), input);
 	fclose(input);
 
+	//Convert motion vectors to block format
 	for(int f = 0; f < *frames; f++)
 	{
-		// Convert residuals to block format
-		residuals[f] = (int*) malloc(block_size * sizeof(int));
-		for(int i = 0; i < block_size; i++)
-		{
-			unsigned char first = linearResiduals[2*(f * block_size + i)];
-			unsigned char second = linearResiduals[2*(f * block_size + i) + 1];
-			residuals[f][i] = Utility::charsToShort(first, second);
-		}
-
-		//Convert motion vectors to block format
 		motionVectors[f] = (mvec*) malloc(sizeof(mvec) * mvec_size);
 		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v;
-			unsigned char first = linearMotionVectors[index++];
-			unsigned char second = linearMotionVectors[index++];
+			unsigned char first = byte_stream[index++];
+			unsigned char second = byte_stream[index++];
 			v.x = Utility::charsToShort(first, second);
-			first = linearMotionVectors[index++];
-			second = linearMotionVectors[index++];
+			first = byte_stream[index++];
+			second = byte_stream[index++];
 			v.y = Utility::charsToShort(first, second);
 			motionVectors[f][i] = v;
 		}
 	}
 
+	// Convert residuals to block format
+	for(int f = 0; f < *frames; f++)
+	{
+		residuals[f] = (int*) malloc(block_size * sizeof(int));
+		for(int i = 0; i < block_size; i++)
+		{
+			unsigned char first = byte_stream[index++];
+			unsigned char second = byte_stream[index++];
+			residuals[f][i] = Utility::charsToShort(first, second);
+		}
+	}
+
 	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width);
 
-	free(linearMotionVectors);
-	free(linearResiduals);
+	free(byte_stream);
 	for(int i = 0; i < *frames; i++)
 	{
 		free(motionVectors[i]);
