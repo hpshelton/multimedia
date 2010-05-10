@@ -257,7 +257,7 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 		}
 	}
 
-	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width);
+	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width, false);
 
 	for(int i = 0; i < *frames; i++)
 	{

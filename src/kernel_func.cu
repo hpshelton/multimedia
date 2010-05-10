@@ -273,29 +273,54 @@ mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int 
 	int blockDimY = CEIL(height/8.0f);
 	mvec* vecs = (mvec*)malloc(sizeof(mvec) * blockDimX * blockDimY );
 
-	short int* CUprevImg;
+	int ucMemsize = sizeof(unsigned char)*height*width*4;
+	int siMemsize = sizeof(short int)*height*width*4;
+
+	//Allocate space and move everything onto the GPU
 	unsigned char* CUcurrImg;
-	cutilSafeCall(cudaMalloc((void**)&CUprevImg, sizeof(short int)*height*width*4));
-	cutilSafeCall(cudaMalloc((void**)&CUcurrImg, sizeof(short int)*height*width*4));
-	cutilSafeCall(cudaMemcpy(CUprevImg, prevImg, sizeof(short int)*height*width*4, cudaMemcpyDeviceToHost));
-	cutilSafeCall(cudaMemcpy(CUcurrImg, currImg, sizeof(short int)*height*width*4, cudaMemcpyDeviceToHost));
+	cutilSafeCall( cudaMalloc((void**)&CUcurrImg, ucMemsize) );
+	cutilSafeCall( cudaMemcpy(CUcurrImg, currImg, ucMemsize, cudaMemcpyHostToDevice) );
+	short int* CUprevImg;
+	cutilSafeCall( cudaMalloc((void**)&CUprevImg, siMemsize) );
+	cutilSafeCall( cudaMemcpy(CUprevImg, prevImg, siMemsize, cudaMemcpyHostToDevice) );
 
-    mvec** CUallmvecs;
-    cutilSafeCall(cudaMalloc((void**)&CUallmvecs, sizeof(mvec*)*blockDimX*blockDimY));
-    for(int i=0; i < blockDimX*blockDimY; i++)
-        cutilSafeCall(cudaMalloc((void**)&CUallmvecs[i], sizeof(mvec)*484));
+	//Allocate space for all the potential mvecs and min mvecs
+	mvec* CUminvecs;
+	cutilSafeCall(cudaMalloc((void**)&CUminvecs , sizeof(mvec)*blockDimX*blockDimY));
+	mvec* CUallmvecs;
+	cutilSafeCall(cudaMalloc((void**)&CUallmvecs, sizeof(mvec)*blockDimX*blockDimY*17*17));
 
+	// calculate all blockDimX*blockDimY*17*17 mvecs
 	dim3 blockSize(blockDimX, blockDimY); // each motion vector gets its own block
-	dim3 threadSize(22,22);				  // each block has enough thread for each vector (8+8+8-2)^2
+	dim3 threadSize(17,17);				  // each block has enough thread for each vector (8+1+8)^2
 
-	// calculate all blockDimX*blockDimY*484 mvecs
-    findAllvecs<<<blockSize,threadSize>>>(&CUallmvecs, CUprevImg, CUcurrImg, height, width);
+	findAllVals<<<blockSize, threadSize>>>(CUallmvecs, blockDimY, blockDimX, CUprevImg, CUcurrImg, height, width);
 
+/*	FILE* debugOut = fopen("debug.txt","w");
+
+	mvec* debug = (mvec*)malloc(sizeof(mvec)*blockDimX*blockDimY*17*17);
+	cutilSafeCall(cudaMemcpy(debug, CUallmvecs, sizeof(mvec)*blockDimX*blockDimY*17*17, cudaMemcpyDeviceToHost));
+	for(int j=0; j < blockDimX*blockDimY; j++){
+		for(int i=0; i < 17*17; i++){
+			fprintf(debugOut, "%d\t%d\t%d\n",debug[i + j * 17*17].x,debug[i + j * 17*17].y,debug[i + j * 17*17].diff);
+		}
+	}
+	free(debug);
+
+	fclose(debugOut);
+*/
 	// reduce each block
+	for(int i=0; i < blockDimX; i++){
+		for(int j=0; j < blockDimY; j++){
+			CUreduce(17*17, &CUallmvecs[17*17*(i + j * blockDimX)], &CUminvecs[i + j * blockDimX]);
+		}
+	}
 
 	// move reduced values to CPU
+	cutilSafeCall(cudaMemcpy(vecs, CUminvecs, sizeof(mvec)*blockDimX * blockDimY, cudaMemcpyDeviceToHost) );
 
 	cutilSafeCall(cudaFree(CUallmvecs));
+	cutilSafeCall(cudaFree(CUminvecs));
 	cutilSafeCall(cudaFree(CUprevImg));
 	cutilSafeCall(cudaFree(CUcurrImg));
 	return vecs;

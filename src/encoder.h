@@ -27,8 +27,8 @@ public:
 	static int* compress_image(QImage* img, float compression, bool CUDA, unsigned long* numBytes);
 	static QImage* compress_image_preview(QImage* img, float compression, double *psnr, bool CUDA);
 
-	static int** compress_video(QImage** video, int start_frame, int end_frame, mvec*** vecArr, float compression);
-	static QImage** compress_video_preview(QImage** video, int start_frame, int end_frame, float compression, double *psnr);
+	static int** compress_video(QImage** video, int start_frame, int end_frame, mvec*** vecArr, float compression, bool CUDA);
+	static QImage** compress_video_preview(QImage** video, int start_frame, int end_frame, float compression, double *psnr, bool CUDA);
 };
 
 #endif // ENCODER_H

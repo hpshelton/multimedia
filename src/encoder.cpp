@@ -192,7 +192,7 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	}
 
 	mvec** motionVectors;
-	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression);
+	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression, false);
 
 	unsigned char* byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
 	int index = 0;

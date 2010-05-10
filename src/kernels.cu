@@ -325,30 +325,30 @@ template <class T> __global__ void reduce3(T *g_idata, T *g_odata, unsigned int 
 	if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
-__global__ void findAllvecs(mvec*** vecOutP, short int* prevImg, unsigned char* currImg, int height, int width)
+__global__ void findAllVals(mvec* in, int numYblocks, int numXblocks, short int* prevImg, unsigned char* currImg, int height, int width)
 {
-    int xIndex, yIndex, shiftedXIndex, shiftedYIndex;
-    int xOffset = 4*(threadIdx.x-7);
-    int yOffset = threadIdx.y-7;
-    int xBlock = 8 * blockIdx.x * 4;
-    int yBlock = 8 * blockIdx.y;
+	int index = blockDim.x*blockDim.y*(blockIdx.x + blockIdx.y * numXblocks) + threadIdx.x + threadIdx.y*blockDim.x;
+	int threadsPerBlock = blockDim.x * blockDim.y;
 
-    int blockIndex = blockIdx.x + blockIdx.y * CEIL(width/8);
-    int threadIndex = threadIdx.x + threadIdx.y * 22;
+	if(index < numYblocks*numXblocks * threadsPerBlock)
+	{
+//		int vecBlockID = blockIdx.x + blockIdx.y * numXblocks;
+		int shiftedXIndex, shiftedYIndex, xIndex, yIndex;
+		in[index].x = (threadIdx.x-8)*4;
+		in[index].y = threadIdx.y-8;
+		in[index].diff=0;
+		for(int i=0; i < 32; i++){
+			for(int j=0; j < 8; j++){
+				shiftedXIndex = blockIdx.x * blockDim.x + i + (threadIdx.x-8)*4;
+				shiftedYIndex = blockIdx.y * blockDim.y + j + (threadIdx.y-8);
+				xIndex = blockIdx.x * blockDim.x + i;
+				yIndex = blockIdx.y * blockDim.y + j;
 
-    (*vecOutP)[blockIndex][threadIndex].x = xOffset;
-    (*vecOutP)[blockIndex][threadIndex].y = yOffset;
-    for(int i=0; i < 32; i++){
-        for(int j=0; j < 8; j++){
-            shiftedXIndex = xBlock + i + xOffset;
-            shiftedYIndex = yBlock + j + yOffset;
-            xIndex = xBlock + i;
-            yIndex = yBlock + j;
-
-            if(shiftedXIndex < 0 || shiftedXIndex >= width*4 || shiftedYIndex < 0 || shiftedYIndex >= height)
-                (*vecOutP)[blockIndex][threadIndex].diff +=     currImg[xIndex + yIndex * width*4];
-            else
-                (*vecOutP)[blockIndex][threadIndex].diff += abs(currImg[xIndex + yIndex * width*4] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
-        }
-    }
+				if(shiftedXIndex < 0 || shiftedXIndex >= width*4 || shiftedYIndex < 0 || shiftedYIndex >= height)
+					in[index].diff +=     currImg[xIndex + yIndex * width*4];
+				else
+					in[index].diff += abs(currImg[xIndex + yIndex * width*4] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
+			}
+		}
+	}
 }

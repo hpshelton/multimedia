@@ -297,6 +297,17 @@ public:
 		}
 		return 100*(zeros / (double)(len*frames));
 	}
+	static double avg_val(int** A, int frames, int len)
+	{
+		double val=0;
+
+		for(int f=0; f < frames; f++){
+			for(int i=0; i < len; i++){
+				val += A[f][i];
+			}
+		}
+		return (val / (double)(len*frames));
+	}
 };
 
 #endif // UTILITY_H
