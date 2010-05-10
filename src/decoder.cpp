@@ -202,13 +202,13 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	int block_size = width*height*4;
 	int mvec_size = CEIL(width/8.0)*CEIL(height/8.0);
 
-	short* linearMotionVectors = (short*) malloc(*frames * mvec_size * sizeof(short) * 2); // Assumes < 33,000
-	short* linearResiduals = (short*) malloc(*frames * block_size * sizeof(short)); // Assumes < 33,000
+	unsigned char* linearMotionVectors = (unsigned char*) malloc(*frames * mvec_size * sizeof(unsigned char) * 2 * 2); // Assumes < 33,000
+	unsigned char* linearResiduals = (unsigned char*) malloc(*frames * block_size * sizeof(unsigned char) * 2); // Assumes < 33,000
 	int** residuals = (int**) malloc(*frames * block_size * sizeof(int*));
 	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
 
-	fread(linearMotionVectors, sizeof(short), *frames * mvec_size * 2, input);
-	fread(linearResiduals, sizeof(short), *frames * block_size, input);
+	fread(linearMotionVectors, sizeof(unsigned char), *frames * mvec_size * 2 * 2, input);
+	fread(linearResiduals, sizeof(unsigned char), *frames * block_size * 2, input);
 	fclose(input);
 
 	for(int f = 0; f < *frames; f++)
@@ -216,15 +216,23 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 		// Convert residuals to block format
 		residuals[f] = (int*) malloc(block_size * sizeof(int));
 		for(int i = 0; i < block_size; i++)
-			residuals[f][i] = linearResiduals[f * block_size + i];
+		{
+			unsigned char first = linearResiduals[2*(f * block_size + i)];
+			unsigned char second = linearResiduals[2*(f * block_size + i) + 1];
+			residuals[f][i] = Utility::charsToShort(first, second);
+		}
 
 		//Convert motion vectors to block format
 		motionVectors[f] = (mvec*) malloc(sizeof(mvec) * mvec_size);
 		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v;
-			v.x = linearMotionVectors[index++];
-			v.y = linearMotionVectors[index++];
+			unsigned char first = linearMotionVectors[index++];
+			unsigned char second = linearMotionVectors[index++];
+			v.x = Utility::charsToShort(first, second);
+			first = linearMotionVectors[index++];
+			second = linearMotionVectors[index++];
+			v.y = Utility::charsToShort(first, second);
 			motionVectors[f][i] = v;
 		}
 	}

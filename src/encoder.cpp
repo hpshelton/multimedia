@@ -192,8 +192,8 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression);
 
 	// Linearize motion vectors for write
-	short* linearMotionVectors = (short*) malloc(numFrames * mvec_size * sizeof(short) * 2); // Assumes < 33,000
-	short* linearResiduals = (short*) malloc(numFrames * block_size * sizeof(short)); // Assumes < 33,000
+	unsigned char* linearMotionVectors = (unsigned char*) malloc(numFrames * mvec_size * sizeof(unsigned char) * 2 * 2); // Assumes < 33,000
+	unsigned char* linearResiduals = (unsigned char*) malloc(numFrames * block_size * sizeof(unsigned char) * 2); // Assumes < 33,000
 	int m_index = 0;
 	int r_index = 0;
 	for(int f = 0; f < numFrames; f++)
@@ -201,16 +201,24 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v = motionVectors[f][i];
-			linearMotionVectors[m_index++] = (short)v.x;
-			linearMotionVectors[m_index++] = (short)v.y;
+			unsigned char* x = Utility::shortToChars(v.x);
+			unsigned char* y = Utility::shortToChars(v.y);
+			linearMotionVectors[m_index++] = x[0];
+			linearMotionVectors[m_index++] = x[1];
+			linearMotionVectors[m_index++] = y[0];
+			linearMotionVectors[m_index++] = y[1];
 		}
 		for(int i = 0; i < block_size; i++)
-			linearResiduals[r_index++] = residuals[f][i];
+		{
+			unsigned char* r = Utility::shortToChars(residuals[f][i]);
+			linearResiduals[r_index++] = r[0];
+			linearResiduals[r_index++] = r[1];
+		}
 	}
 
 	fprintf(output, "%d %d %d %d ", width, height, numFrames, compression);
-	fwrite(linearMotionVectors, sizeof(short), numFrames * mvec_size * 2, output);
-	fwrite(linearResiduals, sizeof(short), numFrames * block_size, output);
+	fwrite(linearMotionVectors, sizeof(unsigned char), numFrames * mvec_size * 2 * 2, output);
+	fwrite(linearResiduals, sizeof(unsigned char), numFrames * block_size * 2, output);
 	fclose(output);
 
 	free(linearMotionVectors);
