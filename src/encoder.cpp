@@ -173,13 +173,16 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	free(byte_stream);
 }
 
-void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression)
+void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression, bool huffman, bool runlength, bool arithmetic)
 {
 	int width = video[0]->width();
 	int height = video[0]->height();
 	int block_size = width*height*4;
 	int mvec_size = CEIL(width/8.0)*CEIL(height/8.0);
 	int numFrames = end_frame - start_frame + 1;
+	int mode = 4*runlength + 2*huffman + arithmetic;
+	double* arithmetic_stream = NULL;
+	unsigned long numBytes = (numFrames * mvec_size * 4 + numFrames * block_size * 2);
 
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
@@ -191,7 +194,7 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	mvec** motionVectors;
 	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression);
 
-	unsigned char* byte_stream = (unsigned char*) malloc((numFrames * mvec_size * 4 + numFrames * block_size * 2) * sizeof(unsigned char));
+	unsigned char* byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
 	int index = 0;
 
 	// Convert motion vectors to linear format
@@ -220,11 +223,21 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 		}
 	}
 
-	fprintf(output, "%d %d %d %d ", width, height, numFrames, compression);
-	fwrite(byte_stream, sizeof(unsigned char), (numFrames * mvec_size * 4 + numFrames * block_size * 2), output);
+	// Lossless encoding
+	if(runlength)
+		byte_stream = runlength_encode(byte_stream, &numBytes);
+	if(huffman)
+		byte_stream = huffman_encode(byte_stream, &numBytes);
+	if(arithmetic)
+		arithmetic_stream = arithmetic_encode(byte_stream, &numBytes);
+
+	fprintf(output, "%d %d %d %lu %d %d ", width, height, numFrames, numBytes, compression, mode);
+	if(arithmetic)
+		fwrite(arithmetic_stream, sizeof(double), numBytes, output);
+	else
+		fwrite(byte_stream, sizeof(unsigned char), numBytes, output);
 	fclose(output);
 
-	free(byte_stream);
 	for(int i = 0; i < numFrames; i++)
 	{
 		free(motionVectors[i]);
@@ -232,4 +245,6 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	}
 	free(motionVectors);
 	free(residuals);
+	free(byte_stream);
+	free(arithmetic_stream);
 }

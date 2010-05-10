@@ -701,7 +701,7 @@ bool MainWindow::saveFile()
 						fileName += ".pvc";
 
 					timer.restart();
-					Encoder::write_pvc(this->video_display->getRightVideo(), fileName, start_frame, end_frame, compression/*, CUDA_CAPABLE && CUDA_ENABLED*/);
+					Encoder::write_pvc(this->video_display->getRightVideo(), fileName, start_frame, end_frame, compression, huffman, runlength, arithmetic);
 					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 				}
 			}

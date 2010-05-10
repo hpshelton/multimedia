@@ -188,7 +188,8 @@ QImage** Decoder::read_cif(QString filename, int* frame_num)
 
 QImage** Decoder::read_pvc(QString filename, int* frames)
 {
-	int width = 0, height = 0, compression = 0, index = 0;
+	int width = 0, height = 0, compression = 0, index = 0, mode;
+	unsigned long numBytes;
 	FILE* input;
 
 	// Open and read file
@@ -197,17 +198,39 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 		std::cerr << "Failed to open " << filename.toStdString() << " for reading\n";
 		return NULL;
 	}
-	fscanf(input, "%d %d %d %d ", &width, &height, frames, &compression);
+	fscanf(input, "%d %d %d %lu %d %d ", &width, &height, frames, &numBytes, &compression, &mode);
+
+	bool arithmetic = (mode % 2 == 1);
+	mode /= 2;
+	bool huffman = (mode % 2 == 1);
+	mode /= 2;
+	bool runlength = (mode % 2 == 1);
 
 	int block_size = width*height*4;
 	int mvec_size = CEIL(width/8.0)*CEIL(height/8.0);
 
-	unsigned char* byte_stream = (unsigned char*) malloc((*frames * mvec_size * 4 + *frames * block_size * 2) * sizeof(unsigned char));
+	unsigned char* byte_stream;
+	if(!arithmetic)
+	{
+		byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
+		fread(byte_stream, sizeof(unsigned char), numBytes, input);
+	}
+	else
+	{
+		double* double_stream = (double*) malloc(numBytes * sizeof(double));
+		fread(double_stream, sizeof(double), numBytes, input);
+		byte_stream = arithmetic_decode(double_stream, &numBytes);
+		free(double_stream);
+	}
+	fclose(input);
+
+	if(huffman)
+		byte_stream = huffman_decode(byte_stream, &numBytes);
+	if(runlength)
+		byte_stream = runlength_decode(byte_stream, &numBytes);
+
 	int** residuals = (int**) malloc(*frames * block_size * sizeof(int*));
 	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
-
-	fread(byte_stream, sizeof(unsigned char), (*frames * mvec_size * 4 + *frames * block_size * 2) * sizeof(unsigned char), input);
-	fclose(input);
 
 	//Convert motion vectors to block format
 	for(int f = 0; f < *frames; f++)
@@ -240,7 +263,6 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 
 	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width);
 
-	free(byte_stream);
 	for(int i = 0; i < *frames; i++)
 	{
 		free(motionVectors[i]);
@@ -248,6 +270,8 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	}
 	free(motionVectors);
 	free(residuals);
+	free(byte_stream);
+	free(arithmetic_stream);
 
 	return video;
 }
