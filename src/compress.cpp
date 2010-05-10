@@ -260,8 +260,10 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
 mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int yOffset, int height, int width)
 {
 	xOffset = xOffset*4; // for rgba
-	int i, j, k, l, xIndex, yIndex, diff, minDiff= INT_MAX;
+	int i, j, k, l, xIndex, yIndex;
+	unsigned int diff;
 	mvec vec;
+	vec.diff = INT_MAX;
 	for(i=-28; i < 32; i+=4){
 		for(j=-7; j < 8; j++){
 			diff=0;
@@ -276,26 +278,19 @@ mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int y
 				}
 			}
 
-			if(diff < minDiff){
-				minDiff = diff;
-				vec.x = i;
-				vec.y = j;
+			if(diff < vec.diff){
+				vec.diff = diff;
+				vec.x = 0;//i;
+				vec.y = 0;//j;
 			}
-			else if(diff == minDiff){
+			else if(diff == vec.diff){
 				if(sqrt(i*i + j*j) < sqrt(vec.x*vec.x + vec.y*vec.y)){
-					vec.x = i;
-					vec.y = j;
+					vec.x = 0;//i;
+					vec.y = 0;//j;
 				}
 			}
 		}
 	}
-
-//	printf("%d\n",sameDiff);
-//	if(sameDiff>16)
-//		printf("%d\t%d\n",xOffset, yOffset);
-//	printf("mindiff: %d\t%d\t%d\n\n",minDiff, vec.x, vec.y);
-//	vec.x = 0;
-//	vec.y = 0;
 	return vec;
 }
 
@@ -315,7 +310,7 @@ mvec* motVecFrame(short int* prevImg, unsigned char* currImg, int height, int wi
 
 #define NUM_SYMBOLS 512 // -256 -> 255
 
-int** Encoder::compress_video(QImage** original, int start_frame, int end_frame, mvec*** vecArrP, float compression)
+int** Encoder::compress_video(QImage** original, int start_frame, int end_frame, mvec*** vecArrP, float compression, bool CUDA)
 {
 	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
 	int height = original[0]->height();
@@ -343,7 +338,25 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	int yVec;
 	for(int i=0; i < frames; i++){
 		unsigned char* frame_bits = original[i + start_frame]->bits();
-		vecArr[i] = motVecFrame(xHatPrev, frame_bits, height, width);
+		if(CUDA){
+			vecArr[i] = CUmotVecFrame(xHatPrev, frame_bits, height, width);
+		}
+		else{
+			vecArr[i] = motVecFrame(xHatPrev, frame_bits, height, width);
+		}
+
+		if(i==2)
+		{
+			FILE* secondFrame = fopen("secondFrame.txt","w");
+			for(int y = 0; y < CEIL(height/8); y++){
+				for(int z=0; z < CEIL(width/8); z++){
+					fprintf(secondFrame, "%d\t%d\t%d\n",vecArr[i][z + y * CEIL(width/8)].x,vecArr[i][z + y * CEIL(width/8)].y,vecArr[i][z + y * CEIL(width/8)].diff);
+				}
+			}
+
+			fclose(secondFrame);
+		}
+
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
@@ -366,7 +379,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	return diff;
 }
 
-QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float compression, int height, int width)
+QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float compression, int height, int width, bool CUDA)
 {
 	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
 	/* might be leaing memory on output mallocs */
@@ -404,20 +417,20 @@ QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float 
 	return output;
 }
 
-QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int end_frame, float compression, double* psnr)
+QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int end_frame, float compression, double* psnr, bool CUDA)
 {
 	int frames = end_frame - start_frame +1;
 	mvec** vec;
 
-	int** comp = compress_video(original, start_frame, end_frame, &vec, compression);
-	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width());
+	int** comp = compress_video(original, start_frame, end_frame, &vec, compression, CUDA);
+	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width(), CUDA);
 
-//	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
-//	printf("PCT_ZEROS: %7.4f\n", pctZeros);
-/*    double avgval = Utility::avg_val(comp, frames, original[0]->height()*original[0]->width()*4);
+	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
+	printf("PCT_ZEROS: %7.4f\n", pctZeros);
+	double avgval = Utility::avg_val(comp, frames, original[0]->height()*original[0]->width()*4);
 	printf("AVG_VAL: %f\n",avgval);
 	fflush(stdout);
-*/
+
 	for(int f = 0; f < frames; f++)
 	{
 		free(vec[f]);
