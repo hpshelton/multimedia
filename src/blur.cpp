@@ -26,7 +26,6 @@ QImage* MainWindow::blur_image(QImage* img)
 	else
 	{
 		QImage* newImg = new QImage(*img);
-
 		// Weight masks
 		float mask[3][3] = { {1/16.0, 2/16.0, 1/16.0}, {2/16.0, 4/16.0, 2/16.0}, {1/16.0, 2/16.0, 1/16.0} };
 		float maskEdge[3][3]= { {1/12.0, 2/12.0, 1/12.0}, {2/12.0, 4/12.0, 2/12.0}, {1/12.0, 2/12.0, 1/12.0} };
@@ -36,7 +35,7 @@ QImage* MainWindow::blur_image(QImage* img)
 		{
 			for(int x = 0; x < width; x++)
 			{
-				int poutr = 0, poutg = 0, poutb = 0;
+				float poutr = 0, poutg = 0, poutb = 0;
 
 				if(x == 0)
 				{

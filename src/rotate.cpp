@@ -48,7 +48,7 @@ QImage* MainWindow::rotate_image(QImage* img, float a)
 			if(a == 90 || a == 0 || a == 180 || a == 270)
 			{
 				// May not be the best variance and radius, but seems to be good
-				newImg->setPixel(x, y, Utility::GaussianSample(img, u, v, 0.4, 2));
+				newImg->setPixel(x, y, Utility::GaussianSample(img, u, v, 0.6, 4));
 			}
 			else
 				newImg->setPixel(x, y, Utility::NearestSample(img, u, v));

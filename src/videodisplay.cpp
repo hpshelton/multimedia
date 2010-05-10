@@ -72,11 +72,11 @@ void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
 		if(scale != 1.0)
 		{
 			this->leftScaleFactor = 1.0;
-			this->leftPanel->hasFocus();
 			scaleVideo(scale);
 		}
 		else
 			this->leftFrame->adjustSize();
+		this->leftPanel->setFocus(Qt::ActiveWindowFocusReason);
 	}
 }
 
@@ -91,11 +91,11 @@ void VideoDisplay::setRightVideo(QImage** video, int frame, bool rescale)
 		if(scale != 1.0)
 		{
 			this->rightScaleFactor = 1.0;
-			this->rightPanel->hasFocus();
 			scaleVideo(scale);
 		}
 		else
 			this->rightFrame->adjustSize();
+		this->rightPanel->setFocus(Qt::ActiveWindowFocusReason);
 	}
 }
 

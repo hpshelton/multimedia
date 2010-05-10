@@ -59,11 +59,11 @@ void ImageDisplay::setLeftImage(QImage* image, bool rescale)
 		if(scale != 1.0)
 		{
 			this->leftScaleFactor = 1.0;
-			this->leftPanel->hasFocus();
 			scaleImage(scale);
 		}
 		else
 			this->leftImage->adjustSize();
+		this->leftPanel->setFocus(Qt::ActiveWindowFocusReason);
 	}
 }
 
@@ -77,11 +77,11 @@ void ImageDisplay::setRightImage(QImage* image, bool rescale)
 		if(scale != 1.0)
 		{
 			this->rightScaleFactor = 1;
-			this->rightPanel->hasFocus();
 			scaleImage(scale);
 		}
 		else
 			this->rightImage->adjustSize();
+		this->rightPanel->setFocus(Qt::ActiveWindowFocusReason);
 	}
 }
 
