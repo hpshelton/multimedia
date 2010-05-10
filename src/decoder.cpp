@@ -188,7 +188,7 @@ QImage** Decoder::read_cif(QString filename, int* frame_num)
 
 QImage** Decoder::read_pvc(QString filename, int* frames)
 {
-	int width = 0, height = 0, compression = 0;
+	int width = 0, height = 0, compression = 0, index = 0;
 	FILE* input;
 
 	// Open and read file
@@ -199,24 +199,28 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	}
 	fscanf(input, "%d %d %d %d ", &width, &height, frames, &compression);
 
-	short* linearMotionVectors = (short*) malloc(*frames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2); // Assumes < 33,000
-	int** residuals = (int**) malloc(*frames * width * height * 4 * sizeof(int*));
+	int block_size = width*height*4;
+	int mvec_size = CEIL(width/8.0)*CEIL(height/8.0);
 
-	fread(linearMotionVectors, sizeof(short), *frames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2, input);
-	for(int f = 0; f < *frames; f++)
-	{
-		residuals[f] = (int*) malloc(width*height*4*sizeof(int));
-		fread(residuals[f], sizeof(int), width*height*4, input);
-	}
+	short* linearMotionVectors = (short*) malloc(*frames * mvec_size * sizeof(short) * 2); // Assumes < 33,000
+	short* linearResiduals = (short*) malloc(*frames * block_size * sizeof(short)); // Assumes < 33,000
+	int** residuals = (int**) malloc(*frames * block_size * sizeof(int*));
+	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
+
+	fread(linearMotionVectors, sizeof(short), *frames * mvec_size * 2, input);
+	fread(linearResiduals, sizeof(short), *frames * block_size, input);
 	fclose(input);
 
-	//Convert motion vectors to block format
-	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
-	int index = 0;
 	for(int f = 0; f < *frames; f++)
 	{
-		motionVectors[f] = (mvec*)malloc(sizeof(mvec) * CEIL(width/8.0) * CEIL(height/8.0));
-		for(int i = 0; i < CEIL(width/8.0) * CEIL(height/8.0); i++)
+		// Convert residuals to block format
+		residuals[f] = (int*) malloc(block_size * sizeof(int));
+		for(int i = 0; i < block_size; i++)
+			residuals[f][i] = linearResiduals[f * block_size + i];
+
+		//Convert motion vectors to block format
+		motionVectors[f] = (mvec*) malloc(sizeof(mvec) * mvec_size);
+		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v;
 			v.x = linearMotionVectors[index++];
@@ -228,6 +232,7 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width);
 
 	free(linearMotionVectors);
+	free(linearResiduals);
 	for(int i = 0; i < *frames; i++)
 	{
 		free(motionVectors[i]);

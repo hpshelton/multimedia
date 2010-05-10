@@ -148,7 +148,6 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	unsigned char* byte_stream = (unsigned char*) malloc(numBytes * 2 * sizeof(unsigned char));
 	for(unsigned int i = 0; i < numBytes; i++)
 	{
-//		unsigned char* bytes = Utility::intToChars(int_stream[i]);
 		unsigned char* bytes = Utility::shortToChars(int_stream[i]);
 		byte_stream[2*i] = bytes[0];
 		byte_stream[2*i+1] = bytes[1];
@@ -178,6 +177,8 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 {
 	int width = video[0]->width();
 	int height = video[0]->height();
+	int block_size = width*height*4;
+	int mvec_size = CEIL(width/8.0)*CEIL(height/8.0);
 	int numFrames = end_frame - start_frame + 1;
 
 	FILE* output;
@@ -188,28 +189,32 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	}
 
 	mvec** motionVectors;
-	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression); // Probably needs to be char
+	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression);
 
 	// Linearize motion vectors for write
-	short* linearMotionVectors = (short*) malloc(numFrames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2); // Assumes < 33,000
-	int index = 0;
+	short* linearMotionVectors = (short*) malloc(numFrames * mvec_size * sizeof(short) * 2); // Assumes < 33,000
+	short* linearResiduals = (short*) malloc(numFrames * block_size * sizeof(short)); // Assumes < 33,000
+	int m_index = 0;
+	int r_index = 0;
 	for(int f = 0; f < numFrames; f++)
 	{
-		for(int i = 0; i < CEIL(width/8.0) * CEIL(height/8.0); i++)
+		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v = motionVectors[f][i];
-			linearMotionVectors[index++] = (short)v.x;
-			linearMotionVectors[index++] = (short)v.y;
+			linearMotionVectors[m_index++] = (short)v.x;
+			linearMotionVectors[m_index++] = (short)v.y;
 		}
+		for(int i = 0; i < block_size; i++)
+			linearResiduals[r_index++] = residuals[f][i];
 	}
 
 	fprintf(output, "%d %d %d %d ", width, height, numFrames, compression);
-	fwrite(linearMotionVectors, sizeof(short), numFrames*CEIL(width/8.0)*CEIL(height/8.0)*sizeof(short)*2, output);
-	for(int f = 0; f < numFrames; f++)
-		fwrite(residuals[f], sizeof(int), width*height*4, output);
+	fwrite(linearMotionVectors, sizeof(short), numFrames * mvec_size * 2, output);
+	fwrite(linearResiduals, sizeof(short), numFrames * block_size, output);
 	fclose(output);
 
 	free(linearMotionVectors);
+	free(linearResiduals);
 	for(int i = 0; i < numFrames; i++)
 	{
 		free(motionVectors[i]);

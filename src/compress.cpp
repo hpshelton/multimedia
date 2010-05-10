@@ -80,8 +80,8 @@ int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned
 		int i;
 		int memsize = sizeof(float)*height*width*4;
 
-		float* input = (float*)malloc(memsize);
-		float* tempbank = (float*)malloc(sizeof(float)*(height>width?height:width));
+		float* input = (float*) malloc(memsize);
+		float* tempbank = (float*) malloc(sizeof(float)*(height>width?height:width));
 		shuffleCPU(img->bits(), input, height, width);
 
 		float* inputR = input;
@@ -238,12 +238,13 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
 */
 	QImage* decompressed = new QImage(img->width(), img->height(), QImage::Format_RGB32);
 	Decoder::decompress_image(decompressed, compressed, CUDA);
-	free(compressed);
 
 	*psnr = Utility::psnr(img->bits(), decompressed->bits(), img->byteCount());
 
 //	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, *psnr);
 //	fflush(stdout);
+
+	free(compressed);
 
 	return decompressed;
 }
@@ -332,9 +333,9 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	short int* dHat = (short int*)malloc(sizeof(short int)*width*height*4);
 	short int* xHatPrev = (short int*)malloc(sizeof(short int)*width*height*4);
 
-	for(int j=0; j < height; j++){
-		for (int k=0; k < width*4; k++){
-			xHatPrev[j+k*height]=0;
+	for(int j=0; j < height; j++) {
+		for (int k=0; k < width*4; k++) {
+			xHatPrev[j+k*height] = 0;
 		}
 	}
 
@@ -417,13 +418,12 @@ QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int
 	printf("AVG_VAL: %f\n",avgval);
 	fflush(stdout);
 */
-	for(int f = 0; f < frames; f++){
+	for(int f = 0; f < frames; f++)
+	{
+		free(vec[f]);
 		free(comp[f]);
 	}
 	free(comp);
-
-	for(int i=0; i < frames; i++)
-		free(vec[i]);
 	free(vec);
 
 	*psnr = Utility::psnr_video(original, output, frames);
