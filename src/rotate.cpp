@@ -45,8 +45,13 @@ QImage* MainWindow::rotate_image(QImage* img, float a)
 		{
 			float u = cos(-1*a)*(x-newxcenter) - sin(-1*a)*(y-newycenter)+width/2;
 			float v = sin(-1*a)*(x-newxcenter) + cos(-1*a)*(y-newycenter)+height/2;
-			// May not be the best variance and radius, but seems to be good
-			newImg->setPixel(x,y, Utility::GaussianSample(img, u, v, 0.6, 4));
+			if(a == 90 || a == 0 || a == 180 || a == 270)
+			{
+				// May not be the best variance and radius, but seems to be good
+				newImg->setPixel(x, y, Utility::GaussianSample(img, u, v, 0.6, 4));
+			}
+			else
+				newImg->setPixel(x, y, Utility::NearestSample(img, u, v));
 		}
 	}
 	return newImg;

@@ -258,6 +258,16 @@ public:
 		return qRgb(r, g, b);
 	}
 
+	static QRgb NearestSample(QImage* img, float x, float y)
+	{
+		int newX = (int)(x+0.5);
+		int newY = (int)(y+0.5);
+		if(newX >= 0 && newX < img->width() && newY >= 0 && newY < img->height())
+			return img->pixel(newX, newY);
+		else
+			return qRgb(0,0,0);
+	}
+
 	static double psnr(unsigned char* A, unsigned char* B, int len)
 	{
 		double MSE = 0;
