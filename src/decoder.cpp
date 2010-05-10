@@ -239,12 +239,8 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v;
-			unsigned char first = byte_stream[index++];
-			unsigned char second = byte_stream[index++];
-			v.x = Utility::charsToShort(first, second);
-			first = byte_stream[index++];
-			second = byte_stream[index++];
-			v.y = Utility::charsToShort(first, second);
+			v.x = Utility::charToShort(byte_stream[index++]);
+			v.y = Utility::charToShort(byte_stream[index++]);
 			motionVectors[f][i] = v;
 		}
 	}
@@ -271,7 +267,6 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	free(motionVectors);
 	free(residuals);
 	free(byte_stream);
-	free(arithmetic_stream);
 
 	return video;
 }

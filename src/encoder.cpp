@@ -182,7 +182,7 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	int numFrames = end_frame - start_frame + 1;
 	int mode = 4*runlength + 2*huffman + arithmetic;
 	double* arithmetic_stream = NULL;
-	unsigned long numBytes = (numFrames * mvec_size * 4 + numFrames * block_size * 2);
+	unsigned long numBytes = (numFrames * mvec_size * 2 + numFrames * block_size * 2);
 
 	FILE* output;
 	if(!(output = fopen(filename.toStdString().c_str(), "w")))
@@ -203,12 +203,8 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 		for(int i = 0; i < mvec_size; i++)
 		{
 			mvec v = motionVectors[f][i];
-			unsigned char* x = Utility::shortToChars(v.x);
-			unsigned char* y = Utility::shortToChars(v.y);
-			byte_stream[index++] = x[0];
-			byte_stream[index++] = x[1];
-			byte_stream[index++] = y[0];
-			byte_stream[index++] = y[1];
+			byte_stream[index++] = Utility::charToUnsignedChar(v.x); // Truncates to < abs(127)
+			byte_stream[index++] = Utility::charToUnsignedChar(v.y);
 		}
 	}
 

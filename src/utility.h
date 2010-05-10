@@ -29,25 +29,6 @@ public:
 		return p;
 	}
 
-	/* allocate 2D int array */
-	static int** allocate_int(int r, int c)
-	{
-		int** p;
-
-		if((p = (int**) malloc(r * sizeof(int*))) == NULL) {
-			printf(" Error in space allocation : allocate_int\n");
-			exit(1);
-		}
-		if((p[0] = (int*) malloc(c * r * sizeof(int))) == NULL) {
-			printf(" Error in space allocation : allocate_int\n");
-			exit(1);
-		}
-
-		for (int i = 1; i < r; i++)
-			p[i] = p[i-1] + c;
-		return p;
-	}
-
 	static char* getBinVal(int num, long int len)
 	{
 		int total = 0, p = 0;
@@ -153,6 +134,26 @@ public:
 		return chars;
 	}
 
+	// Converts -128 <= num <= 128 correctly
+	static unsigned char charToUnsignedChar(short num)
+	{
+		bool negative = (num < 0);
+		num = abs(num);
+		char buffer[8];
+		for(int i = 7; i > 0; i--)
+		{
+			buffer[i] = (num % 2 + 48);
+			num = num >> 1;
+		}
+
+		char small_buffer[8];
+		small_buffer[0] = (negative) ? '1' : '0';
+
+		for(int i = 1; i < 8; i++)
+			small_buffer[i] = buffer[i];
+		return Utility::BintoChar(small_buffer);
+	}
+
 	// Returns signed short from two byte twos-complement representation
 	static int charsToShort(unsigned char byte1, unsigned char byte2)
 	{
@@ -175,6 +176,21 @@ public:
 				(second[5]-48)*4 +
 				(second[6]-48)*2 +
 				(second[7]-48)*1);
+	}
+
+	// Returns signed short from two byte twos-complement representation
+	static int charToShort(unsigned char byte1)
+	{
+		char* first = Utility::charToBin(byte1);
+		int mult = (first[0]-48) ? -1 : 1;
+		return  mult*(
+				(first[1]-48)*64 +
+				(first[2]-48)*32 +
+				(first[3]-48)*16 +
+				(first[4]-48)*8 +
+				(first[5]-48)*4 +
+				(first[6]-48)*2 +
+				(first[7]-48)*1);
 	}
 
 	static int doubleCharToInt(unsigned char byte1, unsigned char byte2)
