@@ -173,7 +173,7 @@ void Encoder::write_ppc(QImage* img, QString filename, bool huffman, bool arithm
 	free(byte_stream);
 }
 
-void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression, bool huffman, bool runlength, bool arithmetic)
+void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression, bool huffman, bool runlength, bool arithmetic, bool CUDA)
 {
 	int width = video[0]->width();
 	int height = video[0]->height();
@@ -192,7 +192,7 @@ void Encoder::write_pvc(QImage** video, QString filename, int start_frame, int e
 	}
 
 	mvec** motionVectors;
-	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression, false);
+	int** residuals  = Encoder::compress_video(video, start_frame, end_frame, &motionVectors, compression, CUDA);
 
 	unsigned char* byte_stream = (unsigned char*) malloc(numBytes * sizeof(unsigned char));
 	int index = 0;

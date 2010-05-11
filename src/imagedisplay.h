@@ -8,6 +8,9 @@
 #include <QHBoxLayout>
 #include <QCloseEvent>
 #include <QScrollBar>
+#include <QFocusEvent>
+#include <QMouseEvent>
+#include <QKeyEvent>
 
 class ImageDisplay : public QWidget
 {
@@ -18,6 +21,9 @@ private:
 	QScrollArea* rightPanel;
 	float leftScaleFactor;
 	float rightScaleFactor;
+
+	QFrame* unselected;
+	QFrame* selected;
 
 	void init();
 	void adjustScrollBar(QScrollBar* scrollbar, float factor);
@@ -35,6 +41,9 @@ public:
 	QImage* getRightImage();
 	void closeEvent(QCloseEvent* e);
 	void scaleImage(float factor);
+
+	void focusInEvent(QFocusEvent* e);
+	void mousePressEvent(QMouseEvent* e);
 };
 
 #endif // IMAGEDISPLAY_H

@@ -38,7 +38,7 @@ QImage* MainWindow::edge_detect(QImage* img)
 		{
 			for(int x = 0; x < width; x++)
 			{
-				int poutr = 0, poutg = 0, poutb = 0;
+				float poutr = 0, poutg = 0, poutb = 0;
 
 				if(x == 0)
 				{

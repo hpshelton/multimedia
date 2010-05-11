@@ -18,7 +18,7 @@ class Encoder
 public:
 	static QImage* test(QImage*);
 	static void write_ppc(QImage* image, QString filename, bool huffman, bool arithmetic, bool runlength, int compression, bool CUDA);
-	static void write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression, bool huffman, bool runlength, bool arithmetic);
+	static void write_pvc(QImage** video, QString filename, int start_frame, int end_frame, int compression, bool huffman, bool runlength, bool arithmetic, bool CUDA);
 
 	static unsigned char* huffman_encode(unsigned char* image, unsigned long* numBytes);
 	static unsigned char* runlength_encode(unsigned char* image, unsigned long* numBytes);

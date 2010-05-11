@@ -30,14 +30,14 @@ void ImageDisplay::init()
 	this->leftPanel->setBackgroundRole(QPalette::Dark);
 	this->leftPanel->setWidget(this->leftImage);
 	this->leftPanel->setAlignment(Qt::AlignCenter);
-	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
+	this->leftPanel->setFocusPolicy(Qt::ClickFocus);
 	this->leftPanel->hide();
 
 	this->rightPanel = new QScrollArea(this);
 	this->rightPanel->setBackgroundRole(QPalette::Dark);
 	this->rightPanel->setWidget(this->rightImage);
 	this->rightPanel->setAlignment(Qt::AlignCenter);
-	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
+	this->rightPanel->setFocusPolicy(Qt::ClickFocus);
 	this->rightPanel->hide();
 
 	QHBoxLayout* layout = new QHBoxLayout;
@@ -64,6 +64,12 @@ void ImageDisplay::setLeftImage(QImage* image, bool rescale)
 		else
 			this->leftImage->adjustSize();
 		this->leftPanel->setFocus(Qt::ActiveWindowFocusReason);
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::Box);
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::NoFrame);
 	}
 }
 
@@ -82,6 +88,12 @@ void ImageDisplay::setRightImage(QImage* image, bool rescale)
 		else
 			this->rightImage->adjustSize();
 		this->rightPanel->setFocus(Qt::ActiveWindowFocusReason);
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::Box);
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::NoFrame);
 	}
 }
 
@@ -89,8 +101,8 @@ void ImageDisplay::setLeftAndRightImages(QImage *image)
 {
 	if(image != NULL)
 	{
-		setLeftImage(image);
 		setRightImage(image);
+		setLeftImage(image);
 	}
 }
 
@@ -141,4 +153,33 @@ QImage* ImageDisplay::getLeftImage()
 QImage* ImageDisplay::getRightImage()
 {
 	return new QImage(this->rightImage->pixmap()->toImage());
+}
+
+void ImageDisplay::focusInEvent(QFocusEvent* e)
+{
+	if(this->leftPanel->hasFocus())
+	{
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::Box);
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::NoFrame);
+	}
+	if(this->rightPanel->hasFocus())
+	{
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::Box);
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::NoFrame);
+	}
+	e->accept();
+}
+
+void ImageDisplay::mousePressEvent(QMouseEvent* e)
+{
+	this->focusInEvent(new QFocusEvent(QEvent::FocusIn));
+	e->accept();
 }

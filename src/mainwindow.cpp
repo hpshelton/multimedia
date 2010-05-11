@@ -552,7 +552,7 @@ void MainWindow::openFile()
 		{
 			this->video = true;
 			timer.restart();
-			this->file = Decoder::read_pvc(fileName, &(this->frames));
+			this->file = Decoder::read_pvc(fileName, &(this->frames), CUDA_CAPABLE && CUDA_ENABLED);
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 		}
 		else
@@ -701,7 +701,7 @@ bool MainWindow::saveFile()
 						fileName += ".pvc";
 
 					timer.restart();
-					Encoder::write_pvc(this->video_display->getRightVideo(), fileName, start_frame, end_frame, compression, huffman, runlength, arithmetic);
+					Encoder::write_pvc(this->video_display->getRightVideo(), fileName, start_frame, end_frame, compression, huffman, runlength, arithmetic, CUDA_CAPABLE && CUDA_ENABLED);
 					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
 				}
 			}
@@ -866,8 +866,8 @@ void MainWindow::reset()
 		this->video_display->reset();
 	else
 	{
-		this->image_display->setLeftImage(this->image_display->getLeftImage(), true);
 		this->image_display->setRightImage(this->image_display->getLeftImage(), true);
+		this->image_display->setLeftImage(this->image_display->getLeftImage(), true);
 	}
 	this->hasChanged = false;
 }

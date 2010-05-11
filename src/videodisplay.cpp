@@ -32,14 +32,14 @@ void VideoDisplay::init(int num_frames)
 	this->leftPanel->setBackgroundRole(QPalette::Dark);
 	this->leftPanel->setWidget(this->leftFrame);
 	this->leftPanel->setAlignment(Qt::AlignCenter);
-	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
+	this->leftPanel->setFocusPolicy(Qt::ClickFocus);
 	this->leftPanel->hide();
 
 	this->rightPanel = new QScrollArea(this);
 	this->rightPanel->setBackgroundRole(QPalette::Dark);
 	this->rightPanel->setWidget(this->rightFrame);
 	this->rightPanel->setAlignment(Qt::AlignCenter);
-	this->leftPanel->setFocusPolicy(Qt::StrongFocus);
+	this->rightPanel->setFocusPolicy(Qt::ClickFocus);
 	this->rightPanel->hide();
 
 	QHBoxLayout* layout = new QHBoxLayout;
@@ -57,8 +57,8 @@ void VideoDisplay::reset()
 {
 	this->frameNum = 0;
 	this->videoThread->quit();
-	setLeftVideo(this->leftVideo, 0, true);
 	setRightVideo(this->leftVideo, 0, true);
+	setLeftVideo(this->leftVideo, 0, true);
 }
 
 void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
@@ -77,6 +77,12 @@ void VideoDisplay::setLeftVideo(QImage** video, int frame, bool rescale)
 		else
 			this->leftFrame->adjustSize();
 		this->leftPanel->setFocus(Qt::ActiveWindowFocusReason);
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::Box);
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::NoFrame);
 	}
 }
 
@@ -96,6 +102,12 @@ void VideoDisplay::setRightVideo(QImage** video, int frame, bool rescale)
 		else
 			this->rightFrame->adjustSize();
 		this->rightPanel->setFocus(Qt::ActiveWindowFocusReason);
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::Box);
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::NoFrame);
 	}
 }
 
@@ -104,8 +116,8 @@ void VideoDisplay::setLeftAndRightVideos(QImage** video, int frame)
 	if(video != NULL)
 	{
 		this->frameNum = frame;
-		setLeftVideo(video, frameNum);
 		setRightVideo(video, frameNum);
+		setLeftVideo(video, frameNum);
 	}
 }
 
@@ -222,4 +234,33 @@ void VideoDisplay::previous()
 	}
 	else
 		this->videoThread->quit();
+}
+
+void VideoDisplay::focusInEvent(QFocusEvent* e)
+{
+	if(this->leftPanel->hasFocus())
+	{
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::Box);
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::NoFrame);
+	}
+	if(this->rightPanel->hasFocus())
+	{
+		this->rightPanel->setLineWidth(3);
+		this->rightPanel->setFrameShadow(QFrame::Plain);
+		this->rightPanel->setFrameShape(QFrame::Box);
+		this->leftPanel->setLineWidth(3);
+		this->leftPanel->setFrameShadow(QFrame::Plain);
+		this->leftPanel->setFrameShape(QFrame::NoFrame);
+	}
+	e->accept();
+}
+
+void VideoDisplay::mousePressEvent(QMouseEvent* e)
+{
+	this->focusInEvent(new QFocusEvent(QEvent::FocusIn));
+	e->accept();
 }

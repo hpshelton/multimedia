@@ -10,6 +10,8 @@
 #include <QScrollBar>
 #include <QThread>
 #include <QTimer>
+#include <QFocusEvent>
+#include <QMouseEvent>
 
 class VideoThread;
 
@@ -48,6 +50,9 @@ public:
 	void closeEvent(QCloseEvent* e);
 	void scaleVideo(float factor);
 	void reset();
+
+	void focusInEvent(QFocusEvent* e);
+	void mousePressEvent(QMouseEvent* e);
 
 public slots:
 	void play();
@@ -90,6 +95,3 @@ public:
 	}
 };
 #endif // VIDEODISPLAY_H
-
-
-

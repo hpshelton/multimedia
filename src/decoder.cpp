@@ -186,7 +186,7 @@ QImage** Decoder::read_cif(QString filename, int* frame_num)
 	return frames;
 }
 
-QImage** Decoder::read_pvc(QString filename, int* frames)
+QImage** Decoder::read_pvc(QString filename, int* frames, bool CUDA)
 {
 	int width = 0, height = 0, compression = 0, index = 0, mode;
 	unsigned long numBytes;
@@ -257,7 +257,7 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 		}
 	}
 
-	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width, false);
+	QImage** video = Decoder::decompress_video(residuals, *frames, motionVectors, compression, height, width, CUDA);
 
 	for(int i = 0; i < *frames; i++)
 	{
