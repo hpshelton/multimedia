@@ -20,8 +20,6 @@ QImage* MainWindow::grayscale_image(QImage* img)
 
 		cutilSafeCall(cudaFree(CUinput));
 		cutilSafeCall(cudaFree(CUoutput));
-
-		return img;
 	}
 	else
 	{
@@ -37,8 +35,8 @@ QImage* MainWindow::grayscale_image(QImage* img)
 				img->setPixel(x, y, qRgb(r, g, b));
 			}
 		}
-		return img;
 	}
+	return img;
 }
 
 QImage** MainWindow::grayscale_video()

@@ -20,8 +20,6 @@ QImage* MainWindow::saturate_image(QImage* img, float factor)
 
 		cutilSafeCall(cudaFree(CUinput));
 		cutilSafeCall(cudaFree(CUoutput));
-
-		return img;
 	}
 	else
 	{
@@ -48,8 +46,8 @@ QImage* MainWindow::saturate_image(QImage* img, float factor)
 				img->setPixel(x,y, qRgb(r, g, b));
 			}
 		}
-		return img;
 	}
+	return img;
 }
 
 QImage** MainWindow::saturate_video(float factor)

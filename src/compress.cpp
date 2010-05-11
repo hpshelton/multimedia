@@ -345,7 +345,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 			vecArr[i] = motVecFrame(xHatPrev, frame_bits, height, width);
 		}
 
-		if(i==2)
+/*		if(i==2)
 		{
 			FILE* secondFrame = fopen("secondFrame.txt","w");
 			for(int y = 0; y < CEIL(height/8); y++){
@@ -356,7 +356,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 
 			fclose(secondFrame);
 		}
-
+*/
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;

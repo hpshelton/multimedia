@@ -32,8 +32,6 @@ QImage* MainWindow::contrast_image(QImage* img, float factor)
 
 		cutilSafeCall(cudaFree(CUinput));
 		cutilSafeCall(cudaFree(CUoutput));
-
-		return img;
 	}
 	else
 	{
@@ -58,8 +56,8 @@ QImage* MainWindow::contrast_image(QImage* img, float factor)
 				img->setPixel(x,y, qRgb(r, g, b));
 			}
 		}
-		return img;
 	}
+	return img;
 }
 
 QImage** MainWindow::contrast_video(float factor)

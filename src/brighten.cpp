@@ -20,8 +20,6 @@ QImage* MainWindow::brighten_image(QImage* img, float factor)
 
 		cutilSafeCall(cudaFree(CUinput));
 		cutilSafeCall(cudaFree(CUoutput));
-
-		return img;
 	}
 	else
 	{
@@ -40,8 +38,13 @@ QImage* MainWindow::brighten_image(QImage* img, float factor)
 				img->setPixel(x, y, qRgb(r, g, b));
 			}
 		}
-		return img;
 	}
+
+	FILE* brightenFrame = fopen("brightenframe","w");
+	fwrite(img->bits(), 1, img->byteCount(),brightenFrame);
+	fclose(brightenFrame);
+
+	return img;
 }
 
 QImage** MainWindow::brighten_video(float factor)

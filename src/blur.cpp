@@ -4,9 +4,11 @@ QImage* MainWindow::blur_image(QImage* img)
 {
 	int width = img->width();
 	int height = img->height();
+	QImage* newImg;
 
 	if(CUDA_CAPABLE && CUDA_ENABLED)
 	{
+		newImg = new QImage(img->width(), img->height(), img->format());
 		unsigned char* CUinput;
 		unsigned char* CUoutput;
 		int memSize = img->byteCount();
@@ -16,16 +18,14 @@ QImage* MainWindow::blur_image(QImage* img)
 
 		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
 		CUblur(CUoutput, CUinput, height, width);
-		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
+		cutilSafeCall(cudaMemcpy(newImg->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
 
 		cutilSafeCall(cudaFree(CUinput));
 		cutilSafeCall(cudaFree(CUoutput));
-
-		return img;
 	}
 	else
 	{
-		QImage* newImg = new QImage(*img);
+		newImg = new QImage(*img);
 		// Weight masks
 		float mask[3][3] = { {1/16.0, 2/16.0, 1/16.0}, {2/16.0, 4/16.0, 2/16.0}, {1/16.0, 2/16.0, 1/16.0} };
 		float maskEdge[3][3]= { {1/12.0, 2/12.0, 1/12.0}, {2/12.0, 4/12.0, 2/12.0}, {1/12.0, 2/12.0, 1/12.0} };
@@ -171,8 +171,9 @@ QImage* MainWindow::blur_image(QImage* img)
 				newImg->setPixel(x, y, qRgb(poutr, poutg, poutb));
 			}
 		}
-		return newImg;
 	}
+
+	return newImg;
 }
 
 QImage** MainWindow::blur_video()

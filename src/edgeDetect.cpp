@@ -1,14 +1,14 @@
 #include "mainwindow.h"
 
-/* cuda method is RGBA because RGB32 stores data as 0xffRRGGBB anyway
-  */
 QImage* MainWindow::edge_detect(QImage* img)
 {
 	int width = img->width();
 	int height = img->height();
+	QImage* newImg;
 
 	if(CUDA_CAPABLE && CUDA_ENABLED)
 	{
+		newImg = new QImage(img->width(), img->height(), img->format());
 		unsigned char* CUinput;
 		unsigned char* CUoutput;
 		int memSize = img->byteCount();
@@ -18,17 +18,14 @@ QImage* MainWindow::edge_detect(QImage* img)
 
 		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
 		CUedgeDetect(CUoutput, CUinput, height, width);
-		cutilSafeCall(cudaMemcpy(img->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
+		cutilSafeCall(cudaMemcpy(newImg->bits(), CUoutput, memSize, cudaMemcpyDeviceToHost));
 
 		cutilSafeCall(cudaFree(CUinput));
 		cutilSafeCall(cudaFree(CUoutput));
-
-		return img;
 	}
 	else
 	{
-		QImage* newImg = new QImage(*img);
-
+		newImg = new QImage(*img);
 		// Weight masks
 		float mask[3][3] = { {-1.0, -1.0, -1.0}, {-1.0, 8.0, -1.0}, {-1.0, -1.0, -1.0} };
 		float maskEdge[3][3]= { {-1.0, -1.0, -1.0}, {-1.0, 5.0, -1.0}, {-1.0, -1.0, -1.0} };
@@ -174,16 +171,18 @@ QImage* MainWindow::edge_detect(QImage* img)
 				newImg->setPixel(x, y, qRgb(poutr, poutg, poutb));
 			}
 		}
-		return newImg;
 	}
+	return newImg;
 }
 
 QImage** MainWindow::edge_detect_video()
 {
 	QImage** original = this->video_display->getRightVideo();
 	QImage** modified = (QImage**) malloc(this->frames * sizeof(QImage*));
-	for(int f = 0; f < this->frames; f++)
-		 modified[f] = edge_detect(new QImage(*original[f]));
+	for(int f = 0; f < this->frames; f++){
+		//*modified[f] = QImage(original[0]->width(), original[0]->height(), original[0]->format());
+		modified[f] = edge_detect(new QImage(*original[f]));
+	 }
 	return modified;
 }
 

@@ -39,13 +39,6 @@ void CUtranspose(float* d_odata, float* d_idata, int col, int row)
 	transpose<<< grid, threads >>>(d_odata, d_idata, col, row);
 }
 
-void CUsetToVal(unsigned char* x, int len, int val)
-{
-	int threadsPerBlock = len;
-	int blocksPerGrid = (len + threadsPerBlock - 1) / threadsPerBlock;
-	setToVal<<<blocksPerGrid, threadsPerBlock>>>(x, len, val);
-}
-
 void CUedgeDetect(unsigned char* output, unsigned char* input, int row, int col)
 {
 	dim3 dimGrid(row/4+1, col/4+1);
@@ -296,7 +289,7 @@ mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int 
 
 	findAllVals<<<blockSize, threadSize>>>(CUallmvecs, blockDimY, blockDimX, CUprevImg, CUcurrImg, height, width);
 
-	FILE* debugOut = fopen("debug.txt","w");
+/*	FILE* debugOut = fopen("debug.txt","w");
 
 	mvec* debug = (mvec*)malloc(sizeof(mvec)*blockDimX*blockDimY*17*17);
 	cutilSafeCall(cudaMemcpy(debug, CUallmvecs, sizeof(mvec)*blockDimX*blockDimY*17*17, cudaMemcpyDeviceToHost));
@@ -308,7 +301,7 @@ mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int 
 	free(debug);
 
 	fclose(debugOut);
-
+*/
 	// reduce each block
 	for(int i=0; i < blockDimX; i++){
 		for(int j=0; j < blockDimY; j++){
