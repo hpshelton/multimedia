@@ -480,7 +480,7 @@ void MainWindow::compress()
 
 			if(this->video)
 			{
-				VideoDisplay* video_display = new VideoDisplay(this->video_display->getLeftVideo(), this->frames, preview);
+				VideoDisplay* video_display = new VideoDisplay(this->video_display->getRightVideo(), this->frames, preview);
 				preview->setCentralWidget(video_display);
 				QObject::connect(play, SIGNAL(triggered()), video_display, SLOT(play()));
 				QObject::connect(pause, SIGNAL(triggered()), video_display, SLOT(pause()));
@@ -499,11 +499,14 @@ void MainWindow::compress()
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				psnrText->setText(QString("PSNR: %1dB").arg(psnr));
+				int x, y, width, height;
+				preview->geometry().getRect(&x, &y, &width, &height);
+				preview->setGeometry(x-10, y-10, width+20, height+20);
 				preview->show();
 			}
 			else
 			{
-				ImageDisplay* display = new ImageDisplay(this->image_display->getLeftImage(), preview);
+				ImageDisplay* display = new ImageDisplay(this->image_display->getRightImage(), preview);
 				preview->setCentralWidget(display);
 				double psnr = 0.0;
 				int time = 0;
@@ -513,6 +516,9 @@ void MainWindow::compress()
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				psnrText->setText(QString("PSNR: %1dB").arg(psnr));
+				int x, y, width, height;
+				preview->geometry().getRect(&x, &y, &width, &height);
+				preview->setGeometry(x-10, y-10, width+20, height+20);
 				preview->show();
 			}
 		}
