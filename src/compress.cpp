@@ -251,7 +251,6 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
 
 /** prevImg - the bits (img->bits()) of the previous frame
  *  currImg - the bits (img->bits()) of the current frame
- *  diffImg - the bits (img->bits()) of the difference of the frames
  *  xOffset - the x index of the top-left pixel in the block. Should be 0,8,...width-8
  *  yOffset - the y index of the top-left pixel in the block. Should be 0,8,...height-8
  *  height - the height of prevImg, currImg, and diffImg
@@ -264,8 +263,8 @@ mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int y
 	unsigned int diff;
 	mvec vec;
 	vec.diff = INT_MAX;
-	for(i=-28; i < 32; i+=4){
-		for(j=-7; j < 8; j++){
+	for(i=-32; i < 36; i+=4){
+		for(j=-8; j < 9; j++){
 			diff=0;
 			for(k=0; k < 32; k++){
 				for(l=0; l < 8; l++){
@@ -280,13 +279,13 @@ mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int y
 
 			if(diff < vec.diff){
 				vec.diff = diff;
-				vec.x = 0;//i;
-				vec.y = 0;//j;
+				vec.x = i;
+				vec.y = j;
 			}
 			else if(diff == vec.diff){
 				if(sqrt(i*i + j*j) < sqrt(vec.x*vec.x + vec.y*vec.y)){
-					vec.x = 0;//i;
-					vec.y = 0;//j;
+					vec.x = i;
+					vec.y = j;
 				}
 			}
 		}
@@ -350,7 +349,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 			FILE* secondFrame = fopen("secondFrame.txt","w");
 			for(int y = 0; y < CEIL(height/8); y++){
 				for(int z=0; z < CEIL(width/8); z++){
-					fprintf(secondFrame, "%d\t%d\t%d\n",vecArr[i][z + y * CEIL(width/8)].x,vecArr[i][z + y * CEIL(width/8)].y,vecArr[i][z + y * CEIL(width/8)].diff);
+					fprintf(secondFrame, "%d\t%d\t%d\n",vecArr[i][z + y * CEIL(width/8)].x/4,vecArr[i][z + y * CEIL(width/8)].y,vecArr[i][z + y * CEIL(width/8)].diff);
 				}
 			}
 

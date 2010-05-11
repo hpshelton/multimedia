@@ -33,7 +33,6 @@ int main(int argc, char* argv[])
 		mvecs[i].y = i;
 		mvecs[i].diff = rand() % 1024 ;
 	}
-	mvecs[ARRSIZE-1].diff=1;
 
 	mvec* CUvecs;
 	mvec* CUvecsOut;
@@ -43,13 +42,13 @@ int main(int argc, char* argv[])
 	cutilSafeCall(cudaMemcpy(CUvecs, mvecs, sizeof(mvec)*ARRSIZE, cudaMemcpyHostToDevice));
 	reduce(ARRSIZE, CUvecs, CUvecsOut);
 	cutilSafeCall(cudaMemcpy(mvecsOut, CUvecsOut, sizeof(mvec), cudaMemcpyDeviceToHost));
-
+/*
 	printf("originals:\n");
 	for(int i=0; i < ARRSIZE; i++){
 		printMvec(mvecs[i]);
 	}
 	printf("\nmin:\n");
-	printMvec(mvecsOut[0]);
+*/	printMvec(mvecsOut[0]);
 
 	cutilSafeCall(cudaFree(CUvecs));
 	cutilSafeCall(cudaFree(CUvecsOut));

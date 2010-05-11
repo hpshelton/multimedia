@@ -29,7 +29,7 @@ __global__ void conv3x3(unsigned char* input, unsigned char* output, int row, in
 		for(i=-1; i < 2; i++){
 			for(j=-1; j < 2; j++){
 				if(-1 < (index+4*j)+(4*col*i) && (index+4*j)+(4*col*i) < row*col*4){
-				convSum += kernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
+					convSum += kernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
 				}
 			}
 		}
@@ -56,9 +56,6 @@ __global__ void UNshuffle(unsigned char* output, float* input, int width, int he
 	if(i<width*height*4)
 		output[i] = CLAMP(input[i/4 + (i%4)*width*height]);
 }
-
-#define ABS(a) (a<0?-a:a)
-
 
 __global__ void zeroOut(int* x, float threshold, int n)
 {
@@ -332,22 +329,29 @@ __global__ void findAllVals(mvec* in, int numYblocks, int numXblocks, short int*
 
 	if(index < numYblocks*numXblocks * threadsPerBlock)
 	{
-//		int vecBlockID = blockIdx.x + blockIdx.y * numXblocks;
 		int shiftedXIndex, shiftedYIndex, xIndex, yIndex;
+
 		in[index].x = (threadIdx.x-8)*4;
-		in[index].y = threadIdx.y-8;
-		in[index].diff=0;
+		in[index].y =  threadIdx.y-8;
+		in[index].diff= 0;
+
 		for(int i=0; i < 32; i++){
 			for(int j=0; j < 8; j++){
-				shiftedXIndex = blockIdx.x * blockDim.x + i + (threadIdx.x-8)*4;
-				shiftedYIndex = blockIdx.y * blockDim.y + j + (threadIdx.y-8);
-				xIndex = blockIdx.x * blockDim.x + i;
-				yIndex = blockIdx.y * blockDim.y + j;
 
-				if(shiftedXIndex < 0 || shiftedXIndex >= width*4 || shiftedYIndex < 0 || shiftedYIndex >= height)
-					in[index].diff +=     currImg[xIndex + yIndex * width*4];
-				else
-					in[index].diff += abs(currImg[xIndex + yIndex * width*4] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
+				xIndex = 4*8*blockIdx.x + i;
+				yIndex =   8*blockIdx.y + j;
+				shiftedXIndex = xIndex + (threadIdx.x-8)*4;
+				shiftedYIndex = yIndex + (threadIdx.y-8);
+
+				if(0 <= xIndex && xIndex < width*4 && 0 <= yIndex && yIndex < height){
+					if(shiftedXIndex < 0 || shiftedXIndex >= width*4 || shiftedYIndex < 0 || shiftedYIndex >= height)
+						in[index].diff +=     currImg[xIndex + yIndex * width*4];
+					else
+						in[index].diff += ABS(currImg[xIndex + yIndex * width*4] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
+				}
+				else{
+					in[index].diff = INT_MAX;
+				}
 			}
 		}
 	}
