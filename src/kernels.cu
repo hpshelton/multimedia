@@ -331,8 +331,8 @@ __global__ void findAllVals(mvec* in, int numYblocks, int numXblocks, short int*
 	{
 		int shiftedXIndex, shiftedYIndex, xIndex, yIndex;
 
-		in[index].x = (threadIdx.x-8)*4;
-		in[index].y =  threadIdx.y-8;
+		in[index].x = 0;//(threadIdx.x-8)*4;
+		in[index].y =  0;//threadIdx.y-8;
 		in[index].diff= 0;
 
 		for(int i=0; i < 32; i++){
