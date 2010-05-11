@@ -1,5 +1,10 @@
 #include "mvec.h"
-#include "defines.h"
+//#include "defines.h"
+
+#define CLAMP(a) ( ((a) > 255) ? 255 : (((a) < 0) ? 0 : (int)(a)) )
+#define CEIL(a) ( ((a) - (int)(a))==0 ? (int)(a) : (int)((a)+1) )
+#define ABS(a) (a<0?-a:a)
+
 
 __global__ void setToVal(unsigned char* x, int len, int val)
 {
@@ -57,13 +62,11 @@ __global__ void UNshuffle(unsigned char* output, float* input, int width, int he
 		output[i] = CLAMP(input[i/4 + (i%4)*width*height]);
 }
 
-#define CUABS(a) (a<0?-a:a)
-
 __global__ void zeroOut(int* x, float threshold, int n)
 {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
 	if(i<n){
-		if(CUABS(x[i]) < threshold)
+		if(ABS(x[i]) < threshold)
 			x[i]=0;
 	}
 }
