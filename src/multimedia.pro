@@ -11,7 +11,8 @@ HEADERS += mainwindow.h \
     decoder.h \
     videodisplay.h \
     dwt97.h \
-    mvec.h
+    mvec.h \
+    TWODFWT.h
 SOURCES += main.cpp \
     mainwindow.cpp \
     imagedisplay.cpp \

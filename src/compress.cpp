@@ -1,6 +1,7 @@
 #include "mainwindow.h"
 #include "dwt97.h"
 #include "utility.h"
+#include "TWODFWT.h"
 
 void RoundArray(int* out, float* in, int len)
 {
@@ -257,7 +258,7 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
  *  height - the height of prevImg, currImg, and diffImg
  *  width - the width of prevImg, currImg, and diffImg
  */
-mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int yOffset, int height, int width)
+mvec motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int xOffset, int yOffset, int height, int width)
 {
 	xOffset = xOffset*4; // for rgba
 	int i, j, k, l, xIndex, yIndex;
@@ -294,7 +295,7 @@ mvec motionVec8x8(short int* prevImg, unsigned char* currImg, int xOffset, int y
 	return vec;
 }
 
-mvec* motVecFrame(short int* prevImg, unsigned char* currImg, int height, int width)
+mvec* motVecFrame(unsigned char* prevImg, unsigned char* currImg, int height, int width)
 {
 	int blockDimX = CEIL(width/8.0f);
 	int blockDimY = CEIL(height/8.0f);
@@ -338,25 +339,35 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	int yVec;
 	for(int i=0; i < frames; i++){
 		unsigned char* frame_bits = original[i + start_frame]->bits();
-		if(CUDA){
-			vecArr[i] = CUmotVecFrame(xHatPrev, frame_bits, height, width);
+
+		if(i==0){
+			Utility u;
+			vecArr[0] = u.zeroMvec(CEIL(width/8), CEIL(height/8));
 		}
 		else{
-			vecArr[i] = motVecFrame(xHatPrev, frame_bits, height, width);
+			if(CUDA){
+				vecArr[i] = CUmotVecFrame(original[i + start_frame-1]->bits(), frame_bits, height, width);
+			}
+			else{
+				vecArr[i] =   motVecFrame(original[i + start_frame-1]->bits(), frame_bits, height, width);
+			}
 		}
 
-/*		if(i==2)
+		if(i==2)
 		{
 			FILE* secondFrame = fopen("secondFrame.txt","w");
 			for(int y = 0; y < CEIL(height/8); y++){
 				for(int z=0; z < CEIL(width/8); z++){
-					fprintf(secondFrame, "%d\t%d\t%d\n",vecArr[i][z + y * CEIL(width/8)].x/4,vecArr[i][z + y * CEIL(width/8)].y,vecArr[i][z + y * CEIL(width/8)].diff);
+					fprintf(secondFrame, "%d\t%d\t%d\n",vecArr[i][z + y * CEIL(width/8)].x/4 , vecArr[i][z + y * CEIL(width/8)].y , vecArr[i][z + y * CEIL(width/8)].diff);
 				}
 			}
 
 			fclose(secondFrame);
+			Utility u;
+			u.MfileConverter("secondFrame.txt", "vectors.m");
+			system("rm secondFrame.txt");
 		}
-*/
+
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
@@ -379,7 +390,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 	return diff;
 }
 
-QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float compression, int height, int width, bool CUDA)
+QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float compression, int height, int width)
 {
 	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
 	/* might be leaing memory on output mallocs */
@@ -417,13 +428,17 @@ QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float 
 	return output;
 }
 
-QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int end_frame, float compression, double* psnr, bool CUDA)
+QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int end_frame, float compression, double* psnr, bool CUDA, int* time)
 {
+	QTime timer;
+
 	int frames = end_frame - start_frame +1;
 	mvec** vec;
 
+	timer.restart();
 	int** comp = compress_video(original, start_frame, end_frame, &vec, compression, CUDA);
-	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width(), CUDA);
+	*time = timer.elapsed();
+	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width());
 
 	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
 	printf("PCT_ZEROS: %7.4f\n", pctZeros);

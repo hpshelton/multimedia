@@ -3,9 +3,11 @@
 
 #include <math.h>
 #include <QImage>
+#include <vector>
 #include "defines.h"
-
 #include "mvec.h"
+
+using std::vector;
 
 class Utility
 {
@@ -317,6 +319,72 @@ public:
 			}
 		}
 		return (val / (double)(len*frames));
+	}
+
+	void MfileConverter(char* infilename, char* outfilename){
+		FILE* infile = fopen(infilename,"r");
+		FILE* outfile = fopen(outfilename,"w");
+
+		vector<int> xVecs;
+		vector<int> yVecs;
+		vector<int> diffs;
+
+		int xVec, yVec, diff;
+		unsigned int i;
+		while(fscanf(infile, "%d\t%d\t%d\n",&xVec, &yVec, &diff)!=EOF)
+		{
+			xVecs.push_back(xVec);
+			yVecs.push_back(yVec);
+			diffs.push_back(diff);
+		}
+
+		int xstart = 4;
+		fprintf(outfile,"X = [");
+		for(i=0; i < xVecs.size(); i++){
+			if(xstart > 176)
+				xstart=4;
+			fprintf(outfile, " %d ",xstart);
+			xstart+=8;
+		}
+		fprintf(outfile,"];\n");
+
+		int ystart = 4;
+		fprintf(outfile,"Y = [");
+		for(i=0; i < xVecs.size(); i++){
+			fprintf(outfile, " %d ",ystart);
+			if(!(i%(int)(ceil(176/8))) && i!=0)
+				ystart+=8;
+		}
+		fprintf(outfile,"];\n");
+
+		fprintf(outfile,"U = [");
+		for(i=0; i < xVecs.size(); i++){
+			fprintf(outfile, " %d ",xVecs[i]);
+		}
+		fprintf(outfile,"];\n");
+
+		fprintf(outfile,"V = [");
+		for(i=0; i < yVecs.size(); i++){
+			fprintf(outfile, " %d ",yVecs[i]);
+		}
+		fprintf(outfile,"];\n");
+
+		fprintf(outfile,"figure;\nimshow('frame2.png');\nhold on;\nquiver(X,Y,U,V,0);");
+
+		fclose(infile);
+		fclose(outfile);
+	}
+
+	mvec* zeroMvec(int blockDimX, int blockDimY)
+	{
+		mvec* vecs = (mvec*)malloc(sizeof(mvec) * blockDimX * blockDimY );
+		for(int i=0; i < blockDimX*blockDimY; i++)
+		{
+			vecs[i].x = 0;
+			vecs[i].y = 0;
+			vecs[i].diff = 0;
+		}
+		return vecs;
 	}
 };
 

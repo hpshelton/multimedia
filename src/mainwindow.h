@@ -42,7 +42,7 @@ extern "C" void CUsaturate(unsigned char* output, unsigned char* input, int row,
 extern "C" void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col);
 extern "C" void CUiwt97_2D_rgba(unsigned char* output, int* input, int row, int col);
 extern "C" void CUreduce(int size, mvec *d_idata, mvec *d_odata);
-extern "C" mvec* CUmotVecFrame(short int* prevImg, unsigned char* currImg, int height, int width);
+extern "C" mvec* CUmotVecFrame(unsigned char* prevImg, unsigned char* currImg, int height, int width);
 
 class MainWindow : public QMainWindow
 {

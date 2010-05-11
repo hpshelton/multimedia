@@ -2,7 +2,7 @@
 
 #define CLAMP(a) ( ((a) > 255) ? 255 : (((a) < 0) ? 0 : (int)(a)) )
 #define CEIL(a) ( ((a) - (int)(a))==0 ? (int)(a) : (int)((a)+1) )
-#define ABS(a) (a<0?-a:a)
+#define ABS(a) ((a)<0?-(a):(a))
 
 __global__ void conv3x3(unsigned char* input, unsigned char* output, int row, int col, float* kernel)
 {
@@ -11,16 +11,25 @@ __global__ void conv3x3(unsigned char* input, unsigned char* output, int row, in
 	int index = (xIndex + yIndex * row*4);
 
 	if(index < row*col*4){
+
 		if(index%4==3){
 			output[index] = 0xFF;
 			return;
 		}
 		int i, j;
-		float convSum=0;
+
+		__shared__ float convSum;
+		convSum=0;
+
+		__shared__ float Skernel[9];
+		if(threadIdx.x<9)
+			Skernel[threadIdx.x] = kernel[threadIdx.x];
+		__syncthreads();
+
 		for(i=-1; i < 2; i++){
 			for(j=-1; j < 2; j++){
 				if(-1 < (index+4*j)+(4*col*i) && (index+4*j)+(4*col*i) < row*col*4){
-					convSum += kernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
+					convSum += Skernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
 				}
 			}
 		}
@@ -316,17 +325,28 @@ template <class T> __global__ void reduce3(T *g_idata, T *g_odata, unsigned int 
 	if (tid == 0) g_odata[blockIdx.x] = sdata[0];
 }
 
-__global__ void findAllVals(mvec* in, int numYblocks, int numXblocks, short int* prevImg, unsigned char* currImg, int height, int width)
+__global__ void findAllVals(mvec* in, int numYblocks, int numXblocks, unsigned char* prevImg, unsigned char* currImg, int height, int width)
 {
 	int index = blockDim.x*blockDim.y*(blockIdx.x + blockIdx.y * numXblocks) + threadIdx.x + threadIdx.y*blockDim.x;
 	int threadsPerBlock = blockDim.x * blockDim.y;
+
+	__shared__ int diff;
+	diff=0;
+	__shared__ unsigned char currBlock[256];
+	if(threadIdx.x < 8 && threadIdx.y < 8){
+		currBlock[4*threadIdx.x + threadIdx.y*32]  =   currImg[(4*8*blockIdx.x+(threadIdx.x*4))  +  (8*blockIdx.y+(threadIdx.y))*width*4];
+		currBlock[4*threadIdx.x + threadIdx.y*32 +1] = currImg[(4*8*blockIdx.x+(threadIdx.x*4)+1) + (8*blockIdx.y+(threadIdx.y))*width*4];
+		currBlock[4*threadIdx.x + threadIdx.y*32 +2] = currImg[(4*8*blockIdx.x+(threadIdx.x*4)+2) + (8*blockIdx.y+(threadIdx.y))*width*4];
+		currBlock[4*threadIdx.x + threadIdx.y*32 +3] = currImg[(4*8*blockIdx.x+(threadIdx.x*4)+3) + (8*blockIdx.y+(threadIdx.y))*width*4];
+	}
+	__syncthreads();
 
 	if(index < numYblocks*numXblocks * threadsPerBlock)
 	{
 		int shiftedXIndex, shiftedYIndex, xIndex, yIndex;
 
-		in[index].x = 0;//(threadIdx.x-8)*4;
-		in[index].y =  0;//threadIdx.y-8;
+		in[index].x = (threadIdx.x-8)*4;
+		in[index].y =  threadIdx.y-8;
 		in[index].diff= 0;
 
 		for(int i=0; i < 32; i++){
@@ -339,14 +359,12 @@ __global__ void findAllVals(mvec* in, int numYblocks, int numXblocks, short int*
 
 				if(0 <= xIndex && xIndex < width*4 && 0 <= yIndex && yIndex < height){
 					if(shiftedXIndex < 0 || shiftedXIndex >= width*4 || shiftedYIndex < 0 || shiftedYIndex >= height)
-						in[index].diff +=     currImg[xIndex + yIndex * width*4];
+						diff +=  currBlock[i+j*32];
 					else
-						in[index].diff += ABS(currImg[xIndex + yIndex * width*4] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
-				}
-				else{
-					in[index].diff = INT_MAX;
+						diff += ABS(currBlock[i+j*32] - prevImg[shiftedXIndex + shiftedYIndex * width*4]);
 				}
 			}
 		}
 	}
+	in[index].diff = diff;
 }
