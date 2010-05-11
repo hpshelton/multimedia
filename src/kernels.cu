@@ -57,11 +57,13 @@ __global__ void UNshuffle(unsigned char* output, float* input, int width, int he
 		output[i] = CLAMP(input[i/4 + (i%4)*width*height]);
 }
 
+#define CUABS(a) (a<0?-a:a)
+
 __global__ void zeroOut(int* x, float threshold, int n)
 {
 	int i = blockDim.x * blockIdx.x + threadIdx.x;
 	if(i<n){
-		if(ABS(x[i]) < threshold)
+		if(CUABS(x[i]) < threshold)
 			x[i]=0;
 	}
 }

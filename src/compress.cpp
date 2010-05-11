@@ -69,7 +69,8 @@ int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned
 		cutilSafeCall(cudaMemcpy(CUinput, img->bits(), memSize, cudaMemcpyHostToDevice));
 		CUfwt97_2D_rgba(CUtransformed, CUinput, height, width);
 
-		CUzeroOut(CUtransformed, threshold,  height*width*4);
+		if(threshold)
+			CUzeroOut(CUtransformed, threshold,  height*width*4);
 
 		cutilSafeCall(cudaMemcpy(compressed, CUtransformed, sizeof(int)*height*width*4, cudaMemcpyDeviceToHost));
 		cutilSafeCall(cudaFree(CUinput));
