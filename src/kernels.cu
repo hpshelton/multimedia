@@ -9,6 +9,9 @@ __global__ void conv3x3(unsigned char* input, unsigned char* output, int row, in
 	int xIndex = blockDim.x * blockIdx.x + threadIdx.x;
 	int yIndex = blockDim.y * blockIdx.y + threadIdx.y;
 	int index = (xIndex + yIndex * row*4);
+	int sharedIndex = threadIdx.x + threadIdx.y * 16;
+	__shared__ float convSum[16*16];
+	int i, j;
 
 	if(index < row*col*4){
 
@@ -16,24 +19,17 @@ __global__ void conv3x3(unsigned char* input, unsigned char* output, int row, in
 			output[index] = 0xFF;
 			return;
 		}
-		int i, j;
 
-		__shared__ float convSum;
-		convSum=0;
-
-		__shared__ float Skernel[9];
-		if(threadIdx.x<9)
-			Skernel[threadIdx.x] = kernel[threadIdx.x];
-		__syncthreads();
+		convSum[sharedIndex]=0;
 
 		for(i=-1; i < 2; i++){
 			for(j=-1; j < 2; j++){
 				if(-1 < (index+4*j)+(4*col*i) && (index+4*j)+(4*col*i) < row*col*4){
-					convSum += Skernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
+					convSum[sharedIndex] += kernel[3*(i+1) + (j+1)]*input[(index+4*j)+(4*col*i)];
 				}
 			}
 		}
-		output[index] = CLAMP(convSum);
+		output[index] = CLAMP(convSum[sharedIndex]);
 	}
 }
 
