@@ -499,6 +499,9 @@ void MainWindow::compress()
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				psnrText->setText(QString("PSNR: %1dB").arg(psnr));
+				int x, y, width, height;
+				preview->geometry().getRect(&x, &y, &width, &height);
+				preview->setGeometry(x-10, y-10, width+20, height+20);
 				preview->show();
 			}
 			else
@@ -513,6 +516,9 @@ void MainWindow::compress()
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				psnrText->setText(QString("PSNR: %1dB").arg(psnr));
+				int x, y, width, height;
+				preview->geometry().getRect(&x, &y, &width, &height);
+				preview->setGeometry(x-10, y-10, width+20, height+20);
 				preview->show();
 			}
 		}
