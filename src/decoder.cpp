@@ -58,7 +58,7 @@ QImage** Decoder::read_qcif(QString filename, int* frame_num)
 	FILE* video;
 	if((video = fopen(filename.toStdString().c_str(), "r")) == NULL)
 	{
-		std::cerr << "Error opening file [%s] for reading!\n";
+		std::cerr << "Failed to open " << filename.toStdString() << " for reading\n";
 		return NULL;
 	}
 
@@ -125,7 +125,7 @@ QImage** Decoder::read_cif(QString filename, int* frame_num)
 	FILE* video;
 	if((video = fopen(filename.toStdString().c_str(), "r")) == NULL)
 	{
-		std::cerr << "Error opening file [%s] for reading!\n";
+		std::cerr << "Failed to open " << filename.toStdString() << " for reading\n";
 		return NULL;
 	}
 
@@ -232,7 +232,7 @@ QImage** Decoder::read_pvc(QString filename, int* frames)
 	int** residuals = (int**) malloc(*frames * block_size * sizeof(int*));
 	mvec** motionVectors = (mvec**) malloc(*frames * sizeof(mvec*));
 
-	//Convert motion vectors to block format
+	// Convert motion vectors to block format
 	for(int f = 0; f < *frames; f++)
 	{
 		motionVectors[f] = (mvec*) malloc(sizeof(mvec) * mvec_size);

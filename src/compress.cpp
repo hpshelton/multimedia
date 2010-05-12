@@ -3,6 +3,8 @@
 #include "utility.h"
 #include "TWODFWT.h"
 
+#define NUM_SYMBOLS 512 // -256 -> 255
+
 void RoundArray(int* out, float* in, int len)
 {
 	int i;
@@ -231,23 +233,12 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
 	unsigned long numBytes;
 	int* compressed = compress_image(img, factor, CUDA, &numBytes);
 
-/*	int i, zeroCoeff=0;
-	for(i=0; i < img->width()*img->height()*4; i++){
-		if(compressed[i]==0)
-			zeroCoeff++;
-	}
-	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
-*/
 	QImage* decompressed = new QImage(img->width(), img->height(), QImage::Format_RGB32);
 	Decoder::decompress_image(decompressed, compressed, CUDA);
 
 	*psnr = Utility::psnr(img->bits(), decompressed->bits(), img->byteCount());
 
-//	printf("%2.6f\t%2.6f\t%2.6f\n",factor, pct, *psnr);
-//	fflush(stdout);
-
 	free(compressed);
-
 	return decompressed;
 }
 
@@ -279,13 +270,13 @@ mvec motionVec8x8(unsigned char* prevImg, unsigned char* currImg, int xOffset, i
 				}
 			}
 
-			if(diff < vec.diff){
+			if(diff < vec.diff) {
 				vec.diff = diff;
 				vec.x = i;
 				vec.y = j;
 			}
-			else if(diff == vec.diff){
-				if(sqrt(i*i + j*j) < sqrt(vec.x*vec.x + vec.y*vec.y)){
+			else if(diff == vec.diff) {
+				if(sqrt(i*i + j*j) < sqrt(vec.x*vec.x + vec.y*vec.y)) {
 					vec.x = i;
 					vec.y = j;
 				}
@@ -301,19 +292,16 @@ mvec* motVecFrame(unsigned char* prevImg, unsigned char* currImg, int height, in
 	int blockDimY = CEIL(height/8.0f);
 	mvec* vecs = (mvec*)malloc(sizeof(mvec) * blockDimX * blockDimY );
 
-	for(int i=0; i < blockDimY; i++){
-		for(int j=0; j< blockDimX; j++){
+	for(int i=0; i < blockDimY; i++)
+		for(int j=0; j< blockDimX; j++)
 			vecs[j + i*blockDimX] = motionVec8x8(prevImg, currImg, 8*j, 8*i, height, width);
-		}
-	}
+
 	return vecs;
 }
 
-#define NUM_SYMBOLS 512 // -256 -> 255
-
 int** Encoder::compress_video(QImage** original, int start_frame, int end_frame, mvec*** vecArrP, float compression, bool CUDA)
 {
-	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
+	int Qlevel = -5.12*compression + 512;
 	int height = original[0]->height();
 	int width = original[0]->width();
 	int frames = end_frame-start_frame+1;
@@ -345,15 +333,13 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 			vecArr[0] = u.zeroMvec(CEIL(width/8), CEIL(height/8));
 		}
 		else{
-			if(CUDA){
+			if(CUDA)
 				vecArr[i] = CUmotVecFrame(original[i + start_frame-1]->bits(), frame_bits, height, width);
-			}
-			else{
+			else
 				vecArr[i] =   motVecFrame(original[i + start_frame-1]->bits(), frame_bits, height, width);
-			}
 		}
 
-		if(i==2)
+		if(i==2) // Print file for Matlab motion vector analysis
 		{
 			FILE* secondFrame = fopen("secondFrame.txt","w");
 			for(int y = 0; y < CEIL(height/8); y++){
@@ -392,21 +378,18 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 
 QImage** Decoder::decompress_video(int** diff, int frames, mvec** vecArr, float compression, int height, int width)
 {
-	int Qlevel = -5.12*compression + 512; // TODO - Ensure that this is proper conversion from % to quantization threshold
+	int Qlevel = -5.12*compression + 512;
 	/* might be leaing memory on output mallocs */
 	QImage** output = (QImage**) malloc(frames * sizeof(QImage*));
-	for(int f = 0; f < frames; f++){
+	for(int f = 0; f < frames; f++)
 		output[f] = new QImage(width, height, QImage::Format_ARGB32);
-	}
 
 	unsigned char* prevFrame = (unsigned char*)malloc(sizeof(unsigned char)*height*width*4);
+	for(int i = 0; i < width*height*4; i++)
+		prevFrame[i] = 0;
 
 	int xVec;
 	int yVec;
-
-	for(int i=0; i < width*height*4; i++){
-		prevFrame[i]=0;
-	}
 
 	for(int i=0; i < frames; i++){
 		for(int j=0; j < height; j++){

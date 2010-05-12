@@ -75,41 +75,7 @@ public:
 		return binval;
 	}
 
-	static int numBits(char* binVal)
-	{
-		int i = 0;
-		char c;
-		while ((c = binVal[i++]) != '\0')
-			;
-		return i-1;
-	}
-
-	// Converts 0 <= num <= 65,535
-	static unsigned char* intToChars(int num)
-	{
-		int total = 0, p = 0, index = 0, char_count = 0, len = 16;
-		unsigned char* chars = (unsigned char*) malloc(2 * sizeof(unsigned char));
-		char buffer[8];
-		for(int i = 0; i < len; i++)
-		{
-			p = pow(2, (len-1-i));
-			if(total + p <= num)
-			{
-				buffer[index++] = '1';
-				total += p;
-			}
-			else
-				buffer[index++] = '0';
-			if(index == 8)
-			{
-				index = 0;
-				chars[char_count++] = Utility::BintoChar(buffer);
-			}
-		}
-		return chars;
-	}
-
-	// Converts -32767 <= num <= 32767 correctly
+	// Converts -32767 <= num <= 32767 to two's-complement
 	static unsigned char* shortToChars(short num)
 	{
 		unsigned char* chars = (unsigned char*) malloc(2 * sizeof(unsigned char));
@@ -136,7 +102,7 @@ public:
 		return chars;
 	}
 
-	// Converts -128 <= num <= 128 correctly
+	// Converts -128 <= num <= 128 to two's-complement
 	static unsigned char charToUnsignedChar(short num)
 	{
 		bool negative = (num < 0);
@@ -156,7 +122,7 @@ public:
 		return Utility::BintoChar(small_buffer);
 	}
 
-	// Returns signed short from two byte twos-complement representation
+	// Returns signed short from two byte two's-complement representation
 	static int charsToShort(unsigned char byte1, unsigned char byte2)
 	{
 		char* first = Utility::charToBin(byte1);
@@ -193,28 +159,6 @@ public:
 				(first[5]-48)*4 +
 				(first[6]-48)*2 +
 				(first[7]-48)*1);
-	}
-
-	static int doubleCharToInt(unsigned char byte1, unsigned char byte2)
-	{
-		char* first = charToBin(byte1);
-		char* second = charToBin(byte2);
-		return  (first[0]-48)*32768 +
-				(first[1]-48)*16384 +
-				(first[2]-48)*8192 +
-				(first[3]-48)*4096 +
-				(first[4]-48)*2048 +
-				(first[5]-48)*1024 +
-				(first[6]-48)*512 +
-				(first[7]-48)*256 +
-				(second[0]-48)*128 +
-				(second[1]-48)*64 +
-				(second[2]-48)*32 +
-				(second[3]-48)*16 +
-				(second[4]-48)*8 +
-				(second[5]-48)*4 +
-				(second[6]-48)*2 +
-				(second[7]-48)*1;
 	}
 
 	static QRgb GaussianSample(QImage* image, float x, float y, float variance, float radius)
@@ -309,6 +253,7 @@ public:
 		}
 		return 100*(zeros / (double)(len*frames));
 	}
+
 	static double avg_val(int** A, int frames, int len)
 	{
 		double val=0;
@@ -321,7 +266,8 @@ public:
 		return (val / (double)(len*frames));
 	}
 
-	void MfileConverter(char* infilename, char* outfilename){
+	void MfileConverter(char* infilename, char* outfilename)
+	{
 		FILE* infile = fopen(infilename,"r");
 		FILE* outfile = fopen(outfilename,"w");
 
