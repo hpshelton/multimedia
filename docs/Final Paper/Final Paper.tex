@@ -122,10 +122,74 @@ The parallelization comes into play with the search for optimal motion vectors. 
 
 Sample code which came with the CUDA SDK was modified and used for both the reduction and the transpose. A second set of non-parallelized algorithms are also supplied to compare with GPU accelerated algorithms, and for users who do not have a compatible GPU.
 
-\section{Theorem}
-\section{Performance Metrics}
-\subsection{Coding Gain}
-\section{Conclusion}
+\section{Results}
+
+\subsection{Encoding}
+Lena.tiff (512x512 pixels, 787 KB) was used as a test image on a 2.4 GHz Core 2 Duo MacBook Pro with 2 GB of available RAM. Encoding was performed using all eight possible encoding permutations at multiple compression ratios, 0\%, 50\%, and 90\%. At all three compression levels, all three encoding methods combined still completed with a maximum runtime time of 1.53 seconds. Runtimes for decoding were generally significantly higher, as can be seen in Table \ref{table:decode_times}. Performing run-length decoding was insignificantly more costly than performing no decoding, and both methods were significantly more efficient than the other encoding methods. Times were similar for all three compression levels, as expected.
+
+\begin{table}[htdp]
+\caption{Decoding runtimes}
+\vskip -15pt
+\label{table:decode_times}
+\small{
+\begin{center}
+\begin{tabular}{|r|c|}
+\hline
+ & Runtime (s) \\
+ \hline
+ \textbf{None} & \textbf{0.726}\\
+ \hline
+ Huffman & 7.126\\
+ \hline
+ \textbf{Run-Length} & \textbf{0.749}\\
+ \hline
+ Arithmetic & 8.318\\
+ \hline
+ Arith. over Huff. & 10.544\\
+ \hline
+ Huff. over Run & 6.648\\
+ \hline
+ Arith. over Run & 6.851\\
+ \hline
+ Arith. over Huff. over Run & 9.897\\
+ \hline
+\end{tabular}
+\end{center}
+}
+\end{table}
+
+The file sizes generated at all three compression ratios and under all encoding permutations can be seen in Table \ref{table:filesize}. While it would be expected to be the case that a combination of all three encoding methods would produce the smallest file size, it is not the case. This can be blamed on the implementation of arithmetic encoding, which consistently doubles the file size when used, as it encodes four symbols (1-byte unsigned chars) in a double (8-bytes). This is because the implementation used does not include scaling and thus runs out of precision early in its execution when a large number of symbols (256) is used. Of all the single-option methods, Huffman compression generates the smallest file size, even including the symbol lookup table, but this is improved by first using run-length encoding to reduce the number of symbols to encode. As this method has an acceptable decoding runtime as well, this could be implemented as the default .ppc encoding method.
+
+\begin{table}[htdp]
+\caption{Filesize by encoding technique and compression percentage}
+\vskip -15pt
+\label{table:filesize}
+\small{
+\begin{center}
+\begin{tabular}{|r|c|c|c|}
+\hline
+ & 0\%  & 50\% & 90\% \\
+ \hline
+ None & 2.1 MB & 2.1 MB & 2.1 MB\\
+ \hline
+ Huffman & 872 KB & 827 KB & 389 KB\\
+ \hline
+ Run-Length & 1.7 MB & 1.5 MB & 311 KB\\
+ \hline
+ Arithmetic & 4.2 MB & 4.2 MB & 4.2 MB\\
+ \hline
+ Arith. over Huff. & 1.7 MB & 1.7 MB & 774 KB\\
+ \hline
+ \textbf{Huff. over Run} & \textbf{831 KB} & \textbf{786 KB} & \textbf{152 KB}\\
+ \hline
+ Arith. over Run & 3.3 MB & 3 MB & 681 KB\\
+ \hline
+ Arith. over Huff. over Run & 1.7 MB & 1.6 MB & 299 KB\\
+ \hline
+\end{tabular}
+\end{center}
+}
+\end{table}
 
 %\nocite{*}
 \bibliographystyle{IEEEbib}
