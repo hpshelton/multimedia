@@ -255,14 +255,42 @@ void MainWindow::crop()
 		int y2 = y_bottom->text().toInt(&accepted4);
 		if(accepted1 && accepted2 && accepted3 && accepted4 && x1 >= 0 && x2 >= 0 && y1 >= 0 && y2 >= 0)
 		{
-			// crop using x1, x2, y1, y2
-			hasChanged = true;
-			timer.restart();
-			if(this->video)
-				this->video_display->setRightVideo(crop_video(x1, x2, y1, y2), -1, false);
+			int width = (this->video) ? this->video_display->getRightVideo()[0]->width() : this->image_display->getLeftImage()->width();
+			int height = (this->video) ? this->video_display->getRightVideo()[0]->height() : this->image_display->getLeftImage()->height();
+
+			// Validate the target dimensions
+			if(x2 < width && y2 < height)
+			{
+				if(x2 - x1 > 0 && y2 - y1 > 0)
+				{
+					// crop using x1, x2, y1, y2
+					hasChanged = true;
+					timer.restart();
+					if(this->video)
+						this->video_display->setRightVideo(crop_video(x1, x2, y1, y2), -1, false);
+					else
+						this->image_display->setRightImage(crop_image(this->image_display->getRightImage(), x1, x2, y1, y2));
+					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+				}
+				else
+				{
+					QMessageBox* error = new QMessageBox(this);
+					error->setText("Invalid Crop Dimensions!                            ");
+					error->setIcon(QMessageBox::Critical);
+					error->setInformativeText("Coordinates are switched or image size is zero.");
+					error->exec();
+					delete error;
+				}
+			}
 			else
-				this->image_display->setRightImage(crop_image(this->image_display->getRightImage(), x1, x2, y1, y2));
-			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+			{
+				QMessageBox* error = new QMessageBox(this);
+				error->setText("Invalid Crop Dimensions!                       ");
+				error->setIcon(QMessageBox::Critical);
+				error->setInformativeText("A dimension exceeds the size of the image.");
+				error->exec();
+				delete error;
+			}
 		}
 		else
 		{

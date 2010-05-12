@@ -40,10 +40,6 @@ QImage* MainWindow::brighten_image(QImage* img, float factor)
 		}
 	}
 
-	FILE* brightenFrame = fopen("brightenframe","w");
-	fwrite(img->bits(), 1, img->byteCount(),brightenFrame);
-	fclose(brightenFrame);
-
 	return img;
 }
 

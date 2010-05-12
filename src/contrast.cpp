@@ -35,7 +35,7 @@ QImage* MainWindow::contrast_image(QImage* img, float factor)
 	}
 	else
 	{
-		int r = 0, g = 0, b = 0;
+		float r = 0, g = 0, b = 0;
 
 		// Modify the contrast
 		for(int y = 0; y < height; y++)
