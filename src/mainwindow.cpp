@@ -180,6 +180,9 @@ void MainWindow::grayscale()
 	else
 		this->image_display->setRightImage(grayscale_image(this->image_display->getRightImage()));
 	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+#ifdef DEBUGPRINT
+	printf("%d\n",timer.elapsed());fflush(stdout);
+#endif
 }
 
 void MainWindow::rotate()
@@ -203,6 +206,9 @@ void MainWindow::rotate()
 			else
 				this->image_display->setRightImage(rotate_image(this->image_display->getRightImage(), a));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+#ifdef DEBUGPRINT
+	printf("%d\n",timer.elapsed());fflush(stdout);
+#endif
 		}
 		else
 		{
@@ -271,6 +277,9 @@ void MainWindow::crop()
 					else
 						this->image_display->setRightImage(crop_image(this->image_display->getRightImage(), x1, x2, y1, y2));
 					this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+				#ifdef DEBUGPRINT
+					printf("%d\n",timer.elapsed());fflush(stdout);
+				#endif
 				}
 				else
 				{
@@ -324,6 +333,9 @@ void MainWindow::scale()
 			else
 				this->image_display->setRightImage(scale_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+		#ifdef DEBUGPRINT
+			printf("%d\n",timer.elapsed());fflush(stdout);
+		#endif
 		}
 		else
 		{
@@ -354,6 +366,9 @@ void MainWindow::brighten()
 			else
 				this->image_display->setRightImage(brighten_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+		#ifdef DEBUGPRINT
+			printf("%d\n",timer.elapsed());fflush(stdout);
+		#endif
 		}
 		else
 		{
@@ -384,6 +399,9 @@ void MainWindow::contrast()
 			else
 				this->image_display->setRightImage(contrast_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+		#ifdef DEBUGPRINT
+			printf("%d\n",timer.elapsed());fflush(stdout);
+		#endif
 		}
 		else
 		{
@@ -414,6 +432,9 @@ void MainWindow::saturate()
 			else
 				this->image_display->setRightImage(saturate_image(this->image_display->getRightImage(), factor));
 			this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+		#ifdef DEBUGPRINT
+			printf("%d\n",timer.elapsed());fflush(stdout);
+		#endif
 		}
 		else
 		{
@@ -436,6 +457,9 @@ void MainWindow::blur()
 	else
 		this->image_display->setRightImage(blur_image(this->image_display->getRightImage()));
 	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+#ifdef DEBUGPRINT
+	printf("%d\n",timer.elapsed());fflush(stdout);
+#endif
 }
 
 void MainWindow::edgeDetection()
@@ -447,6 +471,9 @@ void MainWindow::edgeDetection()
 	else
 		this->image_display->setRightImage(edge_detect(this->image_display->getRightImage()));
 	this->timerText->setText(QString("Elapsed Time: %1ms").arg(timer.elapsed()));
+#ifdef DEBUGPRINT
+	printf("%d\n",timer.elapsed());fflush(stdout);
+#endif
 }
 
 void MainWindow::compress()
@@ -539,6 +566,9 @@ void MainWindow::compress()
 				timer.restart();
 				display->setRightImage(Encoder::compress_image_preview(this->image_display->getRightImage(), factor, &psnr, CUDA_CAPABLE && CUDA_ENABLED));
 				time = timer.elapsed();
+			#ifdef DEBUGPRINT
+				printf("%d\n",timer.elapsed());fflush(stdout);
+			#endif
 				this->timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				timerText->setText(QString("Elapsed Time: %1ms").arg(time));
 				psnrText->setText(QString("PSNR: %1dB").arg(psnr));

@@ -37,7 +37,7 @@ CUDA allows the programmer to allocate the GPU's multiprocessors in order to run
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.35\textwidth]{Images/cudaBlocks.png}
+\includegraphics[width=0.35\textwidth]{cudaBlocks.png}
 \caption{Task allocation between grids, blocks, and threads in a GPU}
 \label{fig:cudaBlocks}
 \end{center}
@@ -49,8 +49,8 @@ Memory on the GPU is divided into global memory, which is accessible from each t
 
 \begin{figure}[h]
 \begin{center}
-\includegraphics[width=0.35\textwidth]{Images/cudaMem.png}
-\caption{The GPU memory hierarchy}
+\includegraphics[width=0.35\textwidth]{cudaMem.png}
+\caption{GPU memory heirarchy}
 \label{fig:cudaMem}
 \end{center}
 \end{figure}
@@ -107,7 +107,7 @@ The two compression algorithms that were implemented both sequentially and in pa
 
 \subsection{Image Compression}
 	
-The particular implementation of the DWT that was used was the lifting implementation. This implementation is the same one used in the JPEG2000 standard. The forward transform (FWT) works on an array of real values. The values are filtered into low and high frequency sub-bands, which are each downsampled by a factor of two. This is done with two prediction filters and two update filters. A prediction filter sums each odd index with a scalar multiple ($\lambda$) of the sum of its neighbors, while an update filter does the same, but for even indices. The coefficients used were $\lambda_{predict0}$ = -1.586134342, $\lambda_{update0}$ = -0.05298011854, $\lambda_{predict1}$ = 0.8829110762, and $\lambda_{update1}$ = 0.4435068522. The result is an array of the same length, with the high pass sub-band retained in the odd indices of the array and the low pass sub-band is retained in the even indices of the array. The inverse transform (IWT) is preformed using the same computational structure, but with the filters in reverse order and using the negatives of their coefficients.
+The particular implementation of the DWT that was used was the lifting implementation. This implementation is the same one used in the JPEG2000 standard. The forward transform (FWT) works on an array of real values. The values are filtered into low and high frequency sub-bands, which are each downsampled by a factor of two. This is done with two preditction filters and two update filters. A prediction filter sums each odd index with a scalar multiple ($\lambda$) of the sum of its neighbors, while an update filter does the same, but for even indices. The coefficients used were $\lambda_{predict0}$ = -1.586134342, $\lambda_{update0}$ = -0.05298011854, $\lambda_{predict1}$ = 0.8829110762, and $\lambda_{update1}$ = 0.4435068522. The result is an array of the same length, with the high pass sub-band retained in the odd indices of the array and the low pass sub-band is retained in the even indices of the array. The inverse transform (IWT) is preformed using the same computational structure, but with the filters in reverse order and using the negatives of their coefficients.
 
 A sketch of the parallel algorithm for image transformation is as follows. First, the image is transferred into GPU memory. The different color components must be transformed separately, so the 32 bit 0xffRRGGBB image data is rearranged such that all the red, blue, and green values are in continuous memory. This is done in one parallel step, where each thread moves one color value, and is not done in-place. Each row of each continuous color region is then transformed in parallel. Due to the iterative nature of the FWT, the algorithm cannot be preformed in one step. Once each row is transformed, each continuous color region is transposed separately. The FWT is then applied to each row (previously column) of each continuous color region in parallel. This completes the one level 2D FWT. Another transpose, FWT, transpose, and FWT is applied to perform the two level 2D FWT.
 
@@ -120,109 +120,35 @@ A closed-loop DPCM uniform quantizer with motion estimation was implemented for 
 
 Decoding is simpler than encoding and involves simply summing the previous decoded frame, $\hat{x}[n-1]$, shifted by the motion vectors, with the inverse quantized incoming frame, $\hat{d}[n]$.
 
-The parallelization comes into play with the search for optimal motion vectors. As previously stated, simple operations such as matrix addition or subtraction do not offer significant speedup when preformed on the GPU. An exhaustive search for motion vectors lends itself well to parallelization, however. Each block on the GPU is assigned one 8x8 block of pixels and is given the current and previous frames. Each thread within that block is assigned one motion vector, and calculates the sum of the absolute values of the differences between the pixels within the current and previous block, shifted by the motion vector. From this pool of all potential motion vectors, a parallel reduction is preformed, reducing the time to find the minimum value in an array from \O{n} in a serial implementation to \O{log(n)} in parallel. The first iteration of the reduction compares n/2 sets of 2 elements, and returns the smallest of each. The next iteration then compares n/4 sets of 2 elements, and returns the smallest of each. This continues until the smallest element is found. In this case, the motion vector with the smallest mean absolute difference is found and returned. An example can be seen graphically in Figure \ref{fig:reduction}.
-
-\begin{figure}[htbp]
-\begin{center}
-\includegraphics[width=0.35\textwidth]{Images/reduction.png}
-\caption{Reduction algorithm in a GPU}
-\label{fig:reduction}
-\end{center}
-\end{figure}
+The parallelization comes into play with the search for optimal motion vectors. As previously stated, simple operations such as matrix addition or subtraction do not offer significant speedup when preformed on the GPU. An exhaustive search for motion vectors lends itself well to parallelization, however. Each block on the GPU is assigned one 8x8 block of pixels and is given the current and previous frames. Each thread within that block is assigned one motion vector, and calculates the sum of the absolute values of the differences between the pixels within the current and previous block, shifted by the motion vector. From this pool of all potential motion vectors, a parallel reduction is preformed, reducing the time to find the minimum value in an array from \O{n} in a serial implementation to \O{log(n)} in parallel. The first iteration of the reduction compares n/2 sets of 2 elements, and returns the smallest of each. The next iteration then compares n/4 sets of 2 elements, and returns the smallest of each. This continues until the smallest element is found. In this case, the motion vector with the smallest mean absolute difference is found and returned.
 
 Sample code which came with the CUDA SDK was modified and used for both the reduction and the transpose. A second set of non-parallelized algorithms are also supplied to compare with GPU accelerated algorithms, and for users who do not have a compatible GPU.
 
-\section{Results}
-
-\subsection{Image and Video Editing}
-%Each number in this section is the average of twenty runs. 
-On the GPU edge-detection was performed on "world.jpg" (1024x1024 pixels) in an average of 153.9 ms. The same operation on the CPU took 372.9 ms on average, for a speedup of 2.42 times. These results can also be representative of the blurring operation, as both operations perform a 3x3 pixel convolution, just with a different mask.
-
-On the GPU, "world.jpg" was turned to grey in 53.45 ms. The same operation on the CPU took 102.85 ms, for a resulting speedup of 1.92 times. This speedup is also representative of the contrast, saturate, and brighten operations, as they are all per-pixel operations.
-
-Rotate, crop, and scale had no analogous GPU functions implemented with which to compare performance. 
-
-Video editing was preformed frame-wise, so the speedups would be the same as for the still image cases.
+\section{Theorem}
+\section{Performance Metrics}
+Since speed was the ultimate goal of this project, time elapsed for each operation was measured. In addition, image quality per compression  and filesize after encoding were measured. Each number in this section is the average of twenty runs.
 
 \subsection{Image Compression}
-%Each number in this section is the average of twenty runs. 
-On the GPU, "lena.jpg" (512x512 pixels) was transformed and inverse transformed in 136.95 ms on average. The same pair of transforms on the CPU averaged 374.95 ms. The resulting speedup was 2.74 times. On the GPU, "monarch.jpg" (768x512 pixels) was transformed and inverse transformed in 198.1 ms. The same transforms on the CPU took 557.35 ms, for a speedup of 2.81 times.
+On the GPU, lena.jpg, a 512x512 image, was transformed and inverse transformed in 136.95ms. The same pair of transforms on the CPU took 374.95ms. The resulting speedup was 2.74x. On the GPU, monarch.jpg, a 768x512 image, was transformed and inverse transformed in 198.1ms. The same transforms on the CPU took 557.35ms. The resulting speedup was 2.81x.
 
 As seen in the graphs PUT FIGURE NUMBERS HERE, the program was able to maintain a relatively high PSNR of about 30dB while zeroing out up to 95 percent of the coefficients. The transform and inverse transform are not lossless, as even if the deadzone of the quantizer does not exist, it still rounds coefficients to integer values.
 
 \subsection{Video Compression}
-Each number in this section is the average of twenty runs. Glasgow100.qcif and bus.cif were used to test video encoding speed. Glasgow100.qcif contains 100 frames of 176x144 video. Bus.cif contains 150 frames of 352x288 video.
+Glasgow100.qcif and bus.cif were used to test video encoding speed. Glasgow100.qcif contains 100 frames of 176x144 video. Bus.cif contains 150 frames of 352x288 video.
 
 On the GPU, glasgow100.qcif was encoded in 3465.44ms. On the CPU, glasgow100.qcif was encoded in 34274.95ms. The resulting speedup was 9.89x. The On the GPU, bus.cif was encoded in 21303.86ms. On the CPU, bus.cif was encoded in 206443.33ms. The resulting speedup was 9.69x.
 
 As seen in the graphs PUT FIGURE NUMBERS HERE, the program was able to maintain a PSNR of over 30dB when it had more than approximately 100 quantization levels. Interestingly, there are spikes of very high quality video for quantization levels which are powers of two. The PSNR when there were 512 quantization levels was infinite, meaning that compression was lossless.
 
 \subsection{Encoding}
-"Lena.tif" (512x512 pixels, 787 KB) was used as a test image on a 2.4 GHz Core 2 Duo MacBook Pro with 2 GB of available RAM. Encoding was performed using all eight possible encoding permutations at multiple compression ratios, 0\%, 50\%, and 90\%. At all three compression levels, all three encoding methods combined still completed with a maximum runtime time of 1.53 seconds. Runtimes for decoding were generally significantly higher, as can be seen in Table \ref{table:decode_times}. Performing run-length decoding was insignificantly more costly than performing no decoding, and both methods were significantly more efficient than the other encoding methods. Times were similar for all three compression levels, as expected.
 
-\begin{table}[htdp]
-\caption{Decoding runtimes}
-\vskip -15pt
-\label{table:decode_times}
-\small{
-\begin{center}
-\begin{tabular}{|r|c|}
-\hline
- & Runtime (s) \\
- \hline
- \textbf{None} & \textbf{0.726}\\
- \hline
- Huffman & 7.126\\
- \hline
- \textbf{Run-Length} & \textbf{0.749}\\
- \hline
- Arithmetic & 8.318\\
- \hline
- Arith. over Huff. & 10.544\\
- \hline
- Huff. over Run & 6.648\\
- \hline
- Arith. over Run & 6.851\\
- \hline
- Arith. over Huff. over Run & 9.897\\
- \hline
-\end{tabular}
-\end{center}
-}
-\end{table}
+\subsection{Image and Video Editing}
+On the GPU, world.jpg, a 1024x1024 image, was edge-detected in 153.9ms. The same operation on the CPU took 372.9ms. The speedup was 2.42x. These results can also be representitave of the bluring operation, as both operations preform a 3x3 pixel convolution, just with a different mask.
 
-The file sizes generated at all three compression ratios and under all encoding permutations can be seen in Table \ref{table:filesize}. While it would be expected to be the case that a combination of all three encoding methods would produce the smallest file size, it is not the case. This can be blamed on the implementation of arithmetic encoding, which consistently doubles the file size when used, as it encodes four symbols (1-byte unsigned chars) in a double (8-bytes). This is because the implementation used does not include scaling and thus runs out of precision early in its execution when a large number of symbols (256) is used. Of all the single-option methods, Huffman compression generates the smallest file size, even including the symbol lookup table, but this is improved by first using run-length encoding to reduce the number of symbols to encode. As this method has an acceptable decoding runtime as well, this could be implemented as the default .ppc encoding method.
+On the GPU, world.jpg was turned to grey in 53.45ms. The same operation on the CPU took 102.85ms. The resulting speedup was 1.92x. This result is also representative of the contrast, saturate, and brighten opearations, as they are all per-pixel operations.
 
-\begin{table}[htdp]
-\caption{Filesize by encoding technique and compression percentage}
-\vskip -15pt
-\label{table:filesize}
-\small{
-\begin{center}
-\begin{tabular}{|r|c|c|c|}
-\hline
- & 0\%  & 50\% & 90\% \\
- \hline
- None & 2.1 MB & 2.1 MB & 2.1 MB\\
- \hline
- Huffman & 872 KB & 827 KB & 389 KB\\
- \hline
- Run-Length & 1.7 MB & 1.5 MB & 311 KB\\
- \hline
- Arithmetic & 4.2 MB & 4.2 MB & 4.2 MB\\
- \hline
- Arith. over Huff. & 1.7 MB & 1.7 MB & 774 KB\\
- \hline
- \textbf{Huff. over Run} & \textbf{831 KB} & \textbf{786 KB} & \textbf{152 KB}\\
- \hline
- Arith. over Run & 3.3 MB & 3 MB & 681 KB\\
- \hline
- Arith. over Huff. over Run & 1.7 MB & 1.6 MB & 299 KB\\
- \hline
-\end{tabular}
-\end{center}
-}
-\end{table}
+Rotate, crop, and scale had no analogous GPU functions.
+Video editing was preformed framewise, so the speedups would be the same as for the still image case.
 
 \section{Conclusion}
 For glasgow100.qcif, on the GPU, each frame was calculated in 34.6544ms. This time equates to encoding 28.85 frames per second. This means that the application can preform the exhaustive search for the optimal mean absolute difference motion vectors in real time. Each frame in bus.cif was encoded in 142.02ms on the GPU, which equates to 7.04 frames per second. For a video of this size, real time motion estimation was not achieved.

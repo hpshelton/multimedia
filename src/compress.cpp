@@ -41,10 +41,8 @@ int* Encoder::compress_image(QImage* img, float compression, bool CUDA, unsigned
 		threshold = 0.873366*compression + 12.532677;
 	else if(compression < 94.001099)
 		threshold = 153.426432*pow(compression,4) - 57142.000968*pow(compression,3) + 7980724.953524*pow(compression,2) - 495389786.739970*compression + 11531433455.627500;
-	else if(compression < 98.455238)
-		threshold = 0.0000000000320307431396312 * pow(E,0.315611691031623*compression);
 	else
-		threshold = 1.053774*compression - 3.773881;
+		threshold = 0.0000000000320307431396312 * pow(E,0.315611691031623*compression);
 #else
 	if(compression < 19.4963201)
 		threshold = 0;
@@ -238,6 +236,17 @@ QImage* Encoder::compress_image_preview(QImage* img, float factor, double* psnr,
 
 	*psnr = Utility::psnr(img->bits(), decompressed->bits(), img->byteCount());
 
+#ifdef DEBUGPRINT
+	int i, zeroCoeff=0;
+	for(i=0; i < img->width()*img->height()*4; i++){
+		if(compressed[i]==0)
+			zeroCoeff++;
+	}
+	float pct = 100*(zeroCoeff)/(float)(img->width()*img->height()*4);
+
+	printf("%f\t%f\t%f\t",factor, pct, *psnr);
+#endif
+
 	free(compressed);
 	return decompressed;
 }
@@ -339,7 +348,8 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 				vecArr[i] =   motVecFrame(original[i + start_frame-1]->bits(), frame_bits, height, width);
 		}
 
-		if(i==2) // Print file for Matlab motion vector analysis
+#ifdef DEBUGPRINT
+		if(i==2) // Print file for Matlab motion vector analysis. Only works for qcif video, always pulls the third frame. rm won't work on non-unix systems
 		{
 			FILE* secondFrame = fopen("secondFrame.txt","w");
 			for(int y = 0; y < CEIL(height/8); y++){
@@ -353,7 +363,7 @@ int** Encoder::compress_video(QImage** original, int start_frame, int end_frame,
 			u.MfileConverter("secondFrame.txt", "vectors.m");
 			system("rm secondFrame.txt");
 		}
-
+#endif
 		for(int j=0; j < height; j++){
 			for (int k=0; k < width*4; k++){
 				xVec = vecArr[i][(int)j/8 + (int)k/32 * CEIL(height/8)].x;
@@ -423,12 +433,6 @@ QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int
 	*time = timer.elapsed();
 	QImage** output = Decoder::decompress_video(comp, frames, vec, compression, original[0]->height(), original[0]->width());
 
-	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
-	printf("PCT_ZEROS: %7.4f\n", pctZeros);
-	double avgval = Utility::avg_val(comp, frames, original[0]->height()*original[0]->width()*4);
-	printf("AVG_VAL: %f\n",avgval);
-	fflush(stdout);
-
 	for(int f = 0; f < frames; f++)
 	{
 		free(vec[f]);
@@ -438,6 +442,12 @@ QImage** Encoder::compress_video_preview(QImage** original, int start_frame, int
 	free(vec);
 
 	*psnr = Utility::psnr_video(original, output, frames);
+
+#ifdef DEBUGPRINT
+	double pctZeros = Utility::pct_zeros(comp, frames, original[0]->height()*original[0]->width()*4);
+	printf("%f\t%f\t%f\t\n", pctZeros, *time, *psnr);
+	fflush(stdout);
+#endif
 
 	return output;
 }

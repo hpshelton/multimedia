@@ -163,7 +163,7 @@ void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 	CUtranspose(&output[row*col*3], &outputT[row*col*3], col,row);
 
 	fwt2D_row(output, tempbank, row*col*4, row, dim, numBlocks, threadsPerBlock, col,row);
-#ifdef TWODFWT
+//#ifdef TWODFWT
 	CUtranspose(&outputT[0],         &output[0], row,col);
 	CUtranspose(&outputT[row*col*1], &output[row*col*1], row,col);
 	CUtranspose(&outputT[row*col*2], &output[row*col*2], row,col);
@@ -177,7 +177,7 @@ void CUfwt97_2D_rgba(int* outputInt, unsigned char* input, int row, int col)
 	CUtranspose(&output[row*col*3], &outputT[row*col*3], col,row);
 
 	fwt2D_row(output, tempbank, row*col*4, row, dim, numBlocks, threadsPerBlock, col,row);
-#endif
+//#endif
 	roundArray<<<blocks,threads>>>(outputInt, output, col, row);
 
 	cutilSafeCall(cudaFree(tempbank));
@@ -216,7 +216,7 @@ void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 	CUtranspose(&inputT[row*col*3], &input[row*col*3], row,col);
 
 	iwt2D_row(inputT, tempbank,row*col*4,col,dim,numBlocks, threadsPerBlock, col,row);
-#ifdef TWODFWT
+//#ifdef TWODFWT
 	CUtranspose(&input[0]        , &inputT[0], col,row);
 	CUtranspose(&input[row*col*1], &inputT[row*col*1], col,row);
 	CUtranspose(&input[row*col*2], &inputT[row*col*2], col,row);
@@ -230,7 +230,7 @@ void CUiwt97_2D_rgba(unsigned char* output, int* inputInt, int row, int col)
 	CUtranspose(&inputT[row*col*3], &input[row*col*3], row,col);
 
 	iwt2D_row(inputT, tempbank,row*col*4,col,dim,numBlocks, threadsPerBlock, col,row);
-#endif
+//#endif
 	UNshuffle<<<blocks,threads>>>(output, inputT, col, row);
 
 	cutilSafeCall(cudaFree(input));

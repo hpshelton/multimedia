@@ -1,6 +1,8 @@
 #ifndef MAINWINDOW_H
 #define MAINWINDOW_H
 
+//#define DEBUGPRINT
+
 #include <QMainWindow>
 #include <QCloseEvent>
 #include <QToolBar>
